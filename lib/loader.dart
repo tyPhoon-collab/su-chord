@@ -18,14 +18,19 @@ abstract interface class AudioLoader {
 }
 
 final class SimpleAudioLoader implements AudioLoader {
-  const SimpleAudioLoader({required this.path});
+  const SimpleAudioLoader({this.path, this.bytes})
+      : assert(path != null || bytes != null);
 
-  final String path;
+  final String? path;
+  final Uint8List? bytes;
 
   @override
   Future<AudioData> load() async {
-    final wav = await Wav.readFile(path);
+    final wav = await _read();
     final buffer = wav.toMono();
     return AudioData(buffer: buffer, sampleRate: wav.samplesPerSecond);
   }
+
+  Future<Wav> _read() =>
+      path == null ? Future.value(Wav.read(bytes!)) : Wav.readFile(path!);
 }

@@ -40,24 +40,26 @@ void main() {
     // 28	130.813	ド3	C3
     // 29	138.591	ド#3	C#3
 
-    final maxIndex = _maxIndex(spectrogram[10]);
+    final maxIndex = _findMaxIndex(spectrogram[10]);
 
     expect(maxIndex, (130.813 / freqResolution).round());
   });
 }
 
-// 配列のmaxIndexを出す関数
-int _maxIndex(List<num> array) {
-  // 最大値とそのインデックスを初期化
+int _findMaxIndex(List<num> array) {
+  if (array.isEmpty) {
+    throw ArgumentError('Array cannot be empty');
+  }
+
   num max = array[0];
-  int index = 0;
-  // 配列の要素をループして最大値とそのインデックスを更新
+  int maxIndex = 0;
+
   for (int i = 1; i < array.length; i++) {
     if (array[i] > max) {
       max = array[i];
-      index = i;
+      maxIndex = i;
     }
   }
-  // 最大値のインデックスを返す
-  return index;
+
+  return maxIndex;
 }
