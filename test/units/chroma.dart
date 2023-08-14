@@ -13,4 +13,15 @@ void main() {
 
     expect(chromaList, isNotEmpty);
   });
+
+  test('reassignment chroma eval', () async {
+    final c = ReassignmentChromaCalculator();
+
+    const loader =
+        SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+    final data = await loader.load();
+    final chromaList = c.chroma(data);
+
+    expect(chromaList, isNotEmpty);
+  });
 }

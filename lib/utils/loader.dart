@@ -14,7 +14,7 @@ class AudioData {
 }
 
 abstract interface class AudioLoader {
-  Future<AudioData> load();
+  Future<AudioData> load({double? duration});
 }
 
 final class SimpleAudioLoader implements AudioLoader {
@@ -25,10 +25,16 @@ final class SimpleAudioLoader implements AudioLoader {
   final Uint8List? bytes;
 
   @override
-  Future<AudioData> load() async {
+  Future<AudioData> load({double? duration}) async {
     final wav = await _read();
-    final buffer = wav.toMono();
-    return AudioData(buffer: buffer, sampleRate: wav.samplesPerSecond);
+
+    final sr = wav.samplesPerSecond;
+
+    var buffer = wav.toMono();
+    if (duration != null) {
+      buffer = buffer.sublist(0, (duration * sr).toInt());
+    }
+    return AudioData(buffer: buffer, sampleRate: sr);
   }
 
   Future<Wav> _read() =>

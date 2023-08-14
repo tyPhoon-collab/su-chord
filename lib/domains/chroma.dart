@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter/widgets.dart';
 
+import '../config.dart';
 import '../utils/equal_temperament.dart';
 import '../utils/loader.dart';
 import '../utils/plot.dart';
@@ -37,7 +38,9 @@ Float64x2 _div(Float64x2 a, Float64x2 b) {
 }
 
 class ReassignmentChromaCalculator implements ChromaCalculable {
-  ReassignmentChromaCalculator({this.chunkSize = 2048}) {
+  ReassignmentChromaCalculator(
+      {this.chunkSize = Config.chunkSize, int? chunkStride})
+      : chunkStride = chunkStride ?? chunkSize ~/ 4 {
     final window = Window.hanning(chunkSize);
 
     final windowD = Float64List.fromList(window
@@ -52,25 +55,31 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   }
 
   final int chunkSize;
+  final int chunkStride;
   late final STFT stft;
   late final STFT stftD;
   late final STFT stftT;
 
   List<Float64List> magnitudes = [];
+  WeightedHistogram2d? histogram2d;
+  double dt = 0;
+  double df = 0;
+  Bin binX = [];
 
-  static final equalTemperament = EqualTemperament();
+  Bin get binY => equalTemperament.bin;
+
+  final equalTemperament = EqualTemperament();
 
   @override
   List<Chroma> chroma(AudioData data) {
     const interval = 4.0;
 
     final points = reassign(data);
-    final binX =
-        List.generate(data.duration ~/ interval, (index) => index * interval)
-          ..add(data.duration);
-    final hist = WeightedHistogram2D.from(points,
-        binX: binX, binY: equalTemperament.bin);
-    return hist.values.map(_fold).toList();
+    binX = List.generate(
+        (data.duration / interval).ceil(), (index) => index * interval);
+    binX[binX.length - 1] = data.duration;
+    histogram2d = WeightedHistogram2d.from(points, binX: binX, binY: binY);
+    return histogram2d!.values.map(_fold).toList();
   }
 
   PCP _fold(List<double> value) {
@@ -91,25 +100,37 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   List<Point> reassign(AudioData data) {
     final s = <Float64x2List>[];
 
-    stft.run(data.buffer, (freq) {
-      final f = freq.discardConjugates();
-      s.add(f);
-      magnitudes.add(f.magnitudes());
-    });
+    stft.run(
+      data.buffer,
+      (freq) {
+        final f = freq.discardConjugates();
+        s.add(f);
+        magnitudes.add(f.magnitudes());
+      },
+      chunkStride,
+    );
 
     final sD = <Float64x2List>[];
-    stftD.run(data.buffer, (freq) {
-      sD.add(freq.discardConjugates());
-    });
+    stftD.run(
+      data.buffer,
+      (freq) {
+        sD.add(freq.discardConjugates());
+      },
+      chunkStride,
+    );
 
     final sT = <Float64x2List>[];
-    stftT.run(data.buffer, (freq) {
-      sT.add(freq.discardConjugates());
-    });
+    stftT.run(
+      data.buffer,
+      (freq) {
+        sT.add(freq.discardConjugates());
+      },
+      chunkStride,
+    );
 
     final points = <Point>[];
-    final dt = chunkSize / data.sampleRate;
-    final df = data.sampleRate / chunkSize;
+    dt = chunkStride / data.sampleRate;
+    df = data.sampleRate / chunkSize;
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {

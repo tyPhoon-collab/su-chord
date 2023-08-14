@@ -16,18 +16,19 @@ class Point {
 ///final obj = WeightedHistogram2D(...)
 ///obj.add(...)
 ///obj.value[0] -> y軸のデータ(周波数)が得られるように設計
-class WeightedHistogram2D {
-  WeightedHistogram2D({required this.binX, required this.binY})
+class WeightedHistogram2d {
+  WeightedHistogram2d({required this.binX, required this.binY})
       : assert(binX.isNotEmpty),
         assert(binY.isNotEmpty) {
     values = List.filled(binX.length - 1, List.filled(binY.length - 1, 0.0));
   }
 
-  factory WeightedHistogram2D.from(Iterable<Point> points, {
+  factory WeightedHistogram2d.from(
+    Iterable<Point> points, {
     required Bin binX,
     required Bin binY,
   }) {
-    final obj = WeightedHistogram2D(binX: binX, binY: binY);
+    final obj = WeightedHistogram2d(binX: binX, binY: binY);
     points.forEach(obj.add);
     return obj;
   }
@@ -47,7 +48,7 @@ class WeightedHistogram2D {
 
   int? _index(double val, List<double> bin) {
     for (int i = 0; i < bin.length - 1; ++i) {
-      if (val < bin[i]) return 0;
+      if (val < bin[i]) return null;
       if (bin[i] <= val && val < bin[i + 1]) {
         return i;
       }

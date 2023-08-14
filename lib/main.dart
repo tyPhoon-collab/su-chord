@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'plot.dart';
+import 'widgets/pages/plot.dart';
 
 void main() {
   runApp(const MyApp());

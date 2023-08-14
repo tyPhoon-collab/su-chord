@@ -35,7 +35,6 @@ dependencies:
 
   # core
   collection: ^1.17.2
-  scidart: ^0.0.2-dev.12
   js: ^0.6.7
 
   # sound
@@ -79,6 +78,7 @@ flutter:
   assets:
     - assets/
     - assets/evals/
+    - assets/evals/Halion_CleanGuitarVX/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

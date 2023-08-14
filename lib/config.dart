@@ -1,4 +1,6 @@
 class Config {
   //TODO あとでstatic変数は排除する
-  static int sampleRate = 22050;
+  static const sampleRate = 22050;
+
+  static const chunkSize = 4096;
 }
