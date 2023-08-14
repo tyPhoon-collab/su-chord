@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
@@ -86,8 +87,9 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
       for (int j = 0; j < s[i].length; ++j) {
         points.add(
           Point(
-            x: i * dt + _div(sT[i][j], s[i][j]).x,
-            y: j * df - _div(sD[i][j], s[i][j]).y,
+            x: i * dt + _div(sT[i][j], s[i][j]).x / data.sampleRate,
+            y: j * df -
+                _div(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi),
             weight: magnitudes[i][j],
           ),
         );

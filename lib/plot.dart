@@ -9,7 +9,7 @@ import 'domains/chroma.dart';
 import 'loader.dart';
 import 'log_plot.dart';
 
-class PlotPage extends StatelessWidget {
+class PlotPage extends StatefulWidget {
   const PlotPage({
     super.key,
     this.chunkSize = 2048,
@@ -17,27 +17,58 @@ class PlotPage extends StatelessWidget {
 
   final int chunkSize;
 
-  List<FlSpot> get _win1 => Window.hanning(chunkSize)
-      .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-      .toList();
+  @override
+  State<PlotPage> createState() => _PlotPageState();
+}
 
-  List<FlSpot> get _win2 {
-    final hanning = Window.hanning(chunkSize);
-    final win = hanning.mapIndexed(
-        (index, data) => data - (index > 0 ? hanning[index - 1] : 0.0));
-    return win
-        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-        .toList();
+class _PlotPageState extends State<PlotPage> {
+  List<ScatterSpot> _spots = [];
+  AudioData? _audioData;
+
+  late final List<List<ScatterSpot> Function(AudioData)> _getSpotsFunctions = [
+    _magnitudes,
+    _reassigned
+  ];
+
+  int _getSpotsFunctionsIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load().then((value) {
+      _audioData = value;
+      _changeSpots();
+    });
   }
 
-  List<FlSpot> get _win3 {
-    final hanning = Window.hanning(chunkSize);
-    final win =
-        hanning.mapIndexed((index, data) => data * (index - chunkSize / 2));
-    return win
-        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-        .toList();
+  void _changeSpots() {
+    if (_audioData == null) return;
+    setState(() {
+      final index = _getSpotsFunctionsIndex++ % _getSpotsFunctions.length;
+      _spots = _getSpotsFunctions[index](_audioData!);
+    });
   }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(),
+        // body: LineChart(
+        //   LineChartData(
+        //     lineBarsData: [
+        //       LineChartBarData(
+        //         spots: win1,
+        //       )
+        //     ],
+        //   ),
+        // ),
+        body: LogScatterChart(spots: _spots),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _changeSpots();
+          },
+          child: const Icon(Icons.change_circle_outlined),
+        ),
+      );
 
   Future<AudioData> _load() async {
     // final bytesData = await rootBundle.load('assets/evals/guitar_normal_c.wav');
@@ -46,8 +77,30 @@ class PlotPage extends StatelessWidget {
     return loader.load();
   }
 
+  List<FlSpot> get _win1 => Window.hanning(widget.chunkSize)
+      .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+      .toList();
+
+  List<FlSpot> get _win2 {
+    final hanning = Window.hanning(widget.chunkSize);
+    final win = hanning.mapIndexed(
+        (index, data) => data - (index > 0 ? hanning[index - 1] : 0.0));
+    return win
+        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+        .toList();
+  }
+
+  List<FlSpot> get _win3 {
+    final hanning = Window.hanning(widget.chunkSize);
+    final win = hanning
+        .mapIndexed((index, data) => data * (index - widget.chunkSize / 2));
+    return win
+        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+        .toList();
+  }
+
   List<ScatterSpot> _reassigned(AudioData data) {
-    final obj = ReassignmentChromaCalculator(chunkSize: chunkSize);
+    final obj = ReassignmentChromaCalculator(chunkSize: widget.chunkSize);
     final points = obj.tmp(data);
     final maxWeight = maxBy(points, (p0) => p0.weight)!.weight;
 
@@ -58,7 +111,7 @@ class PlotPage extends StatelessWidget {
   }
 
   List<ScatterSpot> _magnitudes(AudioData data) {
-    final obj = ReassignmentChromaCalculator(chunkSize: chunkSize);
+    final obj = ReassignmentChromaCalculator(chunkSize: widget.chunkSize);
     obj.tmp(data);
     final mags = obj.magnitudes;
 
@@ -73,8 +126,8 @@ class PlotPage extends StatelessWidget {
     }
 
     final spots = <ScatterSpot>[];
-    final dt = chunkSize / data.sampleRate;
-    final df = data.sampleRate / chunkSize;
+    final dt = widget.chunkSize / data.sampleRate;
+    final df = data.sampleRate / widget.chunkSize;
 
     for (int i = 0; i < mags.length; ++i) {
       for (int j = 0; j < mags[i].length; ++j) {
@@ -91,35 +144,4 @@ class PlotPage extends StatelessWidget {
 
     return spots;
   }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(),
-        // body: LineChart(
-        //   LineChartData(
-        //     lineBarsData: [
-        //       LineChartBarData(
-        //         spots: win1,
-        //       )
-        //     ],
-        //   ),
-        // ),
-        body: FutureBuilder(
-          future: _load(),
-          builder: (_, snapshot) {
-            if (!snapshot.hasData) return const SizedBox();
-            // return ScatterChart(
-            //   ScatterChartData(
-            //     scatterSpots: _reassigned(snapshot.data!),
-            //   ),
-            // );
-            // return ScatterChart(
-            //   ScatterChartData(
-            //     scatterSpots: _magnitudes(snapshot.data!),
-            //   ),
-            // );
-            return LogScatterChart(spots: _magnitudes(snapshot.data!));
-          },
-        ),
-      );
 }

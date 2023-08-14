@@ -19,11 +19,11 @@ class LogScatterChart extends StatelessWidget {
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
-                reservedSize: 44,
+                reservedSize: 55,
                 showTitles: true,
                 getTitlesWidget: (value, meta) => SideTitleWidget(
                   axisSide: meta.axisSide,
-                  child: Text(pow(e, value).toInt().toString()),
+                  child: Text(pow(e, value).round().toString()),
                 ),
               ),
             ),
