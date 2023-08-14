@@ -51,6 +51,7 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   late final STFT stft;
   late final STFT stftD;
   late final STFT stftT;
+  var magnitudes = <Float64List>[];
 
   @override
   Chroma calc(AudioData audioData) {
@@ -60,11 +61,11 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
 
   List<Point> tmp(AudioData data) {
     final s = <Float64x2List>[];
-    final mags = <Float64List>[];
+
     stft.run(data.buffer, (freq) {
       final f = freq.discardConjugates();
       s.add(f);
-      mags.add(f.magnitudes());
+      magnitudes.add(f.magnitudes());
     });
 
     final sD = <Float64x2List>[];
@@ -87,7 +88,7 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
           Point(
             x: i * dt + _div(sT[i][j], s[i][j]).x,
             y: j * df - _div(sD[i][j], s[i][j]).y,
-            weight: mags[i][j],
+            weight: magnitudes[i][j],
           ),
         );
       }

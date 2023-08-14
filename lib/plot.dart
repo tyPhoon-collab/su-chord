@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'domains/chroma.dart';
 import 'loader.dart';
+import 'log_plot.dart';
 
 class PlotPage extends StatelessWidget {
   const PlotPage({
@@ -16,11 +17,11 @@ class PlotPage extends StatelessWidget {
 
   final int chunkSize;
 
-  List<FlSpot> get win1 => Window.hanning(chunkSize)
+  List<FlSpot> get _win1 => Window.hanning(chunkSize)
       .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
       .toList();
 
-  List<FlSpot> get win2 {
+  List<FlSpot> get _win2 {
     final hanning = Window.hanning(chunkSize);
     final win = hanning.mapIndexed(
         (index, data) => data - (index > 0 ? hanning[index - 1] : 0.0));
@@ -29,7 +30,7 @@ class PlotPage extends StatelessWidget {
         .toList();
   }
 
-  List<FlSpot> get win3 {
+  List<FlSpot> get _win3 {
     final hanning = Window.hanning(chunkSize);
     final win =
         hanning.mapIndexed((index, data) => data * (index - chunkSize / 2));
@@ -38,13 +39,15 @@ class PlotPage extends StatelessWidget {
         .toList();
   }
 
-  Future<List<ScatterSpot>> get sca async {
-    // final bytesData = await rootBundle.load('assets/evals/guitar_note_c3.wav');
-    final bytesData = await rootBundle.load('assets/evals/guitar_normal_c.wav');
+  Future<AudioData> _load() async {
+    // final bytesData = await rootBundle.load('assets/evals/guitar_normal_c.wav');
+    final bytesData = await rootBundle.load('assets/evals/guitar_note_c3.wav');
     final loader = SimpleAudioLoader(bytes: bytesData.buffer.asUint8List());
-    final data = await loader.load();
+    return loader.load();
+  }
 
-    final obj = ReassignmentChromaCalculator();
+  List<ScatterSpot> _reassigned(AudioData data) {
+    final obj = ReassignmentChromaCalculator(chunkSize: chunkSize);
     final points = obj.tmp(data);
     final maxWeight = maxBy(points, (p0) => p0.weight)!.weight;
 
@@ -52,6 +55,41 @@ class PlotPage extends StatelessWidget {
         .map((e) => ScatterSpot(e.x, e.y,
             color: Colors.amber.withOpacity(e.weight / maxWeight)))
         .toList();
+  }
+
+  List<ScatterSpot> _magnitudes(AudioData data) {
+    final obj = ReassignmentChromaCalculator(chunkSize: chunkSize);
+    obj.tmp(data);
+    final mags = obj.magnitudes;
+
+    var maxWeight = mags[0][0]; // 初期値を左上の要素として設定
+
+    for (final row in mags) {
+      for (final weight in row) {
+        if (weight > maxWeight) {
+          maxWeight = weight;
+        }
+      }
+    }
+
+    final spots = <ScatterSpot>[];
+    final dt = chunkSize / data.sampleRate;
+    final df = data.sampleRate / chunkSize;
+
+    for (int i = 0; i < mags.length; ++i) {
+      for (int j = 0; j < mags[i].length; ++j) {
+        spots.add(
+          ScatterSpot(
+            i * dt,
+            j * df,
+            color: Colors.amber.withOpacity(mags[i][j] / maxWeight),
+            radius: 4,
+          ),
+        );
+      }
+    }
+
+    return spots;
   }
 
   @override
@@ -67,12 +105,21 @@ class PlotPage extends StatelessWidget {
         //   ),
         // ),
         body: FutureBuilder(
-          future: sca,
-          builder: (_, snapshot) => ScatterChart(
-            ScatterChartData(
-              scatterSpots: snapshot.data ?? [],
-            ),
-          ),
+          future: _load(),
+          builder: (_, snapshot) {
+            if (!snapshot.hasData) return const SizedBox();
+            // return ScatterChart(
+            //   ScatterChartData(
+            //     scatterSpots: _reassigned(snapshot.data!),
+            //   ),
+            // );
+            // return ScatterChart(
+            //   ScatterChartData(
+            //     scatterSpots: _magnitudes(snapshot.data!),
+            //   ),
+            // );
+            return LogScatterChart(spots: _magnitudes(snapshot.data!));
+          },
         ),
       );
 }
