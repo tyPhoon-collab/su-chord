@@ -5,26 +5,29 @@ import 'package:collection/collection.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter/widgets.dart';
 
-import '../loader.dart';
+import '../utils/equal_temperament.dart';
+import '../utils/loader.dart';
+import '../utils/plot.dart';
 
-//クロマ同士の計算などの利便化のために、クラス化する
+///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
-final class Chroma {
+class Chroma {
   const Chroma(this.values);
 
   final List<double> values;
+
+//TODO オペレーションの追加
+}
+
+///必ず12個の特徴量をもったクロマ
+class PCP extends Chroma {
+  const PCP(super.values) : assert(values.length == 12);
+
+  static final zero = PCP(List.filled(12, 0));
 }
 
 abstract interface class ChromaCalculable {
-  Chroma calc(AudioData audioData);
-}
-
-class Point {
-  Point({required this.x, required this.y, required this.weight});
-
-  final double x;
-  final double y;
-  final double weight;
+  List<Chroma> chroma(AudioData audioData);
 }
 
 /// a / b in complex
@@ -52,15 +55,40 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   late final STFT stft;
   late final STFT stftD;
   late final STFT stftT;
-  var magnitudes = <Float64List>[];
+
+  List<Float64List> magnitudes = [];
+
+  static final equalTemperament = EqualTemperament();
 
   @override
-  Chroma calc(AudioData audioData) {
-    // TODO: implement calc
-    throw UnimplementedError();
+  List<Chroma> chroma(AudioData data) {
+    const interval = 4.0;
+
+    final points = reassign(data);
+    final binX =
+        List.generate(data.duration ~/ interval, (index) => index * interval)
+          ..add(data.duration);
+    final hist = WeightedHistogram2D.from(points,
+        binX: binX, binY: equalTemperament.bin);
+    return hist.values.map(_fold).toList();
   }
 
-  List<Point> tmp(AudioData data) {
+  PCP _fold(List<double> value) {
+    return PCP(List.generate(12, (i) {
+      double sum = 0;
+
+      //7オクターブ分折りたたむC1-B7
+      for (var j = 0; j < 7; j++) {
+        final index = EqualTemperament.binOffsetIndexToC0 + i + 12 * j;
+        sum += value[index];
+      }
+      return sum;
+    }));
+  }
+
+  ///デバッグのしやすさとモジュール強度を考慮して
+  ///ヒストグラム化する関数と再割り当てする関数を分ける
+  List<Point> reassign(AudioData data) {
     final s = <Float64x2List>[];
 
     stft.run(data.buffer, (freq) {

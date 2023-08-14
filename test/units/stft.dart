@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:chord/loader.dart';
+import 'package:chord/utils/loader.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter_test/flutter_test.dart';
 

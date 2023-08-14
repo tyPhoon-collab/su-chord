@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'domains/chroma.dart';
-import 'loader.dart';
 import 'log_plot.dart';
+import 'utils/loader.dart';
 
 class PlotPage extends StatefulWidget {
   const PlotPage({
@@ -101,7 +101,7 @@ class _PlotPageState extends State<PlotPage> {
 
   List<ScatterSpot> _reassigned(AudioData data) {
     final obj = ReassignmentChromaCalculator(chunkSize: widget.chunkSize);
-    final points = obj.tmp(data);
+    final points = obj.reassign(data);
     final maxWeight = maxBy(points, (p0) => p0.weight)!.weight;
 
     return points
@@ -112,7 +112,7 @@ class _PlotPageState extends State<PlotPage> {
 
   List<ScatterSpot> _magnitudes(AudioData data) {
     final obj = ReassignmentChromaCalculator(chunkSize: widget.chunkSize);
-    obj.tmp(data);
+    obj.reassign(data);
     final mags = obj.magnitudes;
 
     var maxWeight = mags[0][0]; // 初期値を左上の要素として設定
