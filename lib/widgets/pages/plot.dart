@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../config.dart';
 import '../../domains/chroma.dart';
 import '../../log_plot.dart';
 import '../../utils/loader.dart';
@@ -81,7 +82,7 @@ class _PlotPageState extends State<PlotPage> {
     // final bytesData =
     //     await rootBundle.load('assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
     final loader = SimpleAudioLoader(bytes: bytesData.buffer.asUint8List());
-    return loader.load(duration: 3);
+    return loader.load(duration: 3, sampleRate: Config.sampleRate);
   }
 
   // List<FlSpot> get _win1 => Window.hanning(2048)
@@ -112,6 +113,7 @@ class _PlotPageState extends State<PlotPage> {
     final maxWeight = maxBy(points, (p0) => p0.weight)!.weight;
 
     return points
+        .where((e) => e.weight != 0)
         .map((e) => ScatterSpot(
               e.x,
               e.y,
@@ -140,6 +142,7 @@ class _PlotPageState extends State<PlotPage> {
 
     for (int i = 0; i < mags.length; ++i) {
       for (int j = 0; j < mags[i].length; ++j) {
+        if (mags[i][j] == 0) continue;
         spots.add(
           ScatterSpot(
             i * 4,
@@ -173,6 +176,7 @@ class _PlotPageState extends State<PlotPage> {
 
     for (int i = 0; i < mags.length; ++i) {
       for (int j = 0; j < mags[i].length; ++j) {
+        if (mags[i][j] == 0) continue;
         spots.add(
           ScatterSpot(
             i * obj.dt,

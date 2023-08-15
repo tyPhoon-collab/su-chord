@@ -13,14 +13,15 @@ class AudioData {
   double get duration => buffer.length / sampleRate;
 
   //TODO add offset pram
+  //TODO expand if duration > this.duration
   AudioData cut(double? duration) {
-    if (duration == null) return this;
+    if (duration == null || duration >= this.duration) return this;
     final newBuffer = buffer.sublist(0, (duration * sampleRate).toInt());
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
   }
 
   AudioData downSample(int? newSampleRate) {
-    if (newSampleRate == null) return this;
+    if (newSampleRate == null || newSampleRate >= sampleRate) return this;
 
     final newData = <double>[];
     final sampleRateRatio = sampleRate / newSampleRate;
@@ -37,6 +38,7 @@ class AudioData {
       }
       average /= factor;
       newData.add(average);
+
       interval += sampleRateRatio - factor;
       i += factor;
     }
