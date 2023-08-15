@@ -6,9 +6,9 @@ import 'package:fftea/fftea.dart';
 import 'package:flutter/widgets.dart';
 
 import '../config.dart';
-import '../utils/equal_temperament.dart';
 import '../utils/loader.dart';
 import '../utils/plot.dart';
+import 'equal_temperament.dart';
 
 ///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
@@ -16,6 +16,19 @@ class Chroma {
   const Chroma(this.values);
 
   final List<double> values;
+
+  int maxIndex() {
+    var max = values[0];
+    var maxIndex = 0;
+    for (var i = 1; i < values.length; i++) {
+      if (values[i] > max) {
+        max = values[i];
+        maxIndex = i;
+      }
+    }
+
+    return maxIndex;
+  }
 
 //TODO オペレーションの追加
 }
@@ -104,7 +117,7 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
       data.buffer,
       (freq) {
         final f = freq.discardConjugates();
-        s.add(f);
+        s.add(Float64x2List.fromList(f));
         magnitudes.add(f.magnitudes());
       },
       chunkStride,
@@ -114,7 +127,7 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
     stftD.run(
       data.buffer,
       (freq) {
-        sD.add(freq.discardConjugates());
+        sD.add(Float64x2List.fromList(freq));
       },
       chunkStride,
     );
@@ -123,7 +136,7 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
     stftT.run(
       data.buffer,
       (freq) {
-        sT.add(freq.discardConjugates());
+        sT.add(Float64x2List.fromList(freq));
       },
       chunkStride,
     );
@@ -134,14 +147,12 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
-        points.add(
-          Point(
-            x: i * dt + _div(sT[i][j], s[i][j]).x / data.sampleRate,
-            y: j * df -
-                _div(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi),
-            weight: magnitudes[i][j],
-          ),
-        );
+        if (magnitudes[i][j] == 0 || s[i][j] == Float64x2.zero()) continue;
+
+        final x = i * dt + _div(sT[i][j], s[i][j]).x / data.sampleRate;
+        final y =
+            j * df - _div(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi);
+        points.add(Point(x: x, y: y, weight: magnitudes[i][j]));
       }
     }
 

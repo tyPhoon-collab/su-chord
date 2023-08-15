@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:fftea/stft.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,112 +9,52 @@ import '../../domains/chroma.dart';
 import '../../log_plot.dart';
 import '../../utils/loader.dart';
 
-class PlotPage extends StatefulWidget {
+class PlotPage extends StatelessWidget {
   const PlotPage({super.key});
 
-  @override
-  State<PlotPage> createState() => _PlotPageState();
-}
-
-class _PlotPageState extends State<PlotPage> {
-  List<ScatterSpot> _spots = [];
-  AudioData? _audioData;
-
-  late final List<List<ScatterSpot> Function(AudioData)> _getSpotsFunctions = [
-    _magnitudes,
-    _reassigned,
-    // _reassignedHistogram2d,
-  ];
-
-  int _spotsFunctionsIndex = 0;
-  final double _scatterRadius = 2;
-
-  @override
-  void initState() {
-    super.initState();
-    _load().then((value) {
-      _audioData = value;
-      _changeSpots(isIncrementIndex: false);
-    });
-  }
-
-  void _changeSpots({bool isIncrementIndex = true}) {
-    if (_audioData == null) return;
-    setState(() {
-      if (isIncrementIndex) {
-        _spotsFunctionsIndex++;
-      }
-      final index = _spotsFunctionsIndex % _getSpotsFunctions.length;
-      _spots = _getSpotsFunctions[index](_audioData!);
-    });
-  }
+  static const double _scatterRadius = 2;
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(),
-        // body: LineChart(
-        //   LineChartData(
-        //     lineBarsData: [
-        //       LineChartBarData(
-        //         spots: win1,
-        //       )
-        //     ],
-        //   ),
-        // ),
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_spotsFunctionsIndex.toString()),
-            Expanded(
-              child: LogScatterChart(spots: _spots),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            _changeSpots();
+        body: FutureBuilder(
+          future: _load(),
+          builder: (_, snapshot) {
+            if (!snapshot.hasData) return const SizedBox();
+            final data = snapshot.data!;
+            return Row(
+              children: [
+                Expanded(child: LogScatterChart(spots: _magnitudes(data))),
+                Expanded(child: LogScatterChart(spots: _reassigned(data))),
+                // Expanded(child: _buildChart(_magnitudes(data))),
+                // Expanded(child: _buildChart(_reassigned(data))),
+              ],
+            );
           },
-          child: const Icon(Icons.change_circle_outlined),
         ),
       );
 
+  Widget _buildChart(List<ScatterSpot> spots) =>
+      ScatterChart(ScatterChartData(scatterSpots: spots));
+
   Future<AudioData> _load() async {
-    final bytesData = await rootBundle.load('assets/evals/guitar_normal_c.wav');
-    // final bytesData =
-    //     await rootBundle.load('assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+    final bytesData =
+        await rootBundle.load('assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+
+    // final bytesData = await rootBundle.load('assets/evals/guitar_normal_c.wav');
     final loader = SimpleAudioLoader(bytes: bytesData.buffer.asUint8List());
     return loader.load(duration: 3, sampleRate: Config.sampleRate);
-  }
 
-  // List<FlSpot> get _win1 => Window.hanning(2048)
-  //     .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-  //     .toList();
-  //
-  // List<FlSpot> get _win2 {
-  //   final hanning = Window.hanning(2048);
-  //   final win = hanning.mapIndexed(
-  //       (index, data) => data - (index > 0 ? hanning[index - 1] : 0.0));
-  //   return win
-  //       .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-  //       .toList();
-  // }
-  //
-  // List<FlSpot> get _win3 {
-  //   final hanning = Window.hanning(2048);
-  //   final win = hanning
-  //       .mapIndexed((index, data) => data * (index - 2048 / 2));
-  //   return win
-  //       .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
-  //       .toList();
-  // }
+    // final loader = DeltaAudioLoader();
+    // return loader.load();
+  }
 
   List<ScatterSpot> _reassigned(AudioData data) {
     final obj = ReassignmentChromaCalculator();
     final points = obj.reassign(data);
-    final maxWeight = maxBy(points, (p0) => p0.weight)!.weight;
+    final maxWeight = maxBy(points, (p0) => p0.weight)?.weight ?? 0;
 
     return points
-        .where((e) => e.weight != 0)
         .map((e) => ScatterSpot(
               e.x,
               e.y,
@@ -189,5 +130,45 @@ class _PlotPageState extends State<PlotPage> {
     }
 
     return spots;
+  }
+}
+
+class WindowPlotPage extends StatelessWidget {
+  const WindowPlotPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(),
+        body: Row(
+          children: [
+            Expanded(child: _buildChart(_win1)),
+            Expanded(child: _buildChart(_win2)),
+            Expanded(child: _buildChart(_win3)),
+          ],
+        ),
+      );
+
+  List<FlSpot> get _win1 => Window.hanning(2048)
+      .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+      .toList();
+
+  Widget _buildChart(List<FlSpot> spots) =>
+      LineChart(LineChartData(lineBarsData: [LineChartBarData(spots: spots)]));
+
+  List<FlSpot> get _win2 {
+    final hanning = Window.hanning(2048);
+    final win = hanning.mapIndexed(
+        (index, data) => data - (index > 0 ? hanning[index - 1] : 0.0));
+    return win
+        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+        .toList();
+  }
+
+  List<FlSpot> get _win3 {
+    final hanning = Window.hanning(2048);
+    final win = hanning.mapIndexed((index, data) => data * (index - 2048 / 2));
+    return win
+        .mapIndexed((index, data) => FlSpot(index.toDouble(), data))
+        .toList();
   }
 }

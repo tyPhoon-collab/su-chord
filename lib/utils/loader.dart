@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:wav/wav.dart';
 
+import '../config.dart';
+
 @immutable
 class AudioData {
   const AudioData({required this.buffer, required this.sampleRate});
@@ -73,4 +75,17 @@ final class SimpleAudioLoader implements AudioLoader {
 
   Future<Wav> _read() =>
       path == null ? Future.value(Wav.read(bytes!)) : Wav.readFile(path!);
+}
+
+final class DeltaAudioLoader implements AudioLoader {
+  @override
+  Future<AudioData> load({double? duration, int? sampleRate}) {
+    sampleRate ??= Config.sampleRate;
+    final buffer = List.filled(sampleRate * 2, 0.0);
+    buffer[sampleRate ~/ 2] = 1;
+    return Future.value(AudioData(
+      buffer: Float64List.fromList(buffer),
+      sampleRate: sampleRate,
+    ));
+  }
 }

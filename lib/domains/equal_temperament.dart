@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'plot.dart';
+import '../utils/plot.dart';
 
 // class MusicalScale {
 //   MusicalScale({required this.note, required this.pitch});
