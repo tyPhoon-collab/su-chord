@@ -38,12 +38,23 @@ enum Note {
   As,
   B;
 
+  ///度数を渡すと新しいNoteを返す
+  ///ex)
+  ///Note.C.to(2) -> Note.D
+  Note to(int degree) => Note.values[(index + degree) % Note.values.length];
+
   ///度数の差。一般にCが基準であるため、それに準拠
   ///1オクターブで見た時の差とし、音高が高い方が正とする
   ///ex)
   ///D -> A = 7
   ///D -> C = -2
   int degreeTo(Note other) => other.index - index;
+
+  ///負の場合、+12するdegreeTo
+  int positiveDegreeTo(Note other) {
+    final degree = degreeTo(other);
+    return degree.isNegative ? 12 + degree : degree;
+  }
 }
 
 class EqualTemperament {

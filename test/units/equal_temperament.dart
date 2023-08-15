@@ -31,4 +31,16 @@ void main() {
     final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
     expect(degree, -12);
   });
+
+  test('note C to 2 be D', () {
+    expect(Note.C.to(2), Note.D);
+  });
+
+  test('note C to 14 be D', () {
+    expect(Note.C.to(2), Note.D);
+  });
+
+  test('note C to -3 be A', () {
+    expect(Note.C.to(-3), Note.A);
+  });
 }

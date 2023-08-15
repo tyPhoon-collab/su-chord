@@ -8,9 +8,9 @@ void main() {
 
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
     final data = await loader.load();
-    final chromaList = c.chroma(data);
+    final chromas = c.chroma(data);
 
-    expect(chromaList[0].maxIndex(), 0);
+    expect(chromas[0].maxIndex(), 0);
   });
 
   test('reassignment chroma chord', () async {
@@ -18,9 +18,9 @@ void main() {
 
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     final data = await loader.load();
-    final chromaList = c.chroma(data);
+    final chromas = c.chroma(data);
 
-    expect(chromaList[0].maxIndex(), 0);
+    expect(chromas[0].maxIndex(), 0);
   });
 
   test('reassignment chroma eval', () async {
@@ -29,8 +29,8 @@ void main() {
     const loader =
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
     final data = await loader.load();
-    final chromaList = c.chroma(data);
+    final chromas = c.chroma(data);
 
-    expect(chromaList, isNotEmpty);
+    expect(chromas, isNotEmpty);
   });
 }

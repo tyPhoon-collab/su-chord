@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../config.dart';
 import '../utils/loader.dart';
 import '../utils/plot.dart';
+import 'chord.dart';
 import 'equal_temperament.dart';
 
 ///クロマ同士の計算などの利便化のために、クラス化する
@@ -36,6 +37,17 @@ class Chroma {
 ///必ず12個の特徴量をもったクロマ
 class PCP extends Chroma {
   const PCP(super.values) : assert(values.length == 12);
+
+  factory PCP.fromNotes(Notes notes) {
+    final values = List.filled(12, 0.0);
+
+    final indexes = notes.map((e) => Note.C.degreeTo(e));
+    for (final i in indexes) {
+      values[i] = 1;
+    }
+
+    return PCP(values);
+  }
 
   static final zero = PCP(List.filled(12, 0));
 }
