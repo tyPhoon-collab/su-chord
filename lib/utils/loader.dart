@@ -11,10 +11,45 @@ class AudioData {
   final int sampleRate;
 
   double get duration => buffer.length / sampleRate;
+
+  //TODO add offset pram
+  AudioData cut(double? duration) {
+    if (duration == null) return this;
+    final newBuffer = buffer.sublist(0, (duration * sampleRate).toInt());
+    return AudioData(buffer: newBuffer, sampleRate: sampleRate);
+  }
+
+  AudioData downSample(int? newSampleRate) {
+    if (newSampleRate == null) return this;
+
+    final newData = <double>[];
+    final sampleRateRatio = sampleRate / newSampleRate;
+    double interval = sampleRateRatio;
+
+    for (int i = 0; i < buffer.length;) {
+      final factor = interval.floor();
+
+      double average = 0.0;
+      for (int j = 0; j < factor; j++) {
+        if (i + j < buffer.length) {
+          average += buffer[i + j];
+        }
+      }
+      average /= factor;
+      newData.add(average);
+      interval += sampleRateRatio - factor;
+      i += factor;
+    }
+
+    return AudioData(
+      buffer: Float64List.fromList(newData),
+      sampleRate: newSampleRate,
+    );
+  }
 }
 
 abstract interface class AudioLoader {
-  Future<AudioData> load({double? duration});
+  Future<AudioData> load({double? duration, int? sampleRate});
 }
 
 final class SimpleAudioLoader implements AudioLoader {
@@ -25,16 +60,13 @@ final class SimpleAudioLoader implements AudioLoader {
   final Uint8List? bytes;
 
   @override
-  Future<AudioData> load({double? duration}) async {
+  Future<AudioData> load({double? duration, int? sampleRate}) async {
     final wav = await _read();
-
     final sr = wav.samplesPerSecond;
-
-    var buffer = wav.toMono();
-    if (duration != null) {
-      buffer = buffer.sublist(0, (duration * sr).toInt());
-    }
-    return AudioData(buffer: buffer, sampleRate: sr);
+    final buffer = wav.toMono();
+    return AudioData(buffer: buffer, sampleRate: sr)
+        .cut(duration)
+        .downSample(sampleRate);
   }
 
   Future<Wav> _read() =>
