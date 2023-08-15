@@ -96,12 +96,14 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   }
 
   PCP _fold(List<double> value) {
+    final offset =
+        equalTemperament.lowestScale.degreeTo(MusicalScale(Note.C, 1));
     return PCP(List.generate(12, (i) {
       double sum = 0;
 
       //7オクターブ分折りたたむC1-B7
       for (var j = 0; j < 7; j++) {
-        final index = EqualTemperament.binOffsetIndexToC0 + i + 12 * j;
+        final index = offset + i + 12 * j;
         sum += value[index];
       }
       return sum;

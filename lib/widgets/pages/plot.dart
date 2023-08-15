@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../../config.dart';
 import '../../domains/chroma.dart';
-import '../../log_plot.dart';
 import '../../utils/loader.dart';
+import '../log_plot.dart';
 
 class PlotPage extends StatelessWidget {
   const PlotPage({super.key});
@@ -26,6 +26,8 @@ class PlotPage extends StatelessWidget {
               children: [
                 Expanded(child: LogScatterChart(spots: _magnitudes(data))),
                 Expanded(child: LogScatterChart(spots: _reassigned(data))),
+                Expanded(
+                    child: LogScatterChart(spots: _reassignedHist2d(data))),
                 // Expanded(child: _buildChart(_magnitudes(data))),
                 // Expanded(child: _buildChart(_reassigned(data))),
               ],
@@ -64,7 +66,7 @@ class PlotPage extends StatelessWidget {
         .toList();
   }
 
-  List<ScatterSpot> _reassignedHistogram2d(AudioData data) {
+  List<ScatterSpot> _reassignedHist2d(AudioData data) {
     final obj = ReassignmentChromaCalculator();
     obj.chroma(data);
     final mags = obj.histogram2d!.values;
@@ -87,7 +89,7 @@ class PlotPage extends StatelessWidget {
         spots.add(
           ScatterSpot(
             i * 4,
-            j * obj.df,
+            obj.binY[j],
             color: Colors.amber.withOpacity(mags[i][j] / maxWeight),
             radius: _scatterRadius,
           ),

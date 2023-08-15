@@ -2,25 +2,57 @@ import 'dart:math';
 
 import '../utils/plot.dart';
 
-// class MusicalScale {
-//   MusicalScale({required this.note, required this.pitch});
-//
-//   final Note note;
-//   final int pitch;
-// }
-//
-// enum Note { A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs }
+class MusicalScale {
+  MusicalScale(this.note, this.pitch);
+
+  static final A0 = MusicalScale(Note.A, 0);
+
+  static final ratio = pow(2, 1 / 12);
+  static const hzOfA0 = 27.5;
+
+  final Note note;
+  final int pitch;
+
+  //計算量削減のために、lateにする
+  late final double hz = hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
+
+  ///ピッチを考慮する度数の差
+  ///ex)
+  ///A0 -> C1 = 3
+  ///C3 -> C4 = 12
+  int degreeTo(MusicalScale other) =>
+      note.degreeTo(other.note) + 12 * (other.pitch - pitch);
+}
+
+enum Note {
+  C,
+  Cs,
+  D,
+  Ds,
+  E,
+  F,
+  Fs,
+  G,
+  Gs,
+  A,
+  As,
+  B;
+
+  ///度数の差。一般にCが基準であるため、それに準拠
+  ///1オクターブで見た時の差とし、音高が高い方が正とする
+  ///ex)
+  ///D -> A = 7
+  ///D -> C = -2
+  int degreeTo(Note other) => other.index - index;
+}
 
 class EqualTemperament {
-  EqualTemperament({this.lowestHz = 27.5});
+  EqualTemperament({MusicalScale? lowestScale})
+      : lowestScale = lowestScale ?? MusicalScale.A0;
 
-  final double lowestHz;
+  final MusicalScale lowestScale;
 
-  late final _bin = _buildEqualTemperamentBin();
-
-  Bin get bin => _bin;
-
-  static const binOffsetIndexToC0 = 3;
+  late final bin = _buildEqualTemperamentBin();
 
   Bin _buildEqualTemperamentBin() {
     // ピアノの88鍵の音域の周波数ビンを作成
@@ -29,8 +61,8 @@ class EqualTemperament {
 
     // 音テーブルの作成。A0~C8
     // 音域の参考サイト: https://tomari.org/main/java/oto.html
-    final ratio = pow(2, 1 / 12);
-    final hzList = List.generate(90, (i) => lowestHz * pow(ratio, i - 1));
+    final hzList = List.generate(
+        90, (i) => lowestScale.hz * pow(MusicalScale.ratio, i - 1));
 
     final bins = <double>[];
     for (var i = 0; i < hzList.length - 1; i++) {
