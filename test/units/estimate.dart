@@ -22,6 +22,6 @@ void main() {
     final data = await loader.load();
     final chords = e.estimate(data);
 
-    expect(chords, isNotEmpty);
+    expect(chords.length, 20);
   });
 }
