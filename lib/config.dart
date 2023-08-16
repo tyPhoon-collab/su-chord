@@ -9,8 +9,9 @@ class Config {
 
   static final defaultTemplateChords = [
     for (final root in Note.values) ...[
-      Chord.major(root: root),
-      Chord.minor(root: root),
+      for (final type in ChordType.values) ...[
+        Chord.fromType(type: type, root: root)
+      ]
     ]
   ];
 }
