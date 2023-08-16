@@ -1,13 +1,15 @@
 import 'package:flutter/widgets.dart';
 
-import '../config.dart';
-import '../utils/loader.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
 typedef Notes = List<Note>;
-typedef TemplatePCPs = Iterable<PCP>;
 typedef Degrees = Iterable<int>;
+
+// TODO impl this
+// enum ChordType{
+//   major, minor
+// }
 
 @immutable
 class Chord {
@@ -27,29 +29,10 @@ class Chord {
   late final String label = _parse();
   late final PCP pcp = PCP.fromNotes(notes);
   final Notes notes;
-  
+
   //TODO impl this
   ///Notesからlabelを導く関数
   String _parse() {
     return '';
-  }
-}
-
-abstract interface class ChordEstimable {
-  List<Chord> estimate(AudioData data);
-}
-
-class PatternMatchingChordEstimator implements ChordEstimable {
-  PatternMatchingChordEstimator({required this.chromaCalculable});
-
-  final ChromaCalculable chromaCalculable;
-  final TemplatePCPs templates = Config.defaultTemplates;
-
-  ChromaCalculable get _c => chromaCalculable;
-
-  @override
-  List<Chord> estimate(AudioData data) {
-    final chromas = _c.chroma(data);
-    throw UnimplementedError();
   }
 }

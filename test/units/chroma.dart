@@ -3,6 +3,22 @@ import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('chroma norm', () async {
+    final c1 = Chroma(const [1, 1, 1, 1]);
+    expect(c1.l2norm, 2);
+
+    final c2 = Chroma(const [-1, -1, -1, -1]);
+    expect(c2.l2norm, 2);
+  });
+
+  test('chroma normalized', () async {
+    final c1 = Chroma(const [1, 1, 1, 1]);
+    expect(c1.normalized, [0.5, 0.5, 0.5, 0.5]);
+
+    final c2 = Chroma(const [-1, -1, -1, -1]);
+    expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
+  });
+
   test('reassignment chroma one note', () async {
     final c = ReassignmentChromaCalculator();
 

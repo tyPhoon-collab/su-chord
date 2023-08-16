@@ -14,7 +14,7 @@ import 'equal_temperament.dart';
 ///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
 class Chroma {
-  const Chroma(this.values);
+  Chroma(this.values);
 
   final List<double> values;
 
@@ -31,12 +31,22 @@ class Chroma {
     return maxIndex;
   }
 
-//TODO オペレーションの追加
+  late final normalized = values.map((e) => e / l2norm).toList();
+  late final l2norm = sqrt(values.fold(0.0, (sum, e) => sum + e * e));
+
+  double cosineSimilarity(Chroma other) {
+    assert(values.length == other.values.length);
+    double sum = 0;
+    for (int i = 0; i < values.length; ++i) {
+      sum += normalized[i] * other.normalized[i];
+    }
+    return sum;
+  }
 }
 
 ///必ず12個の特徴量をもったクロマ
 class PCP extends Chroma {
-  const PCP(super.values) : assert(values.length == 12);
+  PCP(super.values) : assert(values.length == 12);
 
   factory PCP.fromNotes(Notes notes) {
     final values = List.filled(12, 0.0);
@@ -100,11 +110,15 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
     const interval = 4.0;
 
     final points = reassign(data);
-    binX = List.generate(
-        (data.duration / interval).ceil(), (index) => index * interval);
-    binX[binX.length - 1] = data.duration;
+    binX = _createBinX(data.duration, interval);
     histogram2d = WeightedHistogram2d.from(points, binX: binX, binY: binY);
     return histogram2d!.values.map(_fold).toList();
+  }
+
+  List<double> _createBinX(double duration, double interval) {
+    final length = (duration / interval).ceil();
+    return List.generate(
+        length, (i) => i == length - 1 ? duration : i * interval);
   }
 
   PCP _fold(List<double> value) {

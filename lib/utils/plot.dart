@@ -20,7 +20,12 @@ class WeightedHistogram2d {
   WeightedHistogram2d({required this.binX, required this.binY})
       : assert(binX.isNotEmpty),
         assert(binY.isNotEmpty) {
-    values = List.filled(binX.length - 1, List.filled(binY.length - 1, 0.0));
+    // values = List.filled(binX.length - 1, List.filled(binY.length - 1, 0.0));
+    values = List.generate(
+      binX.length - 1,
+      (_) => List.filled(binY.length - 1, 0.0),
+      growable: false,
+    );
   }
 
   factory WeightedHistogram2d.from(

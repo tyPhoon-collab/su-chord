@@ -7,10 +7,10 @@ class Config {
 
   static const chunkSize = 2048;
 
-  static final defaultTemplates = [
+  static final defaultTemplateChords = [
     for (final root in Note.values) ...[
       Chord.major(root: root),
       Chord.minor(root: root),
     ]
-  ].map((e) => e.pcp);
+  ];
 }
