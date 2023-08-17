@@ -16,6 +16,7 @@ class Config {
           ChordQualities(const {ChordQuality.majorSeventh}),
           ChordQualities(const {ChordQuality.ninth}),
         ])
-          Chord.fromType(type: type, root: root, qualities: qualities)
+          if (type.validate(qualities))
+            Chord.fromType(type: type, root: root, qualities: qualities)
   ];
 }

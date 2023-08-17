@@ -98,4 +98,34 @@ void main() {
       'C(9,11)',
     );
   });
+
+  group('parse', () {
+    test('chord parse C', () {
+      expect(Chord.fromLabel('C').label, 'C');
+    });
+
+    test('chord parse Cm', () {
+      expect(Chord.fromLabel('Cm').label, 'Cm');
+    });
+
+    test('chord parse Cm7', () {
+      expect(Chord.fromLabel('Cm7').label, 'Cm7');
+    });
+
+    test('chord parse C7', () {
+      expect(Chord.fromLabel('C7').label, 'C7');
+    });
+
+    test('chord parse CM7', () {
+      expect(Chord.fromLabel('CM7').label, 'CM7');
+    });
+
+    test('chord parse Cadd9', () {
+      expect(Chord.fromLabel('Cadd9').label, 'Cadd9');
+    });
+
+    test('chord parse C6', () {
+      expect(Chord.fromLabel('C6').label, 'C6');
+    });
+  });
 }

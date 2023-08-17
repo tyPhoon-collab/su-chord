@@ -64,6 +64,13 @@ enum Note {
 
   const Note({required this.naturalNote, this.accidental = Accidental.natural});
 
+  factory Note.fromLabel(String label) {
+    for (final note in values) {
+      if (note.label == label) return note;
+    }
+    throw ArgumentError();
+  }
+
   final NaturalNote naturalNote;
   final Accidental accidental;
 

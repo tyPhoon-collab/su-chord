@@ -5,7 +5,17 @@ import '../utils/loader.dart';
 import 'chord.dart';
 import 'chroma.dart';
 
-typedef ChordProgression = List<Chord>;
+class ChordProgression extends Iterable<Chord> {
+  ChordProgression(this.values);
+
+  final Iterable<Chord> values;
+
+  @override
+  Iterator<Chord> get iterator => values.iterator;
+
+  @override
+  String toString() => values.map((e) => e.label).join('->');
+}
 
 abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data);
@@ -23,11 +33,11 @@ class PatternMatchingChordEstimator implements ChordEstimable {
   ChromaCalculable get _c => chromaCalculable;
 
   @override
-  List<Chord> estimate(AudioData data) {
+  ChordProgression estimate(AudioData data) {
     final chromas = _c.chroma(data);
 
-    return chromas
-        .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
-        .toList();
+    return ChordProgression(
+      chromas.map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
+    );
   }
 }
