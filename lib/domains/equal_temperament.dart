@@ -24,19 +24,50 @@ class MusicalScale {
       note.degreeTo(other.note) + 12 * (other.pitch - pitch);
 }
 
+enum Accidental {
+  natural(label: ''),
+  sharp(label: '#'),
+  flat(label: 'b');
+
+  const Accidental({required this.label});
+
+  final String label;
+}
+
+enum NaturalNote {
+  C(label: 'C'),
+  D(label: 'D'),
+  E(label: 'E'),
+  F(label: 'F'),
+  G(label: 'G'),
+  A(label: 'A'),
+  B(label: 'B');
+
+  const NaturalNote({required this.label});
+
+  final String label;
+}
+
 enum Note {
-  C,
-  Cs,
-  D,
-  Ds,
-  E,
-  F,
-  Fs,
-  G,
-  Gs,
-  A,
-  As,
-  B;
+  C(naturalNote: NaturalNote.C),
+  Cs(naturalNote: NaturalNote.C, accidental: Accidental.sharp),
+  D(naturalNote: NaturalNote.D),
+  Ds(naturalNote: NaturalNote.D, accidental: Accidental.sharp),
+  E(naturalNote: NaturalNote.E),
+  F(naturalNote: NaturalNote.F),
+  Fs(naturalNote: NaturalNote.F, accidental: Accidental.sharp),
+  G(naturalNote: NaturalNote.G),
+  Gs(naturalNote: NaturalNote.G, accidental: Accidental.sharp),
+  A(naturalNote: NaturalNote.A),
+  As(naturalNote: NaturalNote.A, accidental: Accidental.sharp),
+  B(naturalNote: NaturalNote.B);
+
+  const Note({required this.naturalNote, this.accidental = Accidental.natural});
+
+  final NaturalNote naturalNote;
+  final Accidental accidental;
+
+  String get label => naturalNote.label + accidental.label;
 
   ///度数を渡すと新しいNoteを返す
   ///ex)

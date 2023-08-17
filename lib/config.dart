@@ -10,11 +10,11 @@ class Config {
   static final defaultTemplateChords = [
     for (final root in Note.values)
       for (final type in ChordType.values.where((ct) => ct != ChordType.sus2))
-        for (final Set<ChordQuality> qualities in [
-          {},
-          {ChordQuality.seventh},
-          {ChordQuality.majorSeventh},
-          {ChordQuality.ninth},
+        for (final qualities in [
+          ChordQualities.empty,
+          ChordQualities(const {ChordQuality.seventh}),
+          ChordQualities(const {ChordQuality.majorSeventh}),
+          ChordQualities(const {ChordQuality.ninth}),
         ])
           Chord.fromType(type: type, root: root, qualities: qualities)
   ];
