@@ -101,6 +101,11 @@ enum Note {
     throw ArgumentError();
   }
 
+  factory Note.fromIndex(int index) {
+    assert(index < 12);
+    return values[index];
+  }
+
   final NaturalNote naturalNote;
   final Accidental accidental;
 
@@ -109,7 +114,7 @@ enum Note {
   ///度数を渡すと新しいNoteを返す
   ///ex)
   ///Note.C.to(2) -> Note.D
-  Note to(int degree) => Note.values[(index + degree) % Note.values.length];
+  Note to(int degree) => Note.fromIndex((index + degree) % Note.values.length);
 
   ///度数の差。一般にCが基準であるため、それに準拠
   ///1オクターブで見た時の差とし、音高が高い方が正とする

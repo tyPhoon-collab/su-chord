@@ -16,21 +16,21 @@ typedef Magnitudes = List<Float64List>;
 
 ///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
-class Chroma {
-  Chroma(this.values);
+class Chroma extends Iterable<double> {
+  Chroma(this._values);
 
   factory Chroma.zero(int length) => Chroma(List.filled(length, 0.0));
 
-  final List<double> values;
+  final List<double> _values;
 
   static final empty = Chroma(const []);
 
-  int maxIndex() {
-    var max = values[0];
+  int get maxIndex {
+    var max = _values[0];
     var maxIndex = 0;
-    for (var i = 1; i < values.length; i++) {
-      if (values[i] > max) {
-        max = values[i];
+    for (var i = 1; i < _values.length; i++) {
+      if (_values[i] > max) {
+        max = _values[i];
         maxIndex = i;
       }
     }
@@ -38,28 +38,36 @@ class Chroma {
     return maxIndex;
   }
 
-  late final normalized = values.map((e) => e / l2norm).toList();
-  late final l2norm = sqrt(values.fold(0.0, (sum, e) => sum + e * e));
+  late final Iterable<int> sortedIndex =
+      _values.sorted((a, b) => a.compareTo(b)).map((e) => _values.indexOf(e));
+
+  late final normalized = _values.map((e) => e / l2norm).toList();
+  late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
-    assert(values.length == other.values.length);
+    assert(_values.length == other._values.length);
     double sum = 0;
-    for (int i = 0; i < values.length; ++i) {
+    for (int i = 0; i < _values.length; ++i) {
       sum += normalized[i] * other.normalized[i];
     }
     return sum;
   }
 
   Chroma operator +(Chroma other) {
-    assert(values.length == other.values.length,
-        'source: ${values.length}, other: ${other.values.length}');
+    assert(_values.length == other._values.length,
+        'source: ${_values.length}, other: ${other._values.length}');
     return Chroma(
-        List.generate(values.length, (i) => values[i] + other.values[i]));
+        List.generate(_values.length, (i) => _values[i] + other._values[i]));
   }
 
   Chroma operator /(num denominator) {
-    return Chroma(values.map((e) => e / denominator).toList());
+    return Chroma(_values.map((e) => e / denominator).toList());
   }
+
+  double operator [](int index) => _values[index];
+
+  @override
+  Iterator<double> get iterator => _values.iterator;
 }
 
 ///必ず12個の特徴量をもったクロマ

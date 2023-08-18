@@ -16,7 +16,7 @@ class PerSecondChordChangeDetector implements ChordChangeDetectable {
 
     if (chromas.isEmpty) return result;
 
-    final chromaLength = chromas.first.values.length;
+    final chromaLength = chromas.first.length;
     var chroma = Chroma.zero(chromaLength);
     double accumulatedTime = 0;
     int accumulatedCount = 0;

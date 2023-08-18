@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
-typedef Notes = List<Note>;
+typedef Notes = Iterable<Note>;
 typedef Degree = int;
 typedef Degrees = Iterable<Degree>;
 
@@ -149,6 +149,12 @@ class Chord {
     } catch (e) {
       rethrow;
     }
+  }
+
+  //TODO impl this
+  //コードは一意に定まらなかったり、該当するものがなかったりするため、factoryにはできない
+  static Iterable<Chord> fromNotes(Notes notes) {
+    return [];
   }
 
   late final String label = root.label + type.label + (qualities?.label ?? '');

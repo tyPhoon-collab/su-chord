@@ -27,7 +27,7 @@ void main() {
     final data = await loader.load();
     final chromas = c.chroma(data);
 
-    expect(chromas[0].maxIndex(), 0);
+    expect(chromas[0].maxIndex, 0);
   });
 
   test('reassignment chroma chord', () async {
@@ -37,7 +37,7 @@ void main() {
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = c.chroma(data);
 
-    expect(chromas[0].maxIndex(), 0);
+    expect(chromas[0].maxIndex, 0);
   });
 
   test('reassignment chroma chord normalized', () async {
