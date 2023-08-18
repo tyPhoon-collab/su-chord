@@ -19,7 +19,11 @@ typedef Magnitudes = List<Float64List>;
 class Chroma {
   Chroma(this.values);
 
+  factory Chroma.zero(int length) => Chroma(List.filled(length, 0.0));
+
   final List<double> values;
+
+  static final empty = Chroma(const []);
 
   int maxIndex() {
     var max = values[0];
@@ -44,6 +48,17 @@ class Chroma {
       sum += normalized[i] * other.normalized[i];
     }
     return sum;
+  }
+
+  Chroma operator +(Chroma other) {
+    assert(values.length == other.values.length,
+        'source: ${values.length}, other: ${other.values.length}');
+    return Chroma(
+        List.generate(values.length, (i) => values[i] + other.values[i]));
+  }
+
+  Chroma operator /(num denominator) {
+    return Chroma(values.map((e) => e / denominator).toList());
   }
 }
 
@@ -76,9 +91,10 @@ Float64x2 _div(Float64x2 a, Float64x2 b) {
 }
 
 class STFTCalculator {
-  STFTCalculator.hanning({this.chunkSize = Config.chunkSize, int? chunkStride})
-      : chunkStride = chunkStride ?? chunkSize ~/ 4,
-        window = Window.hanning(chunkSize) {
+  STFTCalculator.hanning({
+    this.chunkSize = Config.chunkSize,
+    this.chunkStride = Config.chunkStride,
+  }) : window = Window.hanning(chunkSize) {
     stft = STFT(chunkSize, window);
   }
 
@@ -92,8 +108,12 @@ class STFTCalculator {
 
 class CombFilterChromaCalculator extends STFTCalculator
     implements ChromaCalculable {
-  CombFilterChromaCalculator({MusicalScale? lowest, this.perOctave = 7})
-      : lowest = lowest ?? MusicalScale.C1,
+  CombFilterChromaCalculator({
+    super.chunkSize,
+    super.chunkStride,
+    MusicalScale? lowest,
+    this.perOctave = 7,
+  })  : lowest = lowest ?? MusicalScale.C1,
         super.hanning();
 
   final MusicalScale lowest;
@@ -136,7 +156,7 @@ class CombFilterChromaCalculator extends STFTCalculator
 class ReassignmentChromaCalculator extends STFTCalculator
     implements ChromaCalculable {
   ReassignmentChromaCalculator(
-      {super.chunkSize = Config.chunkSize,
+      {super.chunkSize,
       super.chunkStride,
       MusicalScale? lowest,
       this.perOctave = 7})
@@ -168,19 +188,18 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
   @override
   List<Chroma> chroma(AudioData data) {
-    const interval = 4.0;
-
     final points = reassign(data);
-    binX = _createBinX(data.duration, interval);
+    binX = List.generate(magnitudes.length, (i) => i * dt)..add(data.duration);
     histogram2d = WeightedHistogram2d.from(points, binX: binX, binY: binY);
     return histogram2d!.values.map(_fold).toList();
   }
 
-  List<double> _createBinX(double duration, double interval) {
-    final length = (duration / interval).ceil() + 1;
-    return List.generate(
-        length, (i) => i == length - 1 ? duration : i * interval);
-  }
+  // List<double> _createBinX(double duration) {
+  //   const interval = 4.0;
+  //   final length = (duration / interval).ceil() + 1;
+  //   return List.generate(
+  //       length, (i) => i == length - 1 ? duration : i * interval);
+  // }
 
   PCP _fold(List<double> value) {
     final offset = equalTemperament.lowestScale.degreeTo(lowest);

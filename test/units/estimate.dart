@@ -1,3 +1,5 @@
+import 'package:chord/config.dart';
+import 'package:chord/domains/chord_change_detector.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimate.dart';
 import 'package:chord/utils/loader.dart';
@@ -15,6 +17,10 @@ void main() {
   test('reassignment chroma chord estimate', () async {
     final e = PatternMatchingChordEstimator(
       chromaCalculable: ReassignmentChromaCalculator(),
+      chordChangeDetectable: PerSecondChordChangeDetector(
+        interval: 4,
+        dt: Config.chunkStride / Config.sampleRate,
+      ),
     );
 
     const loader =

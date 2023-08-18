@@ -34,7 +34,7 @@ void main() {
     final c = ReassignmentChromaCalculator();
 
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    final data = await loader.load();
+    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = c.chroma(data);
 
     expect(chromas[0].maxIndex(), 0);
