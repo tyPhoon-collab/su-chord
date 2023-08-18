@@ -6,10 +6,13 @@ import 'package:fftea/fftea.dart';
 import 'package:flutter/widgets.dart';
 
 import '../config.dart';
+import '../utils/formula.dart';
 import '../utils/loader.dart';
 import '../utils/plot.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
+
+typedef Magnitudes = List<Float64List>;
 
 ///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
@@ -63,7 +66,7 @@ class PCP extends Chroma {
 }
 
 abstract interface class ChromaCalculable {
-  List<Chroma> chroma(AudioData audioData);
+  List<Chroma> chroma(AudioData data);
 }
 
 /// a / b in complex
@@ -72,30 +75,88 @@ Float64x2 _div(Float64x2 a, Float64x2 b) {
   return Float64x2((a.x * b.x + a.y * b.y) / c, (a.y * b.x - a.x * b.y) / c);
 }
 
-class ReassignmentChromaCalculator implements ChromaCalculable {
-  ReassignmentChromaCalculator(
-      {this.chunkSize = Config.chunkSize, int? chunkStride})
-      : chunkStride = chunkStride ?? chunkSize ~/ 4 {
-    final window = Window.hanning(chunkSize);
+class STFTCalculator {
+  STFTCalculator.hanning({this.chunkSize = Config.chunkSize, int? chunkStride})
+      : chunkStride = chunkStride ?? chunkSize ~/ 4,
+        window = Window.hanning(chunkSize) {
+    stft = STFT(chunkSize, window);
+  }
 
+  final Float64List window;
+  late final STFT stft;
+  final int chunkSize;
+  final int chunkStride;
+
+  Magnitudes magnitudes = [];
+}
+
+class CombFilterChromaCalculator extends STFTCalculator
+    implements ChromaCalculable {
+  CombFilterChromaCalculator({MusicalScale? lowest, this.perOctave = 7})
+      : lowest = lowest ?? MusicalScale.C1,
+        super.hanning();
+
+  final MusicalScale lowest;
+  final int perOctave;
+
+  @override
+  List<Chroma> chroma(AudioData data) {
+    stft.run(
+      data.buffer,
+      (freq) {
+        magnitudes.add(freq.discardConjugates().magnitudes());
+      },
+      chunkStride,
+    );
+
+    final df = data.sampleRate / chunkSize;
+    return magnitudes.map((e) => _getCombFilterChroma(e, df)).toList();
+  }
+
+  Chroma _getCombFilterChroma(Float64List magnitude, double df) {
+    return Chroma(
+      List.generate(
+          12, (i) => _getCombFilterPower(magnitude, df, lowest.to(i))),
+    );
+  }
+
+  double _getCombFilterPower(
+      Float64List magnitude, double df, MusicalScale lowest) {
+    double sum = 0;
+    for (int i = 0; i < perOctave; ++i) {
+      final scale = lowest.to(i * 12);
+      final closure = normalDistributionClosure(scale.hz, scale.hz / 24);
+      sum += magnitude.mapIndexed((j, e) => closure(j * df) * e).sum;
+    }
+
+    return sum;
+  }
+}
+
+class ReassignmentChromaCalculator extends STFTCalculator
+    implements ChromaCalculable {
+  ReassignmentChromaCalculator(
+      {super.chunkSize = Config.chunkSize,
+      super.chunkStride,
+      MusicalScale? lowest,
+      this.perOctave = 7})
+      : lowest = lowest ?? MusicalScale.C1,
+        super.hanning() {
     final windowD = Float64List.fromList(window
         .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
         .toList());
     final windowT = Float64List.fromList(
         window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList());
 
-    stft = STFT(chunkSize, window);
     stftD = STFT(chunkSize, windowD);
     stftT = STFT(chunkSize, windowT);
   }
 
-  final int chunkSize;
-  final int chunkStride;
-  late final STFT stft;
+  final MusicalScale lowest;
+  final int perOctave;
   late final STFT stftD;
   late final STFT stftT;
 
-  List<Float64List> magnitudes = [];
   WeightedHistogram2d? histogram2d;
   double dt = 0;
   double df = 0;
@@ -116,19 +177,18 @@ class ReassignmentChromaCalculator implements ChromaCalculable {
   }
 
   List<double> _createBinX(double duration, double interval) {
-    final length = (duration / interval).ceil();
+    final length = (duration / interval).ceil() + 1;
     return List.generate(
         length, (i) => i == length - 1 ? duration : i * interval);
   }
 
   PCP _fold(List<double> value) {
-    final offset =
-        equalTemperament.lowestScale.degreeTo(MusicalScale(Note.C, 1));
+    final offset = equalTemperament.lowestScale.degreeTo(lowest);
     return PCP(List.generate(12, (i) {
       double sum = 0;
 
       //7オクターブ分折りたたむC1-B7
-      for (var j = 0; j < 7; j++) {
+      for (var j = 0; j < perOctave; j++) {
         final index = offset + i + 12 * j;
         sum += value[index];
       }

@@ -1,3 +1,4 @@
+import 'package:chord/config.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,14 +40,25 @@ void main() {
     expect(chromas[0].maxIndex(), 0);
   });
 
-  test('reassignment chroma eval', () async {
+  test('reassignment chroma chord normalized', () async {
     final c = ReassignmentChromaCalculator();
 
     const loader =
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
-    final data = await loader.load();
+    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
+    final chromas = c.chroma(data);
+    final chroma = chromas[0].normalized;
+
+    expect(chroma, isNotNull);
+  });
+
+  test('comb chroma chord', () async {
+    final c = CombFilterChromaCalculator();
+
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = c.chroma(data);
 
-    expect(chromas, isNotEmpty);
+    expect(chromas[0], isNotNull);
   });
 }

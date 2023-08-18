@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:chord/config.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +44,21 @@ void main() {
     final maxIndex = _findMaxIndex(spectrogram[10]);
 
     expect(maxIndex, (130.813 / freqResolution).round());
+  });
+
+  test('stft comb filter', () async {
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    final data = await loader.load(sampleRate: Config.sampleRate);
+
+    const chunkSize = Config.chunkSize;
+    final stft = STFT(chunkSize, Window.hanning(chunkSize));
+
+    final spectrogram = <Float64List>[];
+    stft.run(data.buffer, (freq) {
+      spectrogram.add(freq.discardConjugates().magnitudes());
+    });
+
+    expect(spectrogram, isNotEmpty);
   });
 }
 

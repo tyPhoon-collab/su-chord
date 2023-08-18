@@ -43,4 +43,14 @@ void main() {
   test('note C to -3 be A', () {
     expect(Note.C.to(-3), Note.A);
   });
+
+  test('music scale C3 to 2 is D3', () {
+    final scale = MusicalScale(Note.C, 3);
+    expect(scale.to(2), equals(MusicalScale(Note.D, 3)));
+  });
+
+  test('music scale B3 to 1 is C4', () {
+    final scale = MusicalScale(Note.B, 3);
+    expect(scale.to(1), equals(MusicalScale(Note.C, 4)));
+  });
 }

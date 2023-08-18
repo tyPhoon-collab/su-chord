@@ -40,4 +40,7 @@ class PatternMatchingChordEstimator implements ChordEstimable {
       chromas.map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
     );
   }
+
+//TODO
+// List<Chroma> _fold()
 }

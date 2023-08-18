@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimate.dart';
@@ -37,7 +38,7 @@ void main() {
 
     const loader =
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
-    final data = await loader.load();
+    final data = await loader.load(sampleRate: Config.sampleRate);
     final chords = estimator.estimate(data);
 
     debugPrint(chords.toString());

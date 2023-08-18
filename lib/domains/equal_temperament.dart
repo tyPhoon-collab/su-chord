@@ -1,11 +1,15 @@
 import 'dart:math';
 
+import 'package:flutter/widgets.dart';
+
 import '../utils/plot.dart';
 
+@immutable
 class MusicalScale {
   MusicalScale(this.note, this.pitch);
 
   static final A0 = MusicalScale(Note.A, 0);
+  static final C1 = MusicalScale(Note.C, 1);
 
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;
@@ -16,12 +20,38 @@ class MusicalScale {
   //計算量削減のために、lateにする
   late final double hz = hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
 
+  ///度数を渡すと新しいMusicalScaleを返す
+  MusicalScale to(int degree) {
+    if (degree == 0) return this;
+
+    final newNote = note.to(degree);
+    var newPitch = pitch + degree ~/ 12;
+    if (note.degreeTo(newNote).isNegative) {
+      newPitch += 1;
+    }
+    return MusicalScale(newNote, newPitch);
+  }
+
   ///ピッチを考慮する度数の差
   ///ex)
   ///A0 -> C1 = 3
   ///C3 -> C4 = 12
   int degreeTo(MusicalScale other) =>
       note.degreeTo(other.note) + 12 * (other.pitch - pitch);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is MusicalScale) {
+      return note == other.note && pitch == other.pitch;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => note.hashCode ^ pitch.hashCode;
+
+  @override
+  String toString() => '$note$pitch';
 }
 
 enum Accidental {
