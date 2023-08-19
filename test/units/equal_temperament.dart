@@ -2,55 +2,68 @@ import 'package:chord/domains/equal_temperament.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('note degree of C to G is 7', () {
-    const note = Note.C;
-    final int degree = note.degreeTo(Note.G);
-    expect(degree, 7);
+  group('note', () {
+    test('C to 2 be D', () {
+      expect(Note.C.to(2), Note.D);
+    });
+
+    test('C to 14 be D', () {
+      expect(Note.C.to(2), Note.D);
+    });
+
+    test('C to -3 be A', () {
+      expect(Note.C.to(-3), Note.A);
+    });
+
+    group('degree', () {
+      test('C to G is 7', () {
+        const note = Note.C;
+        final int degree = note.degreeTo(Note.G);
+        expect(degree, 7);
+      });
+
+      test('D to C is -2', () {
+        const note = Note.D;
+        final int degree = note.degreeTo(Note.C);
+        expect(degree, -2);
+      });
+    });
   });
 
-  test('note degree of D to C is -2', () {
-    const note = Note.D;
-    final int degree = note.degreeTo(Note.C);
-    expect(degree, -2);
-  });
+  group('music scale', () {
+    test('C3 to 2 is D3', () {
+      final scale = MusicalScale(Note.C, 3);
+      expect(scale.to(2), equals(MusicalScale(Note.D, 3)));
+    });
 
-  test('music scale degree of A0 to C1 is 3', () {
-    final scale = MusicalScale.A0;
-    final int degree = scale.degreeTo(MusicalScale(Note.C, 1));
-    expect(degree, 3);
-  });
+    test('B3 to 1 is C4', () {
+      final scale = MusicalScale(Note.B, 3);
+      expect(scale.to(1), equals(MusicalScale(Note.C, 4)));
+    });
 
-  test('music scale degree of C1 to C2 is 12', () {
-    final scale = MusicalScale(Note.C, 1);
-    final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
-    expect(degree, 12);
-  });
+    test('E2 to 12 * 6 is E8', () {
+      final scale = MusicalScale.E2;
+      expect(scale.to(12 * 6), equals(MusicalScale(Note.E, 8)));
+    });
 
-  test('music scale degree of C3 to C2 is -12', () {
-    final scale = MusicalScale(Note.C, 3);
-    final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
-    expect(degree, -12);
-  });
+    group('degree', () {
+      test('A0 to C1 is 3', () {
+        final scale = MusicalScale.A0;
+        final int degree = scale.degreeTo(MusicalScale(Note.C, 1));
+        expect(degree, 3);
+      });
 
-  test('note C to 2 be D', () {
-    expect(Note.C.to(2), Note.D);
-  });
+      test('C1 to C2 is 12', () {
+        final scale = MusicalScale(Note.C, 1);
+        final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
+        expect(degree, 12);
+      });
 
-  test('note C to 14 be D', () {
-    expect(Note.C.to(2), Note.D);
-  });
-
-  test('note C to -3 be A', () {
-    expect(Note.C.to(-3), Note.A);
-  });
-
-  test('music scale C3 to 2 is D3', () {
-    final scale = MusicalScale(Note.C, 3);
-    expect(scale.to(2), equals(MusicalScale(Note.D, 3)));
-  });
-
-  test('music scale B3 to 1 is C4', () {
-    final scale = MusicalScale(Note.B, 3);
-    expect(scale.to(1), equals(MusicalScale(Note.C, 4)));
+      test('C3 to C2 is -12', () {
+        final scale = MusicalScale(Note.C, 3);
+        final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
+        expect(degree, -12);
+      });
+    });
   });
 }

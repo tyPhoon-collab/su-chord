@@ -3,7 +3,6 @@ import 'package:chord/utils/formula.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const epsilon = 0.000001;
   test('normal distribution', () async {
     final hzOfC3 = MusicalScale(Note.C, 3).hz;
     final mu = hzOfC3;

@@ -131,29 +131,20 @@ enum Note {
   }
 }
 
-class EqualTemperament {
-  EqualTemperament({MusicalScale? lowestScale})
-      : lowestScale = lowestScale ?? MusicalScale.A0;
+/// 範囲は[lowest.hz, highest.hz)
+Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
+  // 音域の参考サイト: https://tomari.org/main/java/oto.html
+  // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
+  // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
+  final hzList = List.generate(
+    lowest.degreeTo(highest) + 2,
+    (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
+  );
 
-  final MusicalScale lowestScale;
-
-  late final bin = _buildEqualTemperamentBin();
-
-  Bin _buildEqualTemperamentBin() {
-    // ピアノの88鍵の音域の周波数ビンを作成
-    // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
-    // よって、88個の音域のために、90個の音域を最初に計算する
-
-    // 音テーブルの作成。A0~C8
-    // 音域の参考サイト: https://tomari.org/main/java/oto.html
-    final hzList = List.generate(
-        90, (i) => lowestScale.hz * pow(MusicalScale.ratio, i - 1));
-
-    final bins = <double>[];
-    for (var i = 0; i < hzList.length - 1; i++) {
-      bins.add((hzList[i] + hzList[i + 1]) / 2);
-    }
-
-    return bins;
+  final bins = <double>[];
+  for (var i = 0; i < hzList.length - 1; i++) {
+    bins.add((hzList[i] + hzList[i + 1]) / 2);
   }
+
+  return bins;
 }

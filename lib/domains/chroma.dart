@@ -54,6 +54,7 @@ class Chroma extends Iterable<double> {
   }
 
   Chroma shift(int num) {
+    if (num == 0) return this;
     final length = _values.length;
     num %= length; // 配列の長さより大きい場合は余りを取る
     final rotated = _values.sublist(length - num)
@@ -199,9 +200,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
   double df = 0;
   Bin binX = [];
 
-  Bin get binY => equalTemperament.bin;
-
-  final equalTemperament = EqualTemperament();
+  late final Bin binY = equalTemperamentBin(lowest, lowest.to(12 * perOctave));
 
   @override
   List<Chroma> chroma(AudioData data) {
@@ -211,25 +210,17 @@ class ReassignmentChromaCalculator extends STFTCalculator
     return histogram2d!.values.map(_fold).toList();
   }
 
-  // List<double> _createBinX(double duration) {
-  //   const interval = 4.0;
-  //   final length = (duration / interval).ceil() + 1;
-  //   return List.generate(
-  //       length, (i) => i == length - 1 ? duration : i * interval);
-  // }
-
-  PCP _fold(List<double> value) {
-    final offset = equalTemperament.lowestScale.degreeTo(lowest);
+  Chroma _fold(List<double> value) {
     return PCP(List.generate(12, (i) {
       double sum = 0;
 
-      //7オクターブ分折りたたむC1-B7
+      //折りたたむ
       for (var j = 0; j < perOctave; j++) {
-        final index = offset + i + 12 * j;
+        final index = i + 12 * j;
         sum += value[index];
       }
       return sum;
-    }));
+    })).shift(-lowest.note.degreeTo(Note.C));
   }
 
   ///デバッグのしやすさとモジュール強度を考慮して
@@ -266,7 +257,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
     );
 
     final points = <Point>[];
-    dt = chunkStride / data.sampleRate;
+    dt = (chunkStride == 0 ? chunkSize : chunkStride) / data.sampleRate;
     df = data.sampleRate / chunkSize;
 
     for (int i = 0; i < s.length; ++i) {

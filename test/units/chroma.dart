@@ -1,5 +1,7 @@
 import 'package:chord/config.dart';
+import 'package:chord/domains/chord_change_detector.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -44,7 +46,7 @@ void main() {
     final c = ReassignmentChromaCalculator();
 
     const loader =
-        SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+    SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = c.chroma(data);
     final chroma = chromas[0].normalized;
@@ -60,5 +62,52 @@ void main() {
     final chromas = c.chroma(data);
 
     expect(chromas[0], isNotNull);
+  });
+
+  test('comb chroma chord for guitar tuning', () async {
+    const chunkSize = 8192;
+    const chunkStride = 0;
+    final c = CombFilterChromaCalculator(
+        chunkSize: chunkSize,
+        chunkStride: chunkStride,
+        lowest: MusicalScale.E2,
+        perOctave: 6);
+    final ccd = PerSecondChordChangeDetector(
+        interval: 3, dt: chunkSize / Config.sampleRate);
+
+    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
+    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
+    final chromas = ccd.reduce(c.chroma(data));
+
+    expect(chromas[0], isNotNull);
+  });
+
+  test('compare comb vs reassignment', () async {
+    const chunkSize = 8192;
+    const chunkStride = 0;
+
+    final cc1 = CombFilterChromaCalculator(
+        chunkSize: chunkSize,
+        chunkStride: chunkStride,
+        lowest: MusicalScale.E2,
+        perOctave: 6);
+    final cc2 = ReassignmentChromaCalculator(
+        chunkSize: chunkSize,
+        chunkStride: chunkStride,
+        lowest: MusicalScale.E2,
+        perOctave: 6);
+
+    final ccd = PerSecondChordChangeDetector(
+        interval: 3, dt: chunkSize / Config.sampleRate);
+
+    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
+    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
+    final chromas1 = ccd.reduce(cc1.chroma(data));
+    final chromas2 = ccd.reduce(cc2.chroma(data));
+
+    expect(chromas1[0], isNotNull);
+    expect(chromas2[0], isNotNull);
   });
 }

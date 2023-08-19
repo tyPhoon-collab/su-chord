@@ -1,3 +1,4 @@
+import '../utils/formula.dart';
 import 'chroma.dart';
 
 abstract interface class ChordChangeDetectable {
@@ -34,6 +35,11 @@ class PerSecondChordChangeDetector implements ChordChangeDetectable {
       }
 
       accumulatedCount++;
+    }
+
+    //コンピュータ特有の誤差を考慮
+    if (accumulatedTime + epsilon >= interval) {
+      result.add(chroma / accumulatedCount);
     }
 
     return result;
