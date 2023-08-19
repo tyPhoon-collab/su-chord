@@ -38,8 +38,8 @@ class Chroma extends Iterable<double> {
     return maxIndex;
   }
 
-  late final Iterable<int> sortedIndex =
-      _values.sorted((a, b) => a.compareTo(b)).map((e) => _values.indexOf(e));
+  late final Iterable<int> maxSortedIndex =
+      _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
   late final normalized = _values.map((e) => e / l2norm).toList();
   late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
@@ -160,7 +160,9 @@ class CombFilterChromaCalculator extends STFTCalculator
     double sum = 0;
     for (int i = 0; i < perOctave; ++i) {
       final scale = lowest.to(i * 12);
-      final closure = normalDistributionClosure(scale.hz, scale.hz / 24);
+      final mu = scale.hz;
+      final sigma = scale.hz / 24;
+      final closure = normalDistributionClosure(mu, sigma);
       sum += magnitude.mapIndexed((j, e) => closure(j * df) * e).sum;
     }
 

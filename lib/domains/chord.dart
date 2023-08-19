@@ -188,18 +188,21 @@ class Chord {
   Chord({
     required this.notes,
     required this.root,
-    this.qualities,
+    ChordQualities? qualities,
   })  : assert(notes.contains(root)),
+        qualities = qualities ?? ChordQualities.empty,
         type = _fromNotes(notes, root)
             .firstWhere((record) =>
                 record.qualities == (qualities ?? ChordQualities.empty))
             .type;
 
-  Chord.fromType({required this.type, required this.root, this.qualities})
+  Chord.fromType(
+      {required this.type, required this.root, ChordQualities? qualities})
       : assert(
           qualities == null || type.validate(qualities),
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
         ),
+        qualities = qualities ?? ChordQualities.empty,
         notes = [
           ...type.degrees.map((e) => root.to(e)),
           ...?qualities?.map((e) => root.to(e.degree)),
@@ -259,14 +262,14 @@ class Chord {
 
   static const noChordLabel = '***';
 
-  late final String label = root.label + type.label + (qualities?.label ?? '');
+  late final String label = root.label + type.label + qualities.label;
   late final PCP pcp = PCP.fromNotes(notes);
 
   final Note root;
   final ChordType type;
 
   final Notes notes;
-  final ChordQualities? qualities;
+  final ChordQualities qualities;
 
   @override
   bool operator ==(Object other) {
@@ -274,8 +277,7 @@ class Chord {
       return root == other.root &&
           type == other.type &&
           setEquals(notes.toSet(), other.notes.toSet()) &&
-          (qualities ?? ChordQualities.empty) ==
-              (other.qualities ?? ChordQualities.empty);
+          qualities == other.qualities;
     }
     return false;
   }

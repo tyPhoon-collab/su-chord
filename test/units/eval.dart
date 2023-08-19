@@ -102,16 +102,20 @@ Future<void> main() async {
   });
 
   test('eval conv', () async {
+    const chunkSize = 8192;
+    const chunkStride = 0;
     for (int i = 0; i < data.length; i++) {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(
+          chunkSize: chunkSize,
+          chunkStride: chunkStride,
           lowest: MusicalScale.E2,
           perOctave: 6,
         ),
         chordChangeDetectable: PerSecondChordChangeDetector(
           interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
+          dt: chunkSize / Config.sampleRate,
         ),
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }

@@ -87,7 +87,7 @@ class SearchTreeChordEstimator implements ChordEstimable {
   // 演奏したクロマに対して 65%以下のパワー を持つクロマはノイズ成分として見なされたためである.
   // 従って，演奏音の数は最大 4 つと なる.
   Notes _chooseNotes(Chroma chroma) {
-    final indexes = chroma.sortedIndex;
+    final indexes = chroma.maxSortedIndex;
     final max = chroma[indexes.first];
     final threshold = max * thresholdRatio;
     return indexes
