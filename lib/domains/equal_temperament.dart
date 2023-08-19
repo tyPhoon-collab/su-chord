@@ -10,6 +10,7 @@ class MusicalScale {
 
   static final A0 = MusicalScale(Note.A, 0);
   static final C1 = MusicalScale(Note.C, 1);
+  static final E2 = MusicalScale(Note.E, 2);
 
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;

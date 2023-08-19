@@ -7,16 +7,17 @@ import 'chord_change_detector.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
-class ChordProgression extends Iterable<Chord> {
+class ChordProgression extends Iterable<Chord?> {
   ChordProgression(this.values);
 
-  final Iterable<Chord> values;
+  final Iterable<Chord?> values;
 
   @override
-  Iterator<Chord> get iterator => values.iterator;
+  Iterator<Chord?> get iterator => values.iterator;
 
   @override
-  String toString() => values.map((e) => e.label).join('->');
+  String toString() =>
+      values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
 }
 
 abstract interface class ChordEstimable {
@@ -69,9 +70,8 @@ class SearchTreeChordEstimator implements ChordEstimable {
   ChordProgression estimate(AudioData data) {
     final chromas = _ccd.reduce(_cc.chroma(data));
 
-    //TODO nullに対応させる
     return ChordProgression(
-      chromas.map((e) => Chord.fromNotes(_chooseNotes(e)).first),
+      chromas.map((e) => Chord.fromNotes(_chooseNotes(e)).firstOrNull),
     );
   }
 

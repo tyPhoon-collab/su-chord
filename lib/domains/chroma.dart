@@ -53,6 +53,14 @@ class Chroma extends Iterable<double> {
     return sum;
   }
 
+  Chroma shift(int num) {
+    final length = _values.length;
+    num %= length; // 配列の長さより大きい場合は余りを取る
+    final rotated = _values.sublist(length - num)
+      ..addAll(_values.sublist(0, length - num));
+    return Chroma(rotated);
+  }
+
   Chroma operator +(Chroma other) {
     assert(_values.length == other._values.length,
         'source: ${_values.length}, other: ${other._values.length}');
@@ -142,10 +150,9 @@ class CombFilterChromaCalculator extends STFTCalculator
   }
 
   Chroma _getCombFilterChroma(Float64List magnitude, double df) {
-    return Chroma(
-      List.generate(
-          12, (i) => _getCombFilterPower(magnitude, df, lowest.to(i))),
-    );
+    return Chroma(List.generate(
+            12, (i) => _getCombFilterPower(magnitude, df, lowest.to(i))))
+        .shift(-lowest.note.degreeTo(Note.C));
   }
 
   double _getCombFilterPower(
