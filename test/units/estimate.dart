@@ -17,7 +17,7 @@ void main() {
   test('reassignment chroma chord estimate', () async {
     final e = PatternMatchingChordEstimator(
       chromaCalculable: ReassignmentChromaCalculator(),
-      chordChangeDetectable: PerSecondChordChangeDetector(
+      chordChangeDetectable: IntervalChordChangeDetector(
         interval: 4,
         dt: Config.chunkStride / Config.sampleRate,
       ),

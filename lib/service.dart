@@ -12,7 +12,7 @@ void register() {
   const chunkStride = Config.chunkStride;
 
   Get.lazyPut<ChromaCalculable>(() => ReassignmentChromaCalculator());
-  Get.lazyPut<ChordChangeDetectable>(() => PerSecondChordChangeDetector(
+  Get.lazyPut<ChordChangeDetectable>(() => IntervalChordChangeDetector(
         interval: 2,
         dt: chunkStride / sampleRate,
       ));

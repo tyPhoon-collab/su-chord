@@ -28,7 +28,23 @@ abstract interface class Debuggable {
   Iterable<String> debugText();
 }
 
-class PatternMatchingChordEstimator implements ChordEstimable, Debuggable {
+mixin class Measure {
+  final _stopwatch = Stopwatch();
+  final Map<String, int> calculateTimes = {};
+
+  T measure<T>(String key, T Function() f) {
+    _stopwatch.reset();
+    _stopwatch.start();
+    final ret = f();
+    _stopwatch.stop();
+    calculateTimes[key] = _stopwatch.elapsedMilliseconds;
+    return ret;
+  }
+}
+
+class PatternMatchingChordEstimator
+    with Measure
+    implements ChordEstimable, Debuggable {
   PatternMatchingChordEstimator({
     required this.chromaCalculable,
     required this.chordChangeDetectable,
@@ -46,33 +62,20 @@ class PatternMatchingChordEstimator implements ChordEstimable, Debuggable {
 
   //Debugs
   List<Chroma> reducedChromas = [];
-  Map<String, int> calculateTimes = {};
 
   @override
   ChordProgression estimate(AudioData data) {
-    var stopwatch = Stopwatch();
+    final chromas = measure('chroma calc', () => _cc.chroma(data));
 
-    stopwatch.start();
-    final chromas = _cc.chroma(data);
-    calculateTimes['chroma calc'] = stopwatch.elapsedMilliseconds;
-    stopwatch.stop();
+    reducedChromas = measure('reduce calc', () => _ccd.reduce(chromas));
 
-    stopwatch = Stopwatch();
-    stopwatch.start();
-    reducedChromas = _ccd.reduce(chromas);
-    calculateTimes['reduce calc'] = stopwatch.elapsedMilliseconds;
-    stopwatch.stop();
-
-    stopwatch = Stopwatch();
-    stopwatch.start();
-    final progress = ChordProgression(
-      reducedChromas
-          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
+    return measure(
+      'progress calc',
+      () => ChordProgression(
+        reducedChromas
+            .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
+      ),
     );
-    calculateTimes['progress calc'] = stopwatch.elapsedMilliseconds;
-    stopwatch.stop();
-
-    return progress;
   }
 
   @override

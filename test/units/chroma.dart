@@ -46,7 +46,7 @@ void main() {
     final c = ReassignmentChromaCalculator();
 
     const loader =
-    SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+        SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = c.chroma(data);
     final chroma = chromas[0].normalized;
@@ -72,7 +72,7 @@ void main() {
         chunkStride: chunkStride,
         lowest: MusicalScale.E2,
         perOctave: 6);
-    final ccd = PerSecondChordChangeDetector(
+    final ccd = IntervalChordChangeDetector(
         interval: 3, dt: chunkSize / Config.sampleRate);
 
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
@@ -98,7 +98,7 @@ void main() {
         lowest: MusicalScale.E2,
         perOctave: 6);
 
-    final ccd = PerSecondChordChangeDetector(
+    final ccd = IntervalChordChangeDetector(
         interval: 3, dt: chunkSize / Config.sampleRate);
 
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');

@@ -5,8 +5,8 @@ abstract interface class ChordChangeDetectable {
   List<Chroma> reduce(List<Chroma> chroma);
 }
 
-class PerSecondChordChangeDetector implements ChordChangeDetectable {
-  PerSecondChordChangeDetector({required this.interval, required this.dt});
+class IntervalChordChangeDetector implements ChordChangeDetectable {
+  IntervalChordChangeDetector({required this.interval, required this.dt});
 
   final double dt;
   final double interval;

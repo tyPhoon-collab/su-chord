@@ -67,7 +67,7 @@ Future<void> main() async {
       Evaluator(
           estimator: PatternMatchingChordEstimator(
         chromaCalculable: ReassignmentChromaCalculator(),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: Config.chunkStride / Config.sampleRate,
         ),
@@ -80,7 +80,7 @@ Future<void> main() async {
       Evaluator(
           estimator: PatternMatchingChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: Config.chunkStride / Config.sampleRate,
         ),
@@ -93,7 +93,7 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: ReassignmentChromaCalculator(),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: Config.chunkStride / Config.sampleRate,
         ),
@@ -113,7 +113,7 @@ Future<void> main() async {
           lowest: MusicalScale.E2,
           perOctave: 6,
         ),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: chunkSize / Config.sampleRate,
         ),
@@ -126,7 +126,7 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: Config.chunkStride / Config.sampleRate,
         ),
@@ -139,7 +139,7 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: PerSecondChordChangeDetector(
+        chordChangeDetectable: IntervalChordChangeDetector(
           interval: 4,
           dt: Config.chunkStride / Config.sampleRate,
         ),

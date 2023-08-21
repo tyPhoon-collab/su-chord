@@ -26,27 +26,37 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Chord')),
-        body: StreamBuilder(
-          stream: _recorder.stream,
-          builder: (_, snapshot) {
-            if (!snapshot.hasData) return const SizedBox();
-            _count++;
+        body: ValueListenableBuilder(
+          valueListenable: _recorder.state,
+          builder: (BuildContext context, value, _) {
+            return StreamBuilder(
+              stream: _recorder.stream,
+              builder: (_, snapshot) {
+                if (!snapshot.hasData) return const SizedBox();
+                if (value == RecorderState.recording) {
+                  _count++;
+                } else {
+                  _count = 0;
+                }
 
-            final data = snapshot.data!.downSample(Config.sampleRate);
-            // final data = snapshot.data!;
+                final data = snapshot.data!.downSample(Config.sampleRate);
+                // final data = snapshot.data!;
 
-            final progress = _estimator.estimate(data);
+                final progress = _estimator.estimate(data);
 
-            return Column(
-              children: [
-                Text(data.sampleRate.toString()),
-                Text(data.buffer.length.toString()),
-                Text(_count.toString()),
-                Text(progress.toString()),
-                if (_estimator is Debuggable)
-                  for (final text in (_estimator as Debuggable).debugText())
-                    Text(text),
-              ],
+                return Column(
+                  children: [
+                    Text(value.toString()),
+                    // Text(data.sampleRate.toString()),
+                    // Text(data.buffer.length.toString()),
+                    Text(_count.toString()),
+                    Text(progress.toString()),
+                    if (_estimator is Debuggable)
+                      for (final text in (_estimator as Debuggable).debugText())
+                        Text(text),
+                  ],
+                );
+              },
             );
           },
         ),
