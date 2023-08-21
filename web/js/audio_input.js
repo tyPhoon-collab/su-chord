@@ -1,30 +1,32 @@
-"use strict";
+let scriptProcessor;
+let source;
 
-// Web用のマイクの入力を管理する関数群
-let audioBuffer = [];
-let recorder = undefined;
-
-function startRec(bufferSize, sampleRate = 22050) {
-    navigator.mediaDevices
-        .getUserMedia({audio: true, video: false})
-        .then((stream) => {
-            recorder = new MediaRecorder(stream);
-            recorder.ondataavailable = (event) => {
-                audioBuffer.push(event.data);
-            }
-
-            recorder.start(1000);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+function _onAudioProcess(event) {
+    const sampleRate = event.inputBuffer.sampleRate;
+    const array = event.inputBuffer.getChannelData(0);
+    window.process(array, sampleRate);
+    console.log(array);
 }
 
-function getAudioBuffer() {
-    let blob = new Blob(audioBuffer);
-    console.log(blob);
+async function start(bufferSize) {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        const audioContext = new AudioContext();
+        source = audioContext.createMediaStreamSource(stream);
+
+        scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+
+        scriptProcessor.addEventListener("audioprocess", _onAudioProcess)
+
+        source.connect(scriptProcessor);
+        scriptProcessor.connect(audioContext.destination);
+    } catch (error) {
+        console.error("Error accessing the microphone:", error);
+    }
 }
 
-function stopRec() {
-    recorder.stop();
+function stop() {
+    source.disconnect();
+    scriptProcessor.disconnect();
+    scriptProcessor.removeEventListener("audioprocess", _onAudioProcess);
 }

@@ -14,11 +14,24 @@ class AudioData {
 
   double get duration => buffer.length / sampleRate;
 
-  //TODO add offset pram
   //TODO expand if duration > this.duration
-  AudioData cut(double? duration) {
+  AudioData cut({
+    double? duration,
+    double offset = 0,
+  }) {
     if (duration == null || duration >= this.duration) return this;
-    final newBuffer = buffer.sublist(0, (duration * sampleRate).toInt());
+    final newBuffer = buffer.sublist(
+        (offset * sampleRate).toInt(), (duration * sampleRate).toInt());
+    return AudioData(buffer: newBuffer, sampleRate: sampleRate);
+  }
+
+  AudioData cutByIndex({
+    int startIndex = 0,
+    int? endIndex,
+  }) {
+    assert(0 <= startIndex && (endIndex == null || endIndex < buffer.length));
+
+    final newBuffer = buffer.sublist(startIndex, endIndex);
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
   }
 
@@ -69,7 +82,7 @@ final class SimpleAudioLoader implements AudioLoader {
     final sr = wav.samplesPerSecond;
     final buffer = wav.toMono();
     return AudioData(buffer: buffer, sampleRate: sr)
-        .cut(duration)
+        .cut(duration: duration)
         .downSample(sampleRate);
   }
 
