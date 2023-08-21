@@ -37,7 +37,6 @@ class WebRecorder {
   AudioData? _audioData;
   Float32List? _buffer;
   late int _sampleRate;
-  int _seek = 0;
 
   RecorderState get state => _state;
 
@@ -48,14 +47,22 @@ class WebRecorder {
   AudioData? get audioData => _audioData;
 
   void _process(JSFloat32Array array, int sampleRate) {
-    _buffer = Float32List.fromList([...?_buffer, ...array.toDart]);
+    var buffer = [...?_buffer, ...array.toDart];
+    final maxSize = sampleRate * 3;
+    final size = buffer.length;
+    if (size > maxSize) {
+      buffer = buffer.sublist(size - maxSize, maxSize);
+    }
+    _buffer = Float32List.fromList(buffer);
     _sampleRate = sampleRate;
+    if (_timer == null) {
+      _startTimer();
+    }
   }
 
   Future<void> start() async {
     if (isRecording) return;
     await startRec();
-    _startTimer();
     _state = RecorderState.recording;
   }
 
@@ -77,6 +84,7 @@ class WebRecorder {
     if (_state == RecorderState.stopping) return;
     stopRec();
     _timer?.cancel();
+    _buffer = null;
     _state = RecorderState.stopping;
   }
 

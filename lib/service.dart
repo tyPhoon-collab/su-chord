@@ -13,7 +13,7 @@ void register() {
 
   Get.lazyPut<ChromaCalculable>(() => ReassignmentChromaCalculator());
   Get.lazyPut<ChordChangeDetectable>(() => PerSecondChordChangeDetector(
-        interval: 4,
+        interval: 2,
         dt: chunkStride / sampleRate,
       ));
 

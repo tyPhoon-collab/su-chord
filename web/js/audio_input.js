@@ -5,7 +5,7 @@ function _onAudioProcess(event) {
     const sampleRate = event.inputBuffer.sampleRate;
     const array = event.inputBuffer.getChannelData(0);
     window.process(array, sampleRate);
-    console.log(array);
+    // console.log(array);
 }
 
 async function start(bufferSize) {

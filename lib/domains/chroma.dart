@@ -77,6 +77,11 @@ class Chroma extends Iterable<double> {
 
   @override
   Iterator<double> get iterator => _values.iterator;
+
+  @override
+  String toString() {
+    return _values.map((e) => e.toStringAsFixed(3)).join(', ');
+  }
 }
 
 ///必ず12個の特徴量をもったクロマ
@@ -138,6 +143,7 @@ class CombFilterChromaCalculator extends STFTCalculator
 
   @override
   List<Chroma> chroma(AudioData data) {
+    magnitudes = [];
     stft.run(
       data.buffer,
       (freq) {
@@ -204,6 +210,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
   @override
   List<Chroma> chroma(AudioData data) {
+    magnitudes = [];
     final points = reassign(data);
     binX = List.generate(magnitudes.length, (i) => i * dt)..add(data.duration);
     histogram2d = WeightedHistogram2d.from(points, binX: binX, binY: binY);

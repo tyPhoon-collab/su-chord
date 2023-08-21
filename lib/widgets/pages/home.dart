@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ChordEstimable _estimator = Get.find();
   final _recorder = WebRecorder(1.seconds);
+  int _count = 0;
 
   @override
   Future<void> dispose() async {
@@ -29,12 +30,22 @@ class _HomePageState extends State<HomePage> {
           stream: _recorder.stream,
           builder: (_, snapshot) {
             if (!snapshot.hasData) return const SizedBox();
+            _count++;
+
             final data = snapshot.data!.downSample(Config.sampleRate);
+            // final data = snapshot.data!;
+
+            final progress = _estimator.estimate(data);
 
             return Column(
               children: [
                 Text(data.sampleRate.toString()),
-                Text(data.buffer.toString()),
+                Text(data.buffer.length.toString()),
+                Text(_count.toString()),
+                Text(progress.toString()),
+                if (_estimator is Debuggable)
+                  for (final text in (_estimator as Debuggable).debugText())
+                    Text(text),
               ],
             );
           },

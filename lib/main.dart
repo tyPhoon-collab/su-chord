@@ -1,7 +1,7 @@
+import 'package:chord/widgets/pages/home.dart';
 import 'package:flutter/material.dart';
 
 import 'service.dart';
-import 'widgets/pages/test.dart';
 
 void main() {
   register();
@@ -20,8 +20,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-      // home: const HomePage(),
-      home: const TestPage(),
+      home: const HomePage(),
+      // home: const TestPage(),
     );
   }
 }

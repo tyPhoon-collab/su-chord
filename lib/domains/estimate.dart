@@ -24,7 +24,11 @@ abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data);
 }
 
-class PatternMatchingChordEstimator implements ChordEstimable {
+abstract interface class Debuggable {
+  Iterable<String> debugText();
+}
+
+class PatternMatchingChordEstimator implements ChordEstimable, Debuggable {
   PatternMatchingChordEstimator({
     required this.chromaCalculable,
     required this.chordChangeDetectable,
@@ -40,13 +44,43 @@ class PatternMatchingChordEstimator implements ChordEstimable {
 
   ChordChangeDetectable get _ccd => chordChangeDetectable;
 
+  //Debugs
+  List<Chroma> reducedChromas = [];
+  Map<String, int> calculateTimes = {};
+
   @override
   ChordProgression estimate(AudioData data) {
-    final chromas = _ccd.reduce(_cc.chroma(data));
+    var stopwatch = Stopwatch();
 
-    return ChordProgression(
-      chromas.map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
+    stopwatch.start();
+    final chromas = _cc.chroma(data);
+    calculateTimes['chroma calc'] = stopwatch.elapsedMilliseconds;
+    stopwatch.stop();
+
+    stopwatch = Stopwatch();
+    stopwatch.start();
+    reducedChromas = _ccd.reduce(chromas);
+    calculateTimes['reduce calc'] = stopwatch.elapsedMilliseconds;
+    stopwatch.stop();
+
+    stopwatch = Stopwatch();
+    stopwatch.start();
+    final progress = ChordProgression(
+      reducedChromas
+          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
     );
+    calculateTimes['progress calc'] = stopwatch.elapsedMilliseconds;
+    stopwatch.stop();
+
+    return progress;
+  }
+
+  @override
+  Iterable<String> debugText() {
+    return [
+      ...reducedChromas.map((e) => e.toString()),
+      ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
+    ];
   }
 }
 
