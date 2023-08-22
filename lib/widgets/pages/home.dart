@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
                 final data = snapshot.data!.downSample(Config.sampleRate);
                 // final data = snapshot.data!;
 
-                final progress = _estimator.estimate(data);
+                // final progress = _estimator.estimate(data);
 
                 return ListView(
                   children: [
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
                     Text(_count.toString()),
                     // Text(data.sampleRate.toString()),
                     // Text(data.buffer.length.toString()),
-                    Text(progress.toString()),
+                    // Text(progress.toString()),
                     if (_estimator is Debuggable)
                       for (final text in (_estimator as Debuggable).debugText())
                         Text(text),
@@ -61,11 +61,8 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           children: chroma
                               .map((e) => ColoredBox(
-                                    color: Colors.cyan.withOpacity(e),
-                                    child: const SizedBox.square(
-                                      dimension: 10,
-                                    ),
-                                  ))
+                                  color: Colors.cyan.withOpacity(e),
+                                  child: const SizedBox.square(dimension: 10)))
                               .toList(),
                         )
                   ],

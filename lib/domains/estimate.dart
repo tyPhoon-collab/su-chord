@@ -42,7 +42,7 @@ class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
   @override
   ChordProgression estimate(AudioData data) {
     chromas = measure('chroma calc', () => chromaCalculable.chroma(data));
-    measure('modify calc', () {
+    measure('filter calc', () {
       for (final e in filters) {
         chromas = e.filter(chromas);
       }

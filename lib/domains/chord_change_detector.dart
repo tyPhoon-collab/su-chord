@@ -16,7 +16,7 @@ class ThresholdFilter implements ChromaListFilter {
 
   @override
   List<Chroma> filter(List<Chroma> chroma) =>
-      chroma.where((e) => e[e.maxIndex] >= threshold).toList();
+      chroma.where((e) => e.max >= threshold).toList();
 }
 
 class IntervalChordChangeDetector implements ChromaListFilter {
@@ -55,11 +55,15 @@ class IntervalChordChangeDetector implements ChromaListFilter {
 
 ///少ないコードタイプで推定することで、コード区間を概算する
 class TriadChordChangeDetector implements ChromaListFilter {
+  // TriadChordChangeDetector({this.lookaheadSize = 5});
+
   final _templates = [
     for (final root in Note.values)
       for (final type in ChordType.triads)
         Chord.fromType(type: type, root: root)
   ];
+
+  // final int lookaheadSize;
 
   @override
   List<Chroma> filter(List<Chroma> chroma) {
