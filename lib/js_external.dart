@@ -44,24 +44,17 @@ class WebRecorder {
 
   AudioData? get audioData => _audioData;
 
-  final stopwatch = Stopwatch();
-
   void _process(JSFloat32Array array, int sampleRate) {
-    // stopwatch.reset();
-    // stopwatch.start();
-    var buffer = [...?_buffer, ...array.toDart];
+    _buffer = Float32List.fromList([...?_buffer, ...array.toDart]);
     final maxSize = sampleRate * 3;
-    final size = buffer.length;
+    final size = _buffer!.length;
     if (size > maxSize) {
-      buffer = buffer.sublist(size - maxSize, maxSize);
+      _buffer = _buffer!.sublist(size - maxSize, maxSize);
     }
-    _buffer = Float32List.fromList(buffer);
     _sampleRate = sampleRate;
     if (_timer == null) {
       _startTimer();
     }
-    // stopwatch.stop();
-    // debugPrint(stopwatch.elapsedMilliseconds.toString());
   }
 
   Future<void> start() async {
@@ -73,15 +66,11 @@ class WebRecorder {
   void _startTimer() {
     _timer = Timer.periodic(timeSlice, (timer) {
       if (_buffer == null) return;
-      // stopwatch.reset();
-      // stopwatch.start();
       _audioData = AudioData(
         buffer: Float64List.fromList(_buffer!),
         sampleRate: _sampleRate,
       );
       controller.sink.add(_audioData!);
-      // stopwatch.stop();
-      // debugPrint(stopwatch.elapsedMilliseconds.toString());
       // controller.sink.add(_audioData!.cutByIndex(startIndex: _seek));
       // _seek = _audioData!.buffer.length;
     });

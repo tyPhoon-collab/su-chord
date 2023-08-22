@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
+
 typedef Bin = List<double>;
 
+@immutable
 class Point {
-  Point({required this.x, required this.y, required this.weight});
+  const Point({required this.x, required this.y, required this.weight});
 
   final double x;
   final double y;
@@ -20,7 +23,6 @@ class WeightedHistogram2d {
   WeightedHistogram2d({required this.binX, required this.binY})
       : assert(binX.isNotEmpty),
         assert(binY.isNotEmpty) {
-    // values = List.filled(binX.length - 1, List.filled(binY.length - 1, 0.0));
     values = List.generate(
       binX.length - 1,
       (_) => List.filled(binY.length - 1, 0.0),
@@ -52,13 +54,14 @@ class WeightedHistogram2d {
   }
 
   int? _index(double val, List<double> bin) {
+    if (val < bin.first || bin.last <= val) return null;
+
     for (int i = 0; i < bin.length - 1; ++i) {
-      if (val < bin[i]) return null;
       if (bin[i] <= val && val < bin[i + 1]) {
         return i;
       }
     }
 
-    return null;
+    throw UnimplementedError();
   }
 }

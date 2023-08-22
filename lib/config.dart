@@ -6,7 +6,7 @@ class Config {
   static const sampleRate = 22050;
 
   static const chunkSize = 2048;
-  static const chunkStride = chunkSize ~/ 4;
+  static const chunkStride = chunkSize ~/ 2;
 
   static final defaultTemplateChords = [
     for (final root in Note.values)

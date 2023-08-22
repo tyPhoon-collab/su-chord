@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../config.dart';
 import '../utils/formula.dart';
 import '../utils/loader.dart';
+import '../utils/measure.dart';
 import '../utils/plot.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
@@ -178,6 +179,7 @@ class CombFilterChromaCalculator extends STFTCalculator
 }
 
 class ReassignmentChromaCalculator extends STFTCalculator
+    with Measure
     implements ChromaCalculable {
   ReassignmentChromaCalculator(
       {super.chunkSize,
@@ -211,9 +213,17 @@ class ReassignmentChromaCalculator extends STFTCalculator
   @override
   List<Chroma> chroma(AudioData data) {
     magnitudes = [];
-    final points = reassign(data);
+    final points = measure('reassign', () => reassign(data));
     binX = List.generate(magnitudes.length, (i) => i * dt)..add(data.duration);
-    histogram2d = WeightedHistogram2d.from(points, binX: binX, binY: binY);
+    histogram2d = measure(
+      'hist2d',
+      () => WeightedHistogram2d.from(
+        points,
+        binX: binX,
+        binY: binY,
+      ),
+    );
+    printMeasuredResult();
     return histogram2d!.values.map(_fold).toList();
   }
 
@@ -233,6 +243,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
   List<Point> reassign(AudioData data) {
+    startMeasuring();
     final s = <Float64x2List>[];
 
     stft.run(
@@ -263,13 +274,17 @@ class ReassignmentChromaCalculator extends STFTCalculator
       chunkStride,
     );
 
+    stopMeasuring('3 times stft');
+
+    startMeasuring();
+
     final points = <Point>[];
     dt = (chunkStride == 0 ? chunkSize : chunkStride) / data.sampleRate;
     df = data.sampleRate / chunkSize;
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
-        if (magnitudes[i][j] == 0 || s[i][j] == Float64x2.zero()) continue;
+        if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
 
         final x = i * dt + _div(sT[i][j], s[i][j]).x / data.sampleRate;
         final y =
@@ -277,6 +292,8 @@ class ReassignmentChromaCalculator extends STFTCalculator
         points.add(Point(x: x, y: y, weight: magnitudes[i][j]));
       }
     }
+
+    stopMeasuring('create reassign points');
 
     return points;
   }

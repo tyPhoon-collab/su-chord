@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Text(value.toString()),
                     // Text(data.sampleRate.toString()),
-                    // Text(data.buffer.length.toString()),
+                    Text(data.buffer.length.toString()),
                     Text(_count.toString()),
                     Text(progress.toString()),
                     if (_estimator is Debuggable)

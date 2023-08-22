@@ -50,6 +50,10 @@ Future<void> main() async {
   const loaders = <_SongID, AudioLoader>{
     '1':
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav'),
+    '2': SimpleAudioLoader(
+        path: 'assets/evals/Halion_CleanGuitarVX/2_東京-03.wav'),
+    '3': SimpleAudioLoader(
+        path: 'assets/evals/Halion_CleanGuitarVX/3_energy flow.wav'),
   };
   final data = <AudioData>[];
 
@@ -65,13 +69,14 @@ Future<void> main() async {
   test('eval prop', () async {
     for (int i = 0; i < data.length; i++) {
       Evaluator(
-          estimator: PatternMatchingChordEstimator(
-        chromaCalculable: ReassignmentChromaCalculator(),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(),
+          chordChangeDetectable: IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
         ),
-      )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
+      ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
   });
 

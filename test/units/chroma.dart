@@ -42,6 +42,17 @@ void main() {
     expect(chromas[0].maxIndex, 0);
   });
 
+  test('reassignment chroma chord long duration', () async {
+    final c = ReassignmentChromaCalculator();
+
+    const loader =
+        SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+    final data = await loader.load(sampleRate: Config.sampleRate);
+    final chromas = c.chroma(data);
+
+    expect(chromas, isNotEmpty);
+  });
+
   test('reassignment chroma chord normalized', () async {
     final c = ReassignmentChromaCalculator();
 

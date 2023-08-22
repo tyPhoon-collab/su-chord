@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 
 import '../config.dart';
 import '../utils/loader.dart';
+import '../utils/measure.dart';
 import 'chord.dart';
 import 'chord_change_detector.dart';
 import 'chroma.dart';
@@ -26,20 +27,6 @@ abstract interface class ChordEstimable {
 
 abstract interface class Debuggable {
   Iterable<String> debugText();
-}
-
-mixin class Measure {
-  final _stopwatch = Stopwatch();
-  final Map<String, int> calculateTimes = {};
-
-  T measure<T>(String key, T Function() f) {
-    _stopwatch.reset();
-    _stopwatch.start();
-    final ret = f();
-    _stopwatch.stop();
-    calculateTimes[key] = _stopwatch.elapsedMilliseconds;
-    return ret;
-  }
 }
 
 class PatternMatchingChordEstimator
