@@ -71,26 +71,27 @@ class TriadChordChangeDetector implements ChordChangeDetectable {
     final chords = chroma
         .map((e) => maxBy(_templates, (t) => e.cosineSimilarity(t.pcp))!)
         .toList();
+
     Chord preChord = chords.first;
     int count = 1;
-    Chroma c = chroma.first;
+    newChromas.add(chroma.first);
 
     for (int i = 1; i < chroma.length; i++) {
+      final lastIndex = newChromas.length - 1;
       final chord = chords[i];
+
       if (chord == preChord) {
-        c += chroma[i];
-        count++;
+        newChromas[lastIndex] += chroma[i];
       } else {
-        newChromas.add(c / count);
-        c = Chroma.zero(c.length);
-        preChord = chord;
+        newChromas[lastIndex] /= count;
+        newChromas.add(chroma[i]);
         count = 0;
       }
+      preChord = chord;
+      count++;
     }
 
-    if (count != 0) {
-      newChromas.add(c / count);
-    }
+    newChromas[newChromas.length - 1] /= count;
 
     return newChromas;
   }

@@ -44,16 +44,30 @@ class _HomePageState extends State<HomePage> {
 
                 final progress = _estimator.estimate(data);
 
-                return Column(
+                return ListView(
                   children: [
                     Text(value.toString()),
                     Text(_count.toString()),
                     // Text(data.sampleRate.toString()),
-                    Text(data.buffer.length.toString()),
+                    // Text(data.buffer.length.toString()),
                     Text(progress.toString()),
                     if (_estimator is Debuggable)
                       for (final text in (_estimator as Debuggable).debugText())
                         Text(text),
+                    if (_estimator is ChromaChordEstimator)
+                      for (final chroma in (_estimator as ChromaChordEstimator)
+                          .reducedChromas
+                          .map((e) => e.normalized))
+                        Row(
+                          children: chroma
+                              .map((e) => ColoredBox(
+                                    color: Colors.cyan.withOpacity(e),
+                                    child: const SizedBox.square(
+                                      dimension: 10,
+                                    ),
+                                  ))
+                              .toList(),
+                        )
                   ],
                 );
               },

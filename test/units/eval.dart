@@ -80,6 +80,17 @@ Future<void> main() async {
     }
   });
 
+  test('eval prop odd', () async {
+    for (int i = 0; i < data.length; i++) {
+      Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(),
+          chordChangeDetectable: TriadChordChangeDetector(),
+        ),
+      ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
+    }
+  });
+
   test('eval pattern matching with comb filter', () async {
     for (int i = 0; i < data.length; i++) {
       Evaluator(
