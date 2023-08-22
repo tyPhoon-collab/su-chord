@@ -48,18 +48,18 @@ class PatternMatchingChordEstimator
   ChordChangeDetectable get _ccd => chordChangeDetectable;
 
   //Debugs
-  List<Chroma> reducedChromas = [];
+  List<Chroma> _reducedChromas = [];
 
   @override
   ChordProgression estimate(AudioData data) {
     final chromas = measure('chroma calc', () => _cc.chroma(data));
 
-    reducedChromas = measure('reduce calc', () => _ccd.reduce(chromas));
+    _reducedChromas = measure('reduce calc', () => _ccd.reduce(chromas));
 
     return measure(
       'progress calc',
       () => ChordProgression(
-        reducedChromas
+        _reducedChromas
             .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
       ),
     );
@@ -68,7 +68,7 @@ class PatternMatchingChordEstimator
   @override
   Iterable<String> debugText() {
     return [
-      ...reducedChromas.map((e) => e.toString()),
+      ..._reducedChromas.map((e) => e.toString()),
       ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
     ];
   }

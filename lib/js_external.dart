@@ -10,8 +10,9 @@ import 'package:js/js.dart';
 import 'utils/loader.dart';
 
 //現状、bufferSizeはバイトの長さを指す。
+//ある程度大きくとらないと、処理が追いつかなくなる
 @JS('start')
-external Future<void> startRec([int bufferSize = 8192]);
+external Future<void> startRec([int bufferSize = 8192 * 8]);
 
 @JS('stop')
 external void stopRec();
@@ -52,14 +53,12 @@ class WebRecorder {
       _buffer = _buffer!.sublist(size - maxSize, maxSize);
     }
     _sampleRate = sampleRate;
-    if (_timer == null) {
-      _startTimer();
-    }
   }
 
   Future<void> start() async {
     if (isRecording) return;
     await startRec();
+    _startTimer();
     state.value = RecorderState.recording;
   }
 
