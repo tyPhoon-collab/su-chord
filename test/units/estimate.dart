@@ -16,12 +16,13 @@ void main() {
 
   test('reassignment chroma chord estimate', () async {
     final e = PatternMatchingChordEstimator(
-      chromaCalculable: ReassignmentChromaCalculator(),
-      chordChangeDetectable: IntervalChordChangeDetector(
-        interval: 4,
-        dt: Config.chunkStride / Config.sampleRate,
-      ),
-    );
+        chromaCalculable: ReassignmentChromaCalculator(),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ]);
 
     const loader =
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');

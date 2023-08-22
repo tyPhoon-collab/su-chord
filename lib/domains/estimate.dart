@@ -31,20 +31,23 @@ abstract interface class Debuggable {
 
 class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
   ChromaChordEstimator(
-      {required this.chromaCalculable, required this.chordChangeDetectable});
+      {required this.chromaCalculable, this.filters = const []});
 
   final ChromaCalculable chromaCalculable;
-  final ChordChangeDetectable chordChangeDetectable;
+  final Iterable<ChromaListFilter> filters;
 
   //Debugs
-  List<Chroma> reducedChromas = [];
+  List<Chroma> chromas = [];
 
   @override
   ChordProgression estimate(AudioData data) {
-    final chromas = measure('chroma calc', () => chromaCalculable.chroma(data));
-    reducedChromas =
-        measure('reduce calc', () => chordChangeDetectable.reduce(chromas));
-    return estimateFromChroma(reducedChromas);
+    chromas = measure('chroma calc', () => chromaCalculable.chroma(data));
+    measure('modify calc', () {
+      for (final e in filters) {
+        chromas = e.filter(chromas);
+      }
+    });
+    return estimateFromChroma(chromas);
   }
 
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
@@ -54,7 +57,7 @@ class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
   @override
   Iterable<String> debugText() {
     return [
-      ...reducedChromas.map((e) => e.toString()),
+      ...chromas.map((e) => e.toString()),
       ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
     ];
   }
@@ -63,7 +66,7 @@ class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
 class PatternMatchingChordEstimator extends ChromaChordEstimator {
   PatternMatchingChordEstimator({
     required super.chromaCalculable,
-    required super.chordChangeDetectable,
+    super.filters,
     List<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
         templates = templates ?? Config.defaultTemplateChords;
@@ -85,7 +88,7 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
 class SearchTreeChordEstimator extends ChromaChordEstimator {
   SearchTreeChordEstimator({
     required super.chromaCalculable,
-    required super.chordChangeDetectable,
+    super.filters,
     this.thresholdRatio = 0.65,
   });
 

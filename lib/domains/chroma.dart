@@ -107,12 +107,6 @@ abstract interface class ChromaCalculable {
   List<Chroma> chroma(AudioData data);
 }
 
-/// a / b in complex
-Float64x2 _div(Float64x2 a, Float64x2 b) {
-  final c = b.x * b.x + b.y * b.y;
-  return Float64x2((a.x * b.x + a.y * b.y) / c, (a.y * b.x - a.x * b.y) / c);
-}
-
 class STFTCalculator {
   STFTCalculator.hanning({
     this.chunkSize = Config.chunkSize,
@@ -286,9 +280,10 @@ class ReassignmentChromaCalculator extends STFTCalculator
       for (int j = 0; j < s[i].length; ++j) {
         if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
 
-        final x = i * dt + _div(sT[i][j], s[i][j]).x / data.sampleRate;
-        final y =
-            j * df - _div(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi);
+        final x =
+            i * dt + complexDivision(sT[i][j], s[i][j]).x / data.sampleRate;
+        final y = j * df -
+            complexDivision(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi);
         points.add(Point(x: x, y: y, weight: magnitudes[i][j]));
       }
     }

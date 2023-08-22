@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
                         Text(text),
                     if (_estimator is ChromaChordEstimator)
                       for (final chroma in (_estimator as ChromaChordEstimator)
-                          .reducedChromas
+                          .chromas
                           .map((e) => e.normalized))
                         Row(
                           children: chroma

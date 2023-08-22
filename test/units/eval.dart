@@ -71,21 +71,12 @@ Future<void> main() async {
       Evaluator(
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: ReassignmentChromaCalculator(),
-          chordChangeDetectable: IntervalChordChangeDetector(
-            interval: 4,
-            dt: Config.chunkStride / Config.sampleRate,
-          ),
-        ),
-      ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
-    }
-  });
-
-  test('eval prop odd', () async {
-    for (int i = 0; i < data.length; i++) {
-      Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(),
-          chordChangeDetectable: TriadChordChangeDetector(),
+          filters: [
+            IntervalChordChangeDetector(
+              interval: 4,
+              dt: Config.chunkStride / Config.sampleRate,
+            ),
+          ],
         ),
       ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
@@ -96,10 +87,12 @@ Future<void> main() async {
       Evaluator(
           estimator: PatternMatchingChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ],
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
   });
@@ -109,10 +102,12 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: ReassignmentChromaCalculator(),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ],
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
   });
@@ -129,10 +124,12 @@ Future<void> main() async {
           lowest: MusicalScale.E2,
           perOctave: 6,
         ),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: chunkSize / Config.sampleRate,
-        ),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: chunkSize / Config.sampleRate,
+          ),
+        ],
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
   });
@@ -142,10 +139,12 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ],
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }
   });
@@ -155,10 +154,12 @@ Future<void> main() async {
       Evaluator(
           estimator: SearchTreeChordEstimator(
         chromaCalculable: CombFilterChromaCalculator(),
-        chordChangeDetectable: IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ],
         thresholdRatio: 0.3,
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
     }

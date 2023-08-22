@@ -89,7 +89,7 @@ void main() {
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chromas = ccd.reduce(c.chroma(data));
+    final chromas = ccd.filter(c.chroma(data));
 
     expect(chromas[0], isNotNull);
   });
@@ -115,8 +115,8 @@ void main() {
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chromas1 = ccd.reduce(cc1.chroma(data));
-    final chromas2 = ccd.reduce(cc2.chroma(data));
+    final chromas1 = ccd.filter(cc1.chroma(data));
+    final chromas2 = ccd.filter(cc2.chroma(data));
 
     expect(chromas1[0], isNotNull);
     expect(chromas2[0], isNotNull);

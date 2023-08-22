@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 
-import 'domains/chord_change_detector.dart';
 import 'domains/chroma.dart';
 import 'domains/estimate.dart';
 
@@ -15,10 +14,9 @@ void register() {
   //       interval: 2,
   //       dt: chunkStride / sampleRate,
   //     ));
-  Get.lazyPut<ChordChangeDetectable>(() => TriadChordChangeDetector());
 
   Get.lazyPut<ChordEstimable>(() => PatternMatchingChordEstimator(
         chromaCalculable: Get.find(),
-        chordChangeDetectable: Get.find(),
+        filters: [],
       ));
 }

@@ -67,6 +67,9 @@ class AudioData {
 
 abstract interface class AudioLoader {
   Future<AudioData> load({double? duration, int? sampleRate});
+
+  static const sample =
+      SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
 }
 
 final class SimpleAudioLoader implements AudioLoader {
