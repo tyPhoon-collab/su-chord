@@ -10,7 +10,7 @@ typedef Degrees = Iterable<Degree>;
 
 ///基本的なコードタイプ
 ///テンションなどはChordクラスで管理する
-///dim7, m7b5は便宜上、こちらに含める
+///dim7, m7b5もこちらに含める
 enum ChordType {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
@@ -57,6 +57,14 @@ enum ChordType {
     }
     throw ArgumentError('label is invalid');
   }
+
+  static const triads = [
+    major,
+    minor,
+    diminish,
+    augment,
+    sus4,
+  ];
 
   final Degrees degrees;
   final String label;
@@ -149,10 +157,10 @@ class ChordQualities extends Iterable<ChordQuality> {
     }
   }
 
+  static final empty = ChordQualities(const {});
+
   final Set<ChordQuality> values;
   late final String label = _label();
-
-  static final empty = ChordQualities(const {});
 
   @override
   Iterator<ChordQuality> get iterator => values.iterator;

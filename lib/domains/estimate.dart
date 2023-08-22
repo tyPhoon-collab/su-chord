@@ -29,73 +29,72 @@ abstract interface class Debuggable {
   Iterable<String> debugText();
 }
 
-class PatternMatchingChordEstimator
-    with Measure
-    implements ChordEstimable, Debuggable {
-  PatternMatchingChordEstimator({
-    required this.chromaCalculable,
-    required this.chordChangeDetectable,
-    List<Chord>? templates,
-  })  : assert(templates == null || templates.isNotEmpty),
-        templates = templates ?? Config.defaultTemplateChords;
+class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
+  ChromaChordEstimator(
+      {required this.chromaCalculable, required this.chordChangeDetectable});
 
   final ChromaCalculable chromaCalculable;
   final ChordChangeDetectable chordChangeDetectable;
-  final List<Chord> templates;
-
-  ChromaCalculable get _cc => chromaCalculable;
-
-  ChordChangeDetectable get _ccd => chordChangeDetectable;
 
   //Debugs
-  List<Chroma> _reducedChromas = [];
+  List<Chroma> reducedChromas = [];
 
   @override
   ChordProgression estimate(AudioData data) {
-    final chromas = measure('chroma calc', () => _cc.chroma(data));
+    final chromas = measure('chroma calc', () => chromaCalculable.chroma(data));
+    reducedChromas =
+        measure('reduce calc', () => chordChangeDetectable.reduce(chromas));
+    return estimateFromChroma(reducedChromas);
+  }
 
-    _reducedChromas = measure('reduce calc', () => _ccd.reduce(chromas));
-
-    return measure(
-      'progress calc',
-      () => ChordProgression(
-        _reducedChromas
-            .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
-      ),
-    );
+  ChordProgression estimateFromChroma(List<Chroma> chroma) {
+    throw UnimplementedError();
   }
 
   @override
   Iterable<String> debugText() {
     return [
-      ..._reducedChromas.map((e) => e.toString()),
+      ...reducedChromas.map((e) => e.toString()),
       ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
     ];
   }
 }
 
+class PatternMatchingChordEstimator extends ChromaChordEstimator {
+  PatternMatchingChordEstimator({
+    required super.chromaCalculable,
+    required super.chordChangeDetectable,
+    List<Chord>? templates,
+  })  : assert(templates == null || templates.isNotEmpty),
+        templates = templates ?? Config.defaultTemplateChords;
+
+  final List<Chord> templates;
+
+  @override
+  ChordProgression estimateFromChroma(List<Chroma> chroma) {
+    return measure(
+      'progress calc',
+      () => ChordProgression(
+        chroma.map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
+      ),
+    );
+  }
+}
+
 //此木の論文を元に実装
-class SearchTreeChordEstimator implements ChordEstimable {
+class SearchTreeChordEstimator extends ChromaChordEstimator {
   SearchTreeChordEstimator({
-    required this.chromaCalculable,
-    required this.chordChangeDetectable,
+    required super.chromaCalculable,
+    required super.chordChangeDetectable,
     this.thresholdRatio = 0.65,
   });
 
-  final ChromaCalculable chromaCalculable;
-  final ChordChangeDetectable chordChangeDetectable;
   final double thresholdRatio;
 
-  ChromaCalculable get _cc => chromaCalculable;
-
-  ChordChangeDetectable get _ccd => chordChangeDetectable;
-
   @override
-  ChordProgression estimate(AudioData data) {
-    final chromas = _ccd.reduce(_cc.chroma(data));
-
+  ChordProgression estimateFromChroma(List<Chroma> chroma) {
     return ChordProgression(
-      chromas.map((e) => Chord.fromNotes(_chooseNotes(e)).firstOrNull),
+      chroma.map((e) => Chord.fromNotes(_chooseNotes(e)).firstOrNull),
     );
   }
 
