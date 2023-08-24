@@ -29,7 +29,10 @@ abstract interface class Debuggable {
   Iterable<String> debugText();
 }
 
-class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
+///Chromaからコードを推定する場合は、このクラスを継承すると良い
+abstract class ChromaChordEstimator
+    with Measure
+    implements ChordEstimable, Debuggable {
   ChromaChordEstimator(
       {required this.chromaCalculable, this.filters = const []});
 
@@ -50,9 +53,7 @@ class ChromaChordEstimator with Measure implements ChordEstimable, Debuggable {
     return estimateFromChroma(chromas);
   }
 
-  ChordProgression estimateFromChroma(List<Chroma> chroma) {
-    throw UnimplementedError();
-  }
+  ChordProgression estimateFromChroma(List<Chroma> chroma);
 
   @override
   Iterable<String> debugText() {
@@ -116,10 +117,12 @@ class SearchTreeChordEstimator extends ChromaChordEstimator {
     final indexes = chroma.maxSortedIndex;
     final max = chroma[indexes.first];
     final threshold = max * thresholdRatio;
-    return indexes
+    final notes = indexes
         .toList()
         .sublist(0, 4)
         .where((e) => chroma[e] >= threshold)
         .map((e) => Note.fromIndex(e));
+
+    return notes;
   }
 }

@@ -10,12 +10,17 @@ void register() {
   // const chunkSize = Config.chunkSize;
   // const chunkStride = Config.chunkStride;
 
-  Get.lazyPut<ChromaCalculable>(() => ReassignmentChromaCalculator());
+  Get.lazyPut<ChromaCalculable>(
+    () => ReassignmentChromaCalculator(),
+    // () => CombFilterChromaCalculator(
+    //     chunkSize: 8192, lowest: MusicalScale.E2, perOctave: 6),
+  );
 
   Get.lazyPut<ChordEstimable>(() => PatternMatchingChordEstimator(
         chromaCalculable: Get.find(),
         filters: [
           ThresholdFilter(threshold: 150),
+          // ThresholdFilter(threshold: 10),
           TriadChordChangeDetector(),
         ],
       ));

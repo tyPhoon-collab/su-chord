@@ -61,25 +61,55 @@ Future<void> main() async {
     debugPrint('audio data is loading');
 
     for (final loader in loaders.values) {
-      data.add(await loader.load(sampleRate: Config.sampleRate));
+      data.add(await loader.load(duration: 84, sampleRate: Config.sampleRate));
     }
     debugPrint('audio data was loaded');
   });
 
-  test('eval prop', () async {
-    for (int i = 0; i < data.length; i++) {
-      Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(),
-          filters: [
-            IntervalChordChangeDetector(
-              interval: 4,
-              dt: Config.chunkStride / Config.sampleRate,
+  group('prop', () {
+    test('best', () async {
+      for (int i = 0; i < data.length; i++) {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: ReassignmentChromaCalculator(),
+            filters: [
+              // ThresholdFilter(threshold: 100),
+              IntervalChordChangeDetector(
+                interval: 4,
+                dt: Config.chunkStride / Config.sampleRate,
+              ),
+            ],
+          ),
+        ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
+      }
+    });
+  });
+
+  group('conv', () {
+    test('comb + search tree', () async {
+      const chunkSize = 8192;
+      const chunkStride = 0;
+      for (int i = 0; i < data.length; i++) {
+        Evaluator(
+          estimator: SearchTreeChordEstimator(
+            chromaCalculable: CombFilterChromaCalculator(
+              chunkSize: chunkSize,
+              chunkStride: chunkStride,
+              lowest: MusicalScale.E2,
+              perOctave: 6,
             ),
-          ],
-        ),
-      ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
-    }
+            filters: [
+              // ThresholdFilter(threshold: 1),
+              IntervalChordChangeDetector(
+                interval: 4,
+                dt: chunkSize / Config.sampleRate,
+              ),
+            ],
+            thresholdRatio: 0.3,
+          ),
+        ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
+      }
+    });
   });
 
   test('eval pattern matching with comb filter', () async {
@@ -106,28 +136,6 @@ Future<void> main() async {
           IntervalChordChangeDetector(
             interval: 4,
             dt: Config.chunkStride / Config.sampleRate,
-          ),
-        ],
-      )).eval(data[i], corrects[loaders.keys.toList()[i]]!);
-    }
-  });
-
-  test('eval conv', () async {
-    const chunkSize = 8192;
-    const chunkStride = 0;
-    for (int i = 0; i < data.length; i++) {
-      Evaluator(
-          estimator: SearchTreeChordEstimator(
-        chromaCalculable: CombFilterChromaCalculator(
-          chunkSize: chunkSize,
-          chunkStride: chunkStride,
-          lowest: MusicalScale.E2,
-          perOctave: 6,
-        ),
-        filters: [
-          IntervalChordChangeDetector(
-            interval: 4,
-            dt: chunkSize / Config.sampleRate,
           ),
         ],
       )).eval(data[i], corrects[loaders.keys.toList()[i]]!);

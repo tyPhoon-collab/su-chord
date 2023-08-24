@@ -86,8 +86,8 @@ void main() {
     final ccd = IntervalChordChangeDetector(
         interval: 3, dt: chunkSize / Config.sampleRate);
 
-    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
     final chromas = ccd.filter(c.chroma(data));
 

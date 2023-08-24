@@ -149,25 +149,37 @@ class CombFilterChromaCalculator extends STFTCalculator
       chunkStride,
     );
 
-    final df = data.sampleRate / chunkSize;
-    return magnitudes.map((e) => _getCombFilterChroma(e, df)).toList();
+    return magnitudes
+        .map((e) => _getCombFilterChroma(e, data.sampleRate))
+        .toList();
   }
 
-  Chroma _getCombFilterChroma(Float64List magnitude, double df) {
-    return Chroma(List.generate(
-            12, (i) => _getCombFilterPower(magnitude, df, lowest.to(i))))
+  Chroma _getCombFilterChroma(Float64List magnitude, int sampleRate) {
+    return Chroma(List.generate(12,
+            (i) => _getCombFilterPower(magnitude, sampleRate, lowest.to(i))))
         .shift(-lowest.note.degreeTo(Note.C));
   }
 
   double _getCombFilterPower(
-      Float64List magnitude, double df, MusicalScale lowest) {
+      Float64List magnitude, int sampleRate, MusicalScale lowest) {
     double sum = 0;
+    final sr = sampleRate.toDouble();
     for (int i = 0; i < perOctave; ++i) {
       final scale = lowest.to(i * 12);
-      final mu = scale.hz;
-      final sigma = scale.hz / 24;
-      final closure = normalDistributionClosure(mu, sigma);
-      sum += magnitude.mapIndexed((j, e) => closure(j * df) * e).sum;
+      final mean = scale.hz;
+      final stdDev = scale.hz / 24;
+      // 従来法の標準偏差では、周りが大きくなりすぎる
+      // 従来法のコードを見ても、論文に準拠していない。よくわからない値を使用している
+      // final stdDev = scale.hz / 48;
+      final range = 4 * stdDev;
+      final closure = normalDistributionClosure(mean, stdDev);
+      final startIndex = stft.indexOfFrequency(mean - range, sr).round();
+      final endIndex = stft.indexOfFrequency(mean + range, sr).round();
+
+      sum += magnitude
+          .sublist(startIndex, endIndex)
+          .mapIndexed((j, e) => closure(stft.frequency(j + startIndex, sr)) * e)
+          .sum;
     }
 
     return sum;

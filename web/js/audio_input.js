@@ -26,7 +26,7 @@ async function start(bufferSize) {
 }
 
 function stop() {
-    source.disconnect();
-    scriptProcessor.disconnect();
-    scriptProcessor.removeEventListener("audioprocess", _onAudioProcess);
+    source?.disconnect();
+    scriptProcessor?.disconnect();
+    scriptProcessor?.removeEventListener("audioprocess", _onAudioProcess);
 }
