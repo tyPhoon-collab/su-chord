@@ -53,12 +53,21 @@ class WeightedHistogram2d {
     values[ix][iy] += point.weight;
   }
 
+  //高速化のために、バイナリーサーチでどのビンに属するか取得する
   int? _index(double val, List<double> bin) {
     if (val < bin.first || bin.last <= val) return null;
 
-    for (int i = 0; i < bin.length - 1; ++i) {
-      if (bin[i] <= val && val < bin[i + 1]) {
-        return i;
+    int left = 0;
+    int right = bin.length - 2;
+
+    while (left <= right) {
+      final mid = left + ((right - left) ~/ 2);
+      if (bin[mid] <= val && val < bin[mid + 1]) {
+        return mid;
+      } else if (bin[mid] <= val) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
       }
     }
 

@@ -7,9 +7,9 @@ import 'package:flutter/widgets.dart';
 
 import '../config.dart';
 import '../utils/formula.dart';
+import '../utils/histogram.dart';
 import '../utils/loader.dart';
 import '../utils/measure.dart';
-import '../utils/plot.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 

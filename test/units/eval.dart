@@ -64,7 +64,13 @@ class _Evaluator {
 
   void evaluate(Iterable<_EvaluatorContext> context, {String? path}) {
     assert(path == null || path.endsWith('.csv'));
-    if (path != null && !bypassCsvWriting) table = Table.empty();
+    if (path != null) {
+      if (!bypassCsvWriting) {
+        table = Table.empty();
+      } else {
+        debugPrint('CSV writing is bypassing');
+      }
+    }
 
     _evaluate(context);
 
@@ -95,8 +101,9 @@ class _Evaluator {
 Future<void> main() async {
   const sampleRate = Config.sampleRate;
 
+  _Evaluator.bypassCsvWriting = true;
   final corrects = await _getCorrectChords();
-  final Map<_SongID, AudioLoader> loaders = Map.fromEntries([
+  final loaders = Map.fromEntries([
     ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
         .then((files) => files.map(_parsePathToMapEntries)),
   ]);
@@ -172,30 +179,32 @@ Future<void> main() async {
     });
   });
 
-  test('eval pattern matching with comb filter', () async {
-    _Evaluator(
-        estimator: PatternMatchingChordEstimator(
-      chromaCalculable: CombFilterChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
-      ],
-    )).evaluate(data);
-  });
+  group('control experiment', () {
+    test('pattern matching + comb filter', () async {
+      _Evaluator(
+          estimator: PatternMatchingChordEstimator(
+        chromaCalculable: CombFilterChromaCalculator(),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / sampleRate,
+          ),
+        ],
+      )).evaluate(data);
+    });
 
-  test('eval search tree with reassignment', () async {
-    _Evaluator(
-        estimator: SearchTreeChordEstimator(
-      chromaCalculable: ReassignmentChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
-      ],
-    )).evaluate(data);
+    test('search tree + reassignment', () async {
+      _Evaluator(
+          estimator: SearchTreeChordEstimator(
+        chromaCalculable: ReassignmentChromaCalculator(),
+        filters: [
+          IntervalChordChangeDetector(
+            interval: 4,
+            dt: Config.chunkStride / Config.sampleRate,
+          ),
+        ],
+      )).evaluate(data);
+    });
   });
 
   test('eval conv lowest C1, octave 7', () async {

@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
-import '../utils/plot.dart';
+import '../utils/histogram.dart';
 
 @immutable
 class MusicalScale {
