@@ -1,7 +1,7 @@
 import 'package:chord/config.dart';
-import 'package:chord/domains/chord_change_detector.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/equal_temperament.dart';
+import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -97,6 +97,8 @@ void main() {
   test('compare comb vs reassignment', () async {
     const chunkSize = 8192;
     const chunkStride = 0;
+    // const chunkSize = Config.chunkSize;
+    // const chunkStride = Config.chunkStride;
 
     final cc1 = CombFilterChromaCalculator(
         chunkSize: chunkSize,
@@ -115,10 +117,10 @@ void main() {
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chromas1 = ccd.filter(cc1.chroma(data));
-    final chromas2 = ccd.filter(cc2.chroma(data));
+    final chroma1 = ccd.filter(cc1.chroma(data)).first.normalized;
+    final chroma2 = ccd.filter(cc2.chroma(data)).first.normalized;
 
-    expect(chromas1[0], isNotNull);
-    expect(chromas2[0], isNotNull);
+    expect(chroma1, isNotNull);
+    expect(chroma2, isNotNull);
   });
 }

@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
-import 'domains/chord_change_detector.dart';
 import 'domains/chroma.dart';
 import 'domains/estimate.dart';
+import 'domains/filter.dart';
 
 void register() {
   //TODO サンプルレートなどの設定が変更された時に、再登録できるようにする

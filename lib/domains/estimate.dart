@@ -4,9 +4,9 @@ import '../config.dart';
 import '../utils/loader.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
-import 'chord_change_detector.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
+import 'filter.dart';
 
 class ChordProgression extends Iterable<Chord?> {
   ChordProgression(this.values);

@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
-import 'package:chord/domains/chord_change_detector.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimate.dart';
+import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart';
@@ -90,6 +90,7 @@ Future<void> main() async {
       const chunkSize = 8192;
       const chunkStride = 0;
       for (int i = 0; i < data.length; i++) {
+        final dt = chunkSize / data[i].sampleRate;
         Evaluator(
           estimator: SearchTreeChordEstimator(
             chromaCalculable: CombFilterChromaCalculator(
@@ -100,12 +101,9 @@ Future<void> main() async {
             ),
             filters: [
               // ThresholdFilter(threshold: 1),
-              IntervalChordChangeDetector(
-                interval: 4,
-                dt: chunkSize / Config.sampleRate,
-              ),
+              IntervalChordChangeDetector(interval: 4, dt: dt),
             ],
-            thresholdRatio: 0.3,
+            thresholdRatio: 0.25,
           ),
         ).eval(data[i], corrects[loaders.keys.toList()[i]]!);
       }

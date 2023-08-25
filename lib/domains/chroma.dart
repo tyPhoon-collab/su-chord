@@ -167,10 +167,14 @@ class CombFilterChromaCalculator extends STFTCalculator
     for (int i = 0; i < perOctave; ++i) {
       final scale = lowest.to(i * 12);
       final mean = scale.hz;
-      final stdDev = scale.hz / 24;
+      // final stdDev = scale.hz / 24;
       // 従来法の標準偏差では、周りが大きくなりすぎる
       // 従来法のコードを見ても、論文に準拠していない。よくわからない値を使用している
+      // 2σで考えてみる
       // final stdDev = scale.hz / 48;
+      // 3σで考えてみる
+      final stdDev = scale.hz / 72;
+      // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
       final range = 4 * stdDev;
       final closure = normalDistributionClosure(mean, stdDev);
       final startIndex = stft.indexOfFrequency(mean - range, sr).round();
