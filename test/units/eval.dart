@@ -19,31 +19,74 @@ typedef _SongID = String;
 typedef _Paths = Iterable<String>;
 
 @immutable
-class EvaluatorContext {
-  const EvaluatorContext({required this.data, required this.corrects});
+class _EvaluatorContext {
+  _EvaluatorContext({
+    required this.songId,
+    required this.data,
+    required this.corrects,
+  }) : key = int.parse(songId);
 
+  final int key;
+  final _SongID songId;
   final AudioData data;
   final ChordProgression corrects;
 }
 
-class Evaluator {
-  Evaluator({required this.estimator});
+class Table {
+  Table(this._table);
+
+  Table.empty() : _table = [];
+
+  final List<List<String>> _table;
+
+  void clear() {
+    _table.clear();
+  }
+
+  void add(List<String> row) {
+    _table.add(row);
+  }
+
+  void toCSV(String path) {
+    final file = File(path);
+    final contents = const ListToCsvConverter().convert(_table);
+    file.writeAsString(contents);
+  }
+}
+
+class _Evaluator {
+  _Evaluator({required this.estimator});
+
+  static bool bypassCsvWriting = false;
 
   final ChordEstimable estimator;
+  Table? table;
 
-  void evaluate(Iterable<EvaluatorContext> context) {
-    final sum = context.map(_evaluate).sum;
+  void evaluate(Iterable<_EvaluatorContext> context, {String? path}) {
+    assert(path == null || path.endsWith('.csv'));
+    if (path != null && !bypassCsvWriting) table = Table.empty();
+
+    _evaluate(context);
+
+    if (path != null) table?.toCSV(path);
+  }
+
+  void _evaluate(Iterable<_EvaluatorContext> context) {
+    final sum = context.map(_evaluateOne).sum;
     final correctRate = sum / context.length * 100;
     debugPrint('corrects: ${correctRate.toStringAsFixed(3)}%');
   }
 
-  double _evaluate(EvaluatorContext context) {
+  double _evaluateOne(_EvaluatorContext context) {
     final data = context.data;
     final corrects = context.corrects;
     final chords = estimator.estimate(data);
 
-    debugPrint(chords.toString());
     debugPrint(corrects.toString());
+    debugPrint(chords.toString());
+
+    table?.add(corrects.toCSVRow()..insert(0, '${context.songId}_correct'));
+    table?.add(chords.toCSVRow()..insert(0, '${context.songId}_estimate'));
 
     return chords.consistencyRate(corrects);
   }
@@ -57,22 +100,43 @@ Future<void> main() async {
     ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
         .then((files) => files.map(_parsePathToMapEntries)),
   ]);
-  final data = <EvaluatorContext>[];
+  final data = <_EvaluatorContext>[];
 
   setUpAll(() async {
     for (final entry in loaders.entries) {
-      data.add(EvaluatorContext(
-        data: await entry.value.load(duration: 84, sampleRate: sampleRate),
-        corrects: corrects[entry.key]!,
+      final songId = entry.key;
+      data.add(_EvaluatorContext(
+        songId: songId,
+        data: await entry.value.load(duration: 83, sampleRate: sampleRate),
+        corrects: corrects[songId]!,
       ));
     }
+    data.sort((a, b) => a.key.compareTo(b.key));
   });
 
   group('prop', () {
     test('best', () async {
-      Evaluator(
+      _Evaluator(
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: ReassignmentChromaCalculator(),
+          filters: [
+            // ThresholdFilter(threshold: 100),
+            IntervalChordChangeDetector(
+              interval: 4,
+              dt: Config.chunkStride / Config.sampleRate,
+            ),
+          ],
+        ),
+      ).evaluate(data, path: 'test/outputs/prop.csv');
+    });
+
+    test('guitar tuning', () async {
+      _Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(
+            lowest: MusicalScale.E2,
+            perOctave: 6,
+          ),
           filters: [
             // ThresholdFilter(threshold: 100),
             IntervalChordChangeDetector(
@@ -90,7 +154,7 @@ Future<void> main() async {
       const chunkSize = 8192;
       const chunkStride = 0;
       const dt = chunkSize / sampleRate;
-      Evaluator(
+      _Evaluator(
         estimator: SearchTreeChordEstimator(
           chromaCalculable: CombFilterChromaCalculator(
             chunkSize: chunkSize,
@@ -102,14 +166,14 @@ Future<void> main() async {
             // ThresholdFilter(threshold: 1),
             IntervalChordChangeDetector(interval: 4, dt: dt),
           ],
-          thresholdRatio: 0.25,
+          thresholdRatio: 0.3,
         ),
-      ).evaluate(data);
+      ).evaluate(data, path: 'test/outputs/conv.csv');
     });
   });
 
   test('eval pattern matching with comb filter', () async {
-    Evaluator(
+    _Evaluator(
         estimator: PatternMatchingChordEstimator(
       chromaCalculable: CombFilterChromaCalculator(),
       filters: [
@@ -122,7 +186,7 @@ Future<void> main() async {
   });
 
   test('eval search tree with reassignment', () async {
-    Evaluator(
+    _Evaluator(
         estimator: SearchTreeChordEstimator(
       chromaCalculable: ReassignmentChromaCalculator(),
       filters: [
@@ -135,7 +199,7 @@ Future<void> main() async {
   });
 
   test('eval conv lowest C1, octave 7', () async {
-    Evaluator(
+    _Evaluator(
         estimator: SearchTreeChordEstimator(
       chromaCalculable: CombFilterChromaCalculator(),
       filters: [
@@ -148,7 +212,7 @@ Future<void> main() async {
   });
 
   test('eval conv threshold changed', () async {
-    Evaluator(
+    _Evaluator(
         estimator: SearchTreeChordEstimator(
       chromaCalculable: CombFilterChromaCalculator(),
       filters: [

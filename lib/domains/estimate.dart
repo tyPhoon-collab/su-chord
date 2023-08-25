@@ -25,6 +25,9 @@ class ChordProgression extends Iterable<Chord?> {
   String toString() =>
       _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
 
+  List<String> toCSVRow() =>
+      _values.map((e) => e?.toString() ?? Chord.noChordLabel).toList();
+
   void add(Chord? chord) {
     _values.add(chord);
   }
@@ -90,7 +93,8 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
     required super.chromaCalculable,
     super.filters,
     List<Chord>? templates,
-  })  : assert(templates == null || templates.isNotEmpty),
+  })
+      : assert(templates == null || templates.isNotEmpty),
         templates = templates ?? Config.defaultTemplateChords;
 
   final List<Chord> templates;
@@ -99,9 +103,10 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     return measure(
       'progress calc',
-      () => ChordProgression(chroma
-          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
-          .toList()),
+          () =>
+          ChordProgression(chroma
+              .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
+              .toList()),
     );
   }
 }

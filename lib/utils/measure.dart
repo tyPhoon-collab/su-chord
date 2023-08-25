@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 
 mixin class Measure {
+  static bool enableOutput = true;
+
   final _stopwatch = Stopwatch();
   final Map<String, int> calculateTimes = {};
 
   T measure<T>(String key, T Function() f) {
-    final stopwatch = Stopwatch();
-    stopwatch.reset();
-    stopwatch.start();
+    final stopwatch = Stopwatch()..start();
     final ret = f();
     stopwatch.stop();
     calculateTimes[key] = stopwatch.elapsedMilliseconds;
