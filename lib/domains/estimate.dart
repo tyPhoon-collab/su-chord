@@ -1,24 +1,45 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 
 import '../config.dart';
 import '../utils/loader.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
+import 'chord_selector.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 
 class ChordProgression extends Iterable<Chord?> {
-  ChordProgression(this.values);
+  ChordProgression(this._values);
 
-  final Iterable<Chord?> values;
+  ChordProgression.empty() : _values = [];
+
+  final List<Chord?> _values;
 
   @override
-  Iterator<Chord?> get iterator => values.iterator;
+  Iterator<Chord?> get iterator => _values.iterator;
 
   @override
   String toString() =>
-      values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
+      _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
+
+  void add(Chord? chord) {
+    _values.add(chord);
+  }
+
+  double consistencyRate(ChordProgression other) {
+    final otherValues = other.toList();
+    final len = min(otherValues.length, length);
+    int count = 0;
+    for (int i = 0; i < len; i++) {
+      if (otherValues[i] == _values[i]) {
+        count++;
+      }
+    }
+    return count / len;
+  }
 }
 
 abstract interface class ChordEstimable {
@@ -78,9 +99,9 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     return measure(
       'progress calc',
-      () => ChordProgression(
-        chroma.map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!),
-      ),
+      () => ChordProgression(chroma
+          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
+          .toList()),
     );
   }
 }
@@ -89,17 +110,25 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
 class SearchTreeChordEstimator extends ChromaChordEstimator {
   SearchTreeChordEstimator({
     required super.chromaCalculable,
+    ChordSelectable? chordSelectable,
     super.filters,
     this.thresholdRatio = 0.65,
-  });
+  }) : chordSelectable = chordSelectable ?? FirstChordSelector();
 
   final double thresholdRatio;
+  final ChordSelectable chordSelectable;
 
   @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
-    return ChordProgression(
-      chroma.map((e) => Chord.fromNotes(_chooseNotes(e)).firstOrNull),
-    );
+    final progression = ChordProgression.empty();
+    for (final c in chroma) {
+      final chord = chordSelectable.select(
+        Chord.fromNotes(_chooseNotes(c)),
+        progression,
+      );
+      progression.add(chord);
+    }
+    return progression;
   }
 
   // 5.4 演奏音推定モジュール
