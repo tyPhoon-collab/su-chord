@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/equal_temperament.dart';
@@ -19,10 +18,11 @@ typedef _CorrectChords = Map<String, ChordProgression>;
 typedef _SongID = String;
 typedef _Paths = Iterable<String>;
 
-Future<void> main() async {
-  const sampleRate = Config.sampleRate;
+const sampleRate = 22050;
 
+Future<void> main() async {
   // _Evaluator.bypassCsvWriting = true;
+
   final corrects = await _getCorrectChords();
   final loaders = Map.fromEntries([
     ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
@@ -40,51 +40,33 @@ Future<void> main() async {
     for (final entry in loaders.entries) {
       final songId = entry.key;
       final key = songId.split('_').first;
-      data.add(_EvaluatorContext(
-        key: int.parse(key),
-        songId: songId,
-        data: await entry.value.load(duration: 83, sampleRate: sampleRate),
-        corrects: corrects[key]!,
-      ));
+      data.add(
+        _EvaluatorContext(
+          key: int.parse(key),
+          songId: songId,
+          data: await entry.value.load(duration: 83, sampleRate: sampleRate),
+          corrects: corrects[key]!,
+        ),
+      );
     }
-    data.sort((a, b) => a.key.compareTo(b.key));
+    data.sort((a, b) => a.compareTo(b));
   });
 
   group('prop', () {
-    test('best', () async {
+    test('osawa', () async {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 100),
-            IntervalChordChangeDetector(
-              interval: 4,
-              dt: Config.chunkStride / sampleRate,
-            ),
-          ],
+          chromaCalculable: _buildReassignmentGuitarTuning(2048, 1024),
+          filters: _buildFilter(2048, 1024),
         ),
       ).evaluate(data, path: 'test/outputs/prop.csv');
     });
 
     test('prop to conv chunkSize', () async {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      const dt = chunkSize / sampleRate;
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(
-            chunkSize: chunkSize,
-            chunkStride: chunkStride,
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 100),
-            IntervalChordChangeDetector(interval: 4, dt: dt),
-          ],
+          chromaCalculable: _buildReassignmentGuitarTuning(8192, 0),
+          filters: _buildFilter(8192, 0),
         ),
       ).evaluate(data, path: 'test/outputs/prop.csv');
     });
@@ -92,14 +74,8 @@ Future<void> main() async {
     test('piano tuning', () async {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(),
-          filters: [
-            // ThresholdFilter(threshold: 100),
-            IntervalChordChangeDetector(
-              interval: 4,
-              dt: Config.chunkStride / sampleRate,
-            ),
-          ],
+          chromaCalculable: _buildReassignmentBigRangeTuning(2048, 1024),
+          filters: _buildFilter(2048, 1024),
         ),
       ).evaluate(data);
     });
@@ -107,21 +83,10 @@ Future<void> main() async {
 
   group('conv', () {
     test('comb + search tree', () async {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      const dt = chunkSize / sampleRate;
       _Evaluator(
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: CombFilterChromaCalculator(
-            chunkSize: chunkSize,
-            chunkStride: chunkStride,
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 1),
-            IntervalChordChangeDetector(interval: 4, dt: dt),
-          ],
+          chromaCalculable: _buildCombFilterGuitarTuning(8192, 0),
+          filters: _buildFilter(8192, 0),
           thresholdRatio: 0.3,
         ),
       ).evaluate(data, path: 'test/outputs/conv.csv');
@@ -130,74 +95,55 @@ Future<void> main() async {
 
   group('control experiment', () {
     test('pattern matching + comb filter', () {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      const dt = chunkSize / sampleRate;
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: CombFilterChromaCalculator(
-            chunkSize: chunkSize,
-            chunkStride: chunkStride,
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 1),
-            IntervalChordChangeDetector(interval: 4, dt: dt),
-          ],
+          chromaCalculable: _buildCombFilterGuitarTuning(8192, 0),
+          filters: _buildFilter(8192, 0),
         ),
       ).evaluate(data);
     });
 
     test('search tree + reassignment', () async {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      const dt = chunkSize / sampleRate;
       _Evaluator(
           estimator: SearchTreeChordEstimator(
-        chromaCalculable: ReassignmentChromaCalculator(
-          chunkSize: chunkSize,
-          chunkStride: chunkStride,
-          lowest: MusicalScale.E2,
-          perOctave: 6,
-        ),
-        filters: [
-          IntervalChordChangeDetector(interval: 4, dt: dt),
-        ],
+        chromaCalculable: _buildReassignmentGuitarTuning(8192, 0),
+        filters: _buildFilter(8192, 0),
         thresholdRatio: 0.5,
       )).evaluate(data);
     });
   });
-
-  test('eval conv lowest C1, octave 7', () async {
-    _Evaluator(
-        estimator: SearchTreeChordEstimator(
-      chromaCalculable: CombFilterChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / sampleRate,
-        ),
-      ],
-    )).evaluate(data);
-  });
-
-  test('eval conv threshold changed', () async {
-    _Evaluator(
-        estimator: SearchTreeChordEstimator(
-      chromaCalculable: CombFilterChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / sampleRate,
-        ),
-      ],
-      thresholdRatio: 0.3,
-    )).evaluate(data);
-  });
 }
 
-class _EvaluatorContext {
+List<ChromaListFilter> _buildFilter(int chunkSize, int chunkStride) {
+  final dt = (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
+  return [IntervalChordChangeDetector(interval: 4, dt: dt)];
+}
+
+ChromaCalculable _buildCombFilterGuitarTuning(int chunkSize, int chunkStride) =>
+    CombFilterChromaCalculator(
+      chunkSize: chunkSize,
+      chunkStride: chunkStride,
+      lowest: MusicalScale.E2,
+      perOctave: 6,
+    );
+
+ChromaCalculable _buildReassignmentBigRangeTuning(
+        int chunkSize, int chunkStride) =>
+    ReassignmentChromaCalculator(
+      chunkSize: chunkSize,
+      chunkStride: chunkStride,
+    );
+
+ChromaCalculable _buildReassignmentGuitarTuning(
+        int chunkSize, int chunkStride) =>
+    ReassignmentChromaCalculator(
+      chunkSize: chunkSize,
+      chunkStride: chunkStride,
+      lowest: MusicalScale.E2,
+      perOctave: 6,
+    );
+
+class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   const _EvaluatorContext({
     required this.key,
     required this.songId,
@@ -205,10 +151,16 @@ class _EvaluatorContext {
     required this.corrects,
   });
 
+  ///ソート用の変数
   final int key;
   final _SongID songId;
   final AudioData data;
   final ChordProgression corrects;
+
+  @override
+  int compareTo(_EvaluatorContext other) {
+    return key.compareTo(other.key);
+  }
 }
 
 class _Evaluator {
