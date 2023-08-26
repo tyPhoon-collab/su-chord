@@ -1,5 +1,5 @@
 import 'chord.dart';
-import 'estimate.dart';
+import 'chord_progression.dart';
 
 abstract interface class ChordSelectable {
   Chord? select(Iterable<Chord> possibleChords, ChordProgression progression);

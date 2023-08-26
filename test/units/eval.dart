@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
+import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimate.dart';

@@ -1,49 +1,14 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 
 import '../config.dart';
 import '../utils/loader.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
+import 'chord_progression.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
-
-class ChordProgression extends Iterable<Chord?> {
-  ChordProgression(this._values);
-
-  ChordProgression.empty() : _values = [];
-
-  final List<Chord?> _values;
-
-  @override
-  Iterator<Chord?> get iterator => _values.iterator;
-
-  @override
-  String toString() =>
-      _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
-
-  List<String> toCSVRow() =>
-      _values.map((e) => e?.toString() ?? Chord.noChordLabel).toList();
-
-  void add(Chord? chord) {
-    _values.add(chord);
-  }
-
-  double consistencyRate(ChordProgression other) {
-    final otherValues = other.toList();
-    final len = min(otherValues.length, length);
-    int count = 0;
-    for (int i = 0; i < len; i++) {
-      if (otherValues[i] == _values[i]) {
-        count++;
-      }
-    }
-    return count / len;
-  }
-}
 
 abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data);
@@ -93,8 +58,7 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
     required super.chromaCalculable,
     super.filters,
     List<Chord>? templates,
-  })
-      : assert(templates == null || templates.isNotEmpty),
+  })  : assert(templates == null || templates.isNotEmpty),
         templates = templates ?? Config.defaultTemplateChords;
 
   final List<Chord> templates;
@@ -103,10 +67,9 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     return measure(
       'progress calc',
-          () =>
-          ChordProgression(chroma
-              .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
-              .toList()),
+      () => ChordProgression(chroma
+          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
+          .toList()),
     );
   }
 }
