@@ -8,9 +8,10 @@ import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimate.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader.dart';
+import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 //Song ID : ChordProgression
@@ -18,40 +19,196 @@ typedef _CorrectChords = Map<String, ChordProgression>;
 typedef _SongID = String;
 typedef _Paths = Iterable<String>;
 
-@immutable
+Future<void> main() async {
+  const sampleRate = Config.sampleRate;
+
+  // _Evaluator.bypassCsvWriting = true;
+  final corrects = await _getCorrectChords();
+  final loaders = Map.fromEntries([
+    ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
+        .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/HojoGuitar')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/RealStrat')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
+  ]);
+  final data = <_EvaluatorContext>[];
+
+  setUpAll(() async {
+    for (final entry in loaders.entries) {
+      final songId = entry.key;
+      final key = songId.split('_').first;
+      data.add(_EvaluatorContext(
+        key: int.parse(key),
+        songId: songId,
+        data: await entry.value.load(duration: 83, sampleRate: sampleRate),
+        corrects: corrects[key]!,
+      ));
+    }
+    data.sort((a, b) => a.key.compareTo(b.key));
+  });
+
+  group('prop', () {
+    test('best', () async {
+      _Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(
+            lowest: MusicalScale.E2,
+            perOctave: 6,
+          ),
+          filters: [
+            // ThresholdFilter(threshold: 100),
+            IntervalChordChangeDetector(
+              interval: 4,
+              dt: Config.chunkStride / sampleRate,
+            ),
+          ],
+        ),
+      ).evaluate(data, path: 'test/outputs/prop.csv');
+    });
+
+    test('prop to conv chunkSize', () async {
+      const chunkSize = 8192;
+      const chunkStride = 0;
+      const dt = chunkSize / sampleRate;
+      _Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(
+            chunkSize: chunkSize,
+            chunkStride: chunkStride,
+            lowest: MusicalScale.E2,
+            perOctave: 6,
+          ),
+          filters: [
+            // ThresholdFilter(threshold: 100),
+            IntervalChordChangeDetector(interval: 4, dt: dt),
+          ],
+        ),
+      ).evaluate(data, path: 'test/outputs/prop.csv');
+    });
+
+    test('piano tuning', () async {
+      _Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: ReassignmentChromaCalculator(),
+          filters: [
+            // ThresholdFilter(threshold: 100),
+            IntervalChordChangeDetector(
+              interval: 4,
+              dt: Config.chunkStride / sampleRate,
+            ),
+          ],
+        ),
+      ).evaluate(data);
+    });
+  });
+
+  group('conv', () {
+    test('comb + search tree', () async {
+      const chunkSize = 8192;
+      const chunkStride = 0;
+      const dt = chunkSize / sampleRate;
+      _Evaluator(
+        estimator: SearchTreeChordEstimator(
+          chromaCalculable: CombFilterChromaCalculator(
+            chunkSize: chunkSize,
+            chunkStride: chunkStride,
+            lowest: MusicalScale.E2,
+            perOctave: 6,
+          ),
+          filters: [
+            // ThresholdFilter(threshold: 1),
+            IntervalChordChangeDetector(interval: 4, dt: dt),
+          ],
+          thresholdRatio: 0.3,
+        ),
+      ).evaluate(data, path: 'test/outputs/conv.csv');
+    });
+  });
+
+  group('control experiment', () {
+    test('pattern matching + comb filter', () {
+      const chunkSize = 8192;
+      const chunkStride = 0;
+      const dt = chunkSize / sampleRate;
+      _Evaluator(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: CombFilterChromaCalculator(
+            chunkSize: chunkSize,
+            chunkStride: chunkStride,
+            lowest: MusicalScale.E2,
+            perOctave: 6,
+          ),
+          filters: [
+            // ThresholdFilter(threshold: 1),
+            IntervalChordChangeDetector(interval: 4, dt: dt),
+          ],
+        ),
+      ).evaluate(data);
+    });
+
+    test('search tree + reassignment', () async {
+      const chunkSize = 8192;
+      const chunkStride = 0;
+      const dt = chunkSize / sampleRate;
+      _Evaluator(
+          estimator: SearchTreeChordEstimator(
+        chromaCalculable: ReassignmentChromaCalculator(
+          chunkSize: chunkSize,
+          chunkStride: chunkStride,
+          lowest: MusicalScale.E2,
+          perOctave: 6,
+        ),
+        filters: [
+          IntervalChordChangeDetector(interval: 4, dt: dt),
+        ],
+        thresholdRatio: 0.5,
+      )).evaluate(data);
+    });
+  });
+
+  test('eval conv lowest C1, octave 7', () async {
+    _Evaluator(
+        estimator: SearchTreeChordEstimator(
+      chromaCalculable: CombFilterChromaCalculator(),
+      filters: [
+        IntervalChordChangeDetector(
+          interval: 4,
+          dt: Config.chunkStride / sampleRate,
+        ),
+      ],
+    )).evaluate(data);
+  });
+
+  test('eval conv threshold changed', () async {
+    _Evaluator(
+        estimator: SearchTreeChordEstimator(
+      chromaCalculable: CombFilterChromaCalculator(),
+      filters: [
+        IntervalChordChangeDetector(
+          interval: 4,
+          dt: Config.chunkStride / sampleRate,
+        ),
+      ],
+      thresholdRatio: 0.3,
+    )).evaluate(data);
+  });
+}
+
 class _EvaluatorContext {
-  _EvaluatorContext({
+  const _EvaluatorContext({
+    required this.key,
     required this.songId,
     required this.data,
     required this.corrects,
-  }) : key = int.parse(songId);
+  });
 
   final int key;
   final _SongID songId;
   final AudioData data;
   final ChordProgression corrects;
-}
-
-class Table {
-  Table(this._table);
-
-  Table.empty() : _table = [];
-
-  final List<List<String>> _table;
-
-  void clear() {
-    _table.clear();
-  }
-
-  void add(List<String> row) {
-    _table.add(row);
-  }
-
-  void toCSV(String path) {
-    final file = File(path);
-    final contents = const ListToCsvConverter().convert(_table);
-    file.writeAsString(contents);
-  }
 }
 
 class _Evaluator {
@@ -98,143 +255,6 @@ class _Evaluator {
   }
 }
 
-Future<void> main() async {
-  const sampleRate = Config.sampleRate;
-
-  _Evaluator.bypassCsvWriting = true;
-  final corrects = await _getCorrectChords();
-  final loaders = Map.fromEntries([
-    ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
-        .then((files) => files.map(_parsePathToMapEntries)),
-  ]);
-  final data = <_EvaluatorContext>[];
-
-  setUpAll(() async {
-    for (final entry in loaders.entries) {
-      final songId = entry.key;
-      data.add(_EvaluatorContext(
-        songId: songId,
-        data: await entry.value.load(duration: 83, sampleRate: sampleRate),
-        corrects: corrects[songId]!,
-      ));
-    }
-    data.sort((a, b) => a.key.compareTo(b.key));
-  });
-
-  group('prop', () {
-    test('best', () async {
-      _Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(),
-          filters: [
-            // ThresholdFilter(threshold: 100),
-            IntervalChordChangeDetector(
-              interval: 4,
-              dt: Config.chunkStride / Config.sampleRate,
-            ),
-          ],
-        ),
-      ).evaluate(data, path: 'test/outputs/prop.csv');
-    });
-
-    test('guitar tuning', () async {
-      _Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: ReassignmentChromaCalculator(
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 100),
-            IntervalChordChangeDetector(
-              interval: 4,
-              dt: Config.chunkStride / Config.sampleRate,
-            ),
-          ],
-        ),
-      ).evaluate(data);
-    });
-  });
-
-  group('conv', () {
-    test('comb + search tree', () async {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      const dt = chunkSize / sampleRate;
-      _Evaluator(
-        estimator: SearchTreeChordEstimator(
-          chromaCalculable: CombFilterChromaCalculator(
-            chunkSize: chunkSize,
-            chunkStride: chunkStride,
-            lowest: MusicalScale.E2,
-            perOctave: 6,
-          ),
-          filters: [
-            // ThresholdFilter(threshold: 1),
-            IntervalChordChangeDetector(interval: 4, dt: dt),
-          ],
-          thresholdRatio: 0.3,
-        ),
-      ).evaluate(data, path: 'test/outputs/conv.csv');
-    });
-  });
-
-  group('control experiment', () {
-    test('pattern matching + comb filter', () async {
-      _Evaluator(
-          estimator: PatternMatchingChordEstimator(
-        chromaCalculable: CombFilterChromaCalculator(),
-        filters: [
-          IntervalChordChangeDetector(
-            interval: 4,
-            dt: Config.chunkStride / sampleRate,
-          ),
-        ],
-      )).evaluate(data);
-    });
-
-    test('search tree + reassignment', () async {
-      _Evaluator(
-          estimator: SearchTreeChordEstimator(
-        chromaCalculable: ReassignmentChromaCalculator(),
-        filters: [
-          IntervalChordChangeDetector(
-            interval: 4,
-            dt: Config.chunkStride / Config.sampleRate,
-          ),
-        ],
-      )).evaluate(data);
-    });
-  });
-
-  test('eval conv lowest C1, octave 7', () async {
-    _Evaluator(
-        estimator: SearchTreeChordEstimator(
-      chromaCalculable: CombFilterChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
-      ],
-    )).evaluate(data);
-  });
-
-  test('eval conv threshold changed', () async {
-    _Evaluator(
-        estimator: SearchTreeChordEstimator(
-      chromaCalculable: CombFilterChromaCalculator(),
-      filters: [
-        IntervalChordChangeDetector(
-          interval: 4,
-          dt: Config.chunkStride / Config.sampleRate,
-        ),
-      ],
-      thresholdRatio: 0.3,
-    )).evaluate(data);
-  });
-}
-
 Future<_Paths> _getFiles(String path) async {
   final directory = Directory(path);
 
@@ -247,8 +267,12 @@ Future<_Paths> _getFiles(String path) async {
   return files.whereType<File>().map((e) => e.path);
 }
 
+///ファイル名が/{song_id}_{identify}のフォーマットに沿っていると仮定している
 MapEntry<_SongID, AudioLoader> _parsePathToMapEntries(String path) {
-  final songId = path.split(Platform.pathSeparator).last.split('_').first;
+  final parts = path.split(Platform.pathSeparator);
+  final source = parts[parts.length - 2];
+  final num = parts.last.split('_').first;
+  final songId = '${num}_$source';
   return MapEntry(songId, SimpleAudioLoader(path: path));
 }
 

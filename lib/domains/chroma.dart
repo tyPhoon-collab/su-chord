@@ -262,8 +262,8 @@ class ReassignmentChromaCalculator extends STFTCalculator
       data.buffer,
       (freq) {
         final f = freq.discardConjugates();
-        s.add(Float64x2List.fromList(f));
         magnitudes.add(f.magnitudes());
+        s.add(_copy(f));
       },
       chunkStride,
     );
@@ -272,7 +272,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
     stftD.run(
       data.buffer,
       (freq) {
-        sD.add(Float64x2List.fromList(freq));
+        sD.add(_copy(freq.discardConjugates()));
       },
       chunkStride,
     );
@@ -281,7 +281,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
     stftT.run(
       data.buffer,
       (freq) {
-        sT.add(Float64x2List.fromList(freq));
+        sT.add(_copy(freq.discardConjugates()));
       },
       chunkStride,
     );
@@ -310,4 +310,12 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
     return points;
   }
+}
+
+Float64x2List _copy(Float64x2List source) {
+  final list = Float64x2List(source.length);
+  for (int i = 0; i < source.length; i++) {
+    list[i] = source[i];
+  }
+  return list;
 }
