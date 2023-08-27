@@ -9,7 +9,7 @@ import '../config.dart';
 class AudioData {
   const AudioData({required this.buffer, required this.sampleRate});
 
-  AudioData.empty({required this.sampleRate}) : buffer = Float64List(0);
+  AudioData.empty({this.sampleRate = 0}) : buffer = Float64List(0);
 
   final Float64List buffer;
   final int sampleRate;
@@ -27,12 +27,17 @@ class AudioData {
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
   }
 
-  AudioData cutByIndex({
+  AudioData cutByIndex([
     int startIndex = 0,
     int? endIndex,
-  }) {
-    assert(0 <= startIndex && (endIndex == null || endIndex < buffer.length));
+  ]) {
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
 
+    if (endIndex != null && buffer.length <= endIndex) {
+      endIndex = buffer.length - 1;
+    }
     final newBuffer = buffer.sublist(startIndex, endIndex);
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
   }

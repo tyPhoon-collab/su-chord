@@ -30,33 +30,31 @@ class _HomePageState extends State<HomePage> {
           valueListenable: _recorder.state,
           builder: (BuildContext context, value, _) {
             return StreamBuilder(
-              stream: _recorder.stream,
+              stream: _recorder.stream
+                  .map((data) => data.downSample(Config.sampleRate))
+                  .map((data) => _estimator.estimate(data, false)),
               builder: (_, snapshot) {
                 if (!snapshot.hasData) return const SizedBox();
+                //for debug
                 if (value == RecorderState.recording) {
                   _count++;
                 } else {
                   _count = 0;
                 }
 
-                final data = snapshot.data!.downSample(Config.sampleRate);
-                // final data = snapshot.data!;
-
-                final progress = _estimator.estimate(data);
+                final progress = snapshot.data!;
 
                 return ListView(
                   children: [
                     Text(value.toString()),
                     Text(_count.toString()),
-                    // Text(data.sampleRate.toString()),
-                    // Text(data.buffer.length.toString()),
                     Text(progress.toString()),
                     if (_estimator is Debuggable)
                       for (final text in (_estimator as Debuggable).debugText())
                         Text(text),
                     if (_estimator is ChromaChordEstimator)
                       for (final chroma in (_estimator as ChromaChordEstimator)
-                          .chromas
+                          .reducedChromas
                           .map((e) => e.normalized))
                         Row(
                           children: chroma
@@ -77,6 +75,7 @@ class _HomePageState extends State<HomePage> {
               _recorder.start();
             } else {
               _recorder.stop();
+              _estimator.flush();
             }
           },
           child: const Icon(Icons.mic),

@@ -14,6 +14,11 @@ import 'chord.dart';
 import 'equal_temperament.dart';
 
 typedef Magnitudes = List<Float64List>;
+typedef Spectrogram = List<Float64x2List>;
+
+abstract interface class ChromaCalculable {
+  List<Chroma> chroma(AudioData data, [bool flush = true]);
+}
 
 ///クロマ同士の計算などの利便化のために、クラス化する
 @immutable
@@ -105,10 +110,6 @@ class PCP extends Chroma {
   static final zero = PCP(List.filled(12, 0));
 }
 
-abstract interface class ChromaCalculable {
-  List<Chroma> chroma(AudioData data);
-}
-
 class STFTCalculator {
   STFTCalculator.hanning({
     this.chunkSize = Config.chunkSize,
@@ -139,15 +140,12 @@ class CombFilterChromaCalculator extends STFTCalculator
   final int perOctave;
 
   @override
-  List<Chroma> chroma(AudioData data) {
+  List<Chroma> chroma(AudioData data, [bool flush = true]) {
     magnitudes = [];
-    stft.run(
-      data.buffer,
-      (freq) {
+    void callback(Float64x2List freq) =>
         magnitudes.add(freq.discardConjugates().magnitudes());
-      },
-      chunkStride,
-    );
+    stft.stream(data.buffer, callback, chunkStride);
+    if (flush) stft.flush(callback);
 
     return magnitudes
         .map((e) => _getCombFilterChroma(e, data.sampleRate))
@@ -190,6 +188,8 @@ class CombFilterChromaCalculator extends STFTCalculator
   }
 }
 
+///再割り当て法を元にクロマを算出する
+///時間軸方向の再割り当てはしない。リアルタイムの処理ではやや不都合であるためである。
 class ReassignmentChromaCalculator extends STFTCalculator
     with Measure
     implements ChromaCalculable {
@@ -223,9 +223,9 @@ class ReassignmentChromaCalculator extends STFTCalculator
   late final Bin binY = equalTemperamentBin(lowest, lowest.to(12 * perOctave));
 
   @override
-  List<Chroma> chroma(AudioData data) {
+  List<Chroma> chroma(AudioData data, [bool flush = true]) {
     magnitudes = [];
-    final points = measure('reassign', () => reassign(data));
+    final points = measure('reassign', () => reassign(data, flush));
     binX = List.generate(magnitudes.length, (i) => i * dt)..add(data.duration);
     histogram2d = measure(
       'hist2d',
@@ -254,55 +254,55 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
-  List<Point> reassign(AudioData data) {
+  List<Point> reassign(AudioData data, [bool flush = true]) {
     startMeasuring();
     final s = <Float64x2List>[];
-
-    stft.run(
-      data.buffer,
-      (freq) {
-        final f = freq.discardConjugates();
-        magnitudes.add(f.magnitudes());
-        s.add(_copy(f));
-      },
-      chunkStride,
-    );
-
     final sD = <Float64x2List>[];
-    stftD.run(
-      data.buffer,
-      (freq) {
-        sD.add(_copy(freq.discardConjugates()));
-      },
-      chunkStride,
-    );
-
     final sT = <Float64x2List>[];
-    stftT.run(
-      data.buffer,
-      (freq) {
-        sT.add(_copy(freq.discardConjugates()));
-      },
-      chunkStride,
-    );
+
+    void sCallback(Float64x2List freq) {
+      final f = freq.discardConjugates();
+      magnitudes.add(f.magnitudes());
+      s.add(_copy(f));
+    }
+
+    void sDCallback(Float64x2List freq) {
+      sD.add(_copy(freq.discardConjugates()));
+    }
+
+    void sTCallback(Float64x2List freq) {
+      sT.add(_copy(freq.discardConjugates()));
+    }
+
+    stft.stream(data.buffer, sCallback, chunkStride);
+    stftD.stream(data.buffer, sDCallback, chunkStride);
+    stftT.stream(data.buffer, sTCallback, chunkStride);
+
+    if (flush) {
+      stft.flush(sCallback);
+      stftD.flush(sDCallback);
+      stftT.flush(sTCallback);
+    }
 
     stopMeasuring('3 times stft');
 
     startMeasuring();
 
     final points = <Point>[];
-    dt = (chunkStride == 0 ? chunkSize : chunkStride) / data.sampleRate;
-    df = data.sampleRate / chunkSize;
+    final sr = data.sampleRate;
+    dt = (chunkStride == 0 ? chunkSize : chunkStride) / sr;
+    df = sr / chunkSize;
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
         if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
 
-        final x =
-            i * dt + complexDivision(sT[i][j], s[i][j]).x / data.sampleRate;
-        final y = j * df -
-            complexDivision(sD[i][j], s[i][j]).y * (0.5 * data.sampleRate / pi);
-        points.add(Point(x: x, y: y, weight: magnitudes[i][j]));
+        points.add(Point(
+          x: i * dt,
+          // x: i * dt + complexDivision(sT[i][j], s[i][j]).x / sr,
+          y: j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi),
+          weight: magnitudes[i][j],
+        ));
       }
     }
 

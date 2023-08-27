@@ -23,6 +23,7 @@ class WeightedHistogram2d {
   WeightedHistogram2d({required this.binX, required this.binY})
       : assert(binX.isNotEmpty),
         assert(binY.isNotEmpty) {
+    //TODO メモリ節約のために、疎行列を用いる
     values = List.generate(
       binX.length - 1,
       (_) => List.filled(binY.length - 1, 0.0),
@@ -55,7 +56,7 @@ class WeightedHistogram2d {
 
   //高速化のために、バイナリーサーチでどのビンに属するか取得する
   int? _index(double val, List<double> bin) {
-    if (val < bin.first || bin.last <= val) return null;
+    if (val.isNaN || val < bin.first || bin.last <= val) return null;
 
     int left = 0;
     int right = bin.length - 2;
@@ -71,6 +72,7 @@ class WeightedHistogram2d {
       }
     }
 
+    debugPrint('val: $val, left: $left, right: $right');
     throw UnimplementedError();
   }
 }

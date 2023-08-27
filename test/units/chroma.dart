@@ -22,6 +22,14 @@ void main() {
     expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
   });
 
+  test('chroma cosine similarity', () async {
+    final c1 = Chroma(const [1, 1, 1, 1]);
+    expect(c1.cosineSimilarity(c1), 1);
+
+    final c2 = Chroma(const [-1, -1, -1, -1]);
+    expect(c1.cosineSimilarity(c2), -1);
+  });
+
   test('reassignment chroma one note', () async {
     final c = ReassignmentChromaCalculator();
 

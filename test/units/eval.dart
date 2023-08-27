@@ -3,10 +3,8 @@ import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
-import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimate.dart';
-import 'package:chord/domains/filter.dart';
+import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
@@ -20,9 +18,20 @@ typedef _SongID = String;
 typedef _Paths = Iterable<String>;
 
 const sampleRate = 22050;
+final factory2048_1024 = EstimatorFactory(const FactoryContext(
+  chunkSize: 2048,
+  chunkStride: 1024,
+  sampleRate: sampleRate,
+));
+
+final factory8192_0 = EstimatorFactory(const FactoryContext(
+  chunkSize: 8192,
+  chunkStride: 0,
+  sampleRate: sampleRate,
+));
 
 Future<void> main() async {
-  // _Evaluator.bypassCsvWriting = true;
+  _Evaluator.bypassCsvWriting = true;
 
   final corrects = await _getCorrectChords();
   final loaders = Map.fromEntries([
@@ -54,11 +63,11 @@ Future<void> main() async {
   });
 
   group('prop', () {
-    test('osawa', () async {
+    test('main', () async {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: _buildReassignmentGuitarTuning(2048, 1024),
-          filters: _buildFilter(2048, 1024),
+          chromaCalculable: factory2048_1024.guitarRange.reassignment,
+          filters: factory2048_1024.filter.eval,
         ),
       ).evaluate(data, path: 'test/outputs/prop.csv');
     });
@@ -66,8 +75,8 @@ Future<void> main() async {
     test('prop to conv chunkSize', () async {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: _buildReassignmentGuitarTuning(8192, 0),
-          filters: _buildFilter(8192, 0),
+          chromaCalculable: factory8192_0.guitarRange.reassignment,
+          filters: factory8192_0.filter.eval,
         ),
       ).evaluate(data, path: 'test/outputs/prop.csv');
     });
@@ -75,8 +84,8 @@ Future<void> main() async {
     test('piano tuning', () async {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: _buildReassignmentBigRangeTuning(2048, 1024),
-          filters: _buildFilter(2048, 1024),
+          chromaCalculable: factory2048_1024.bigRange.reassignment,
+          filters: factory2048_1024.filter.eval,
         ),
       ).evaluate(data);
     });
@@ -86,8 +95,8 @@ Future<void> main() async {
     test('comb + search tree', () async {
       _Evaluator(
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: _buildCombFilterGuitarTuning(8192, 0),
-          filters: _buildFilter(8192, 0),
+          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          filters: factory8192_0.filter.eval,
           thresholdRatio: 0.3,
         ),
       ).evaluate(data, path: 'test/outputs/conv.csv');
@@ -98,8 +107,8 @@ Future<void> main() async {
     test('pattern matching + comb filter', () {
       _Evaluator(
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: _buildCombFilterGuitarTuning(8192, 0),
-          filters: _buildFilter(8192, 0),
+          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          filters: factory8192_0.filter.eval,
         ),
       ).evaluate(data);
     });
@@ -107,42 +116,13 @@ Future<void> main() async {
     test('search tree + reassignment', () async {
       _Evaluator(
           estimator: SearchTreeChordEstimator(
-        chromaCalculable: _buildReassignmentGuitarTuning(8192, 0),
-        filters: _buildFilter(8192, 0),
+        chromaCalculable: factory8192_0.guitarRange.reassignment,
+        filters: factory8192_0.filter.eval,
         thresholdRatio: 0.5,
       )).evaluate(data);
     });
   });
 }
-
-List<ChromaListFilter> _buildFilter(int chunkSize, int chunkStride) {
-  final dt = (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
-  return [IntervalChordChangeDetector(interval: 4, dt: dt)];
-}
-
-ChromaCalculable _buildCombFilterGuitarTuning(int chunkSize, int chunkStride) =>
-    CombFilterChromaCalculator(
-      chunkSize: chunkSize,
-      chunkStride: chunkStride,
-      lowest: MusicalScale.E2,
-      perOctave: 6,
-    );
-
-ChromaCalculable _buildReassignmentBigRangeTuning(
-        int chunkSize, int chunkStride) =>
-    ReassignmentChromaCalculator(
-      chunkSize: chunkSize,
-      chunkStride: chunkStride,
-    );
-
-ChromaCalculable _buildReassignmentGuitarTuning(
-        int chunkSize, int chunkStride) =>
-    ReassignmentChromaCalculator(
-      chunkSize: chunkSize,
-      chunkStride: chunkStride,
-      lowest: MusicalScale.E2,
-      perOctave: 6,
-    );
 
 class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   const _EvaluatorContext({

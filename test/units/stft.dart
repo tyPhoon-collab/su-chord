@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'package:chord/config.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:fftea/fftea.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../util.dart';
 
 void main() {
   test('stft', () async {
@@ -59,6 +62,21 @@ void main() {
     });
 
     expect(spectrogram, isNotEmpty);
+  });
+
+  test('stft stream', () async {
+    const chunkSize = 10000;
+    final stft = STFT(chunkSize, Window.hanning(chunkSize));
+    final data = await AudioLoader.sample.load();
+
+    void callback(Float64x2List freq) {
+      debugPrint(freq.length.toString());
+    }
+
+    await for (final data in const AudioStreamEmulator().stream(data)) {
+      stft.stream(data.buffer, callback);
+    }
+    stft.flush(callback);
   });
 }
 

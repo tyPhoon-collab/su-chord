@@ -13,8 +13,9 @@ class ChordProgression extends Iterable<Chord?> {
   Iterator<Chord?> get iterator => _values.iterator;
 
   @override
-  String toString() =>
-      _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
+  String toString() => _values.isEmpty
+      ? 'No Chords'
+      : _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
 
   List<String> toCSVRow() =>
       _values.map((e) => e?.toString() ?? Chord.noChordLabel).toList();

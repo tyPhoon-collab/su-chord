@@ -11,7 +11,9 @@ import 'equal_temperament.dart';
 import 'filter.dart';
 
 abstract interface class ChordEstimable {
-  ChordProgression estimate(AudioData data);
+  ChordProgression estimate(AudioData data, [bool flush = true]);
+
+  ChordProgression flush();
 }
 
 abstract interface class Debuggable {
@@ -30,16 +32,34 @@ abstract class ChromaChordEstimator
 
   //Debugs
   List<Chroma> chromas = [];
+  List<Chroma> reducedChromas = [];
 
   @override
-  ChordProgression estimate(AudioData data) {
-    chromas = measure('chroma calc', () => chromaCalculable.chroma(data));
+  ChordProgression estimate(AudioData data, [bool flush = true]) {
+    final chroma =
+        measure('chroma calc', () => chromaCalculable.chroma(data, flush));
+    chromas.addAll(chroma);
+
+    reducedChromas = List.of(chromas);
     measure('filter calc', () {
       for (final e in filters) {
-        chromas = e.filter(chromas);
+        reducedChromas = e.filter(reducedChromas);
       }
     });
-    return estimateFromChroma(chromas);
+
+    final progression = estimateFromChroma(reducedChromas);
+
+    if (flush) _flush();
+    return progression;
+  }
+
+  @override
+  ChordProgression flush() {
+    return estimate(AudioData.empty());
+  }
+
+  void _flush() {
+    chromas = [];
   }
 
   ChordProgression estimateFromChroma(List<Chroma> chroma);
