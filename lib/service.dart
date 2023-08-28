@@ -1,27 +1,24 @@
 import 'package:get/get.dart';
 
+import 'config.dart';
 import 'domains/chroma.dart';
 import 'domains/estimate.dart';
-import 'domains/filter.dart';
+import 'domains/factory.dart';
 
 void register() {
   //TODO サンプルレートなどの設定が変更された時に、再登録できるようにする
-  // const sampleRate = Config.sampleRate;
-  // const chunkSize = Config.chunkSize;
-  // const chunkStride = Config.chunkStride;
+  final factory = EstimatorFactory(const FactoryContext(
+    chunkSize: Config.chunkSize,
+    chunkStride: Config.chunkStride,
+    sampleRate: Config.sampleRate,
+  ));
 
   Get.lazyPut<ChromaCalculable>(
-    () => ReassignmentChromaCalculator(),
-    // () => CombFilterChromaCalculator(
-    //     chunkSize: 8192, lowest: MusicalScale.E2, perOctave: 6),
+    () => factory.guitarRange.reassignment,
   );
 
   Get.lazyPut<ChordEstimable>(() => PatternMatchingChordEstimator(
         chromaCalculable: Get.find(),
-        filters: [
-          ThresholdFilter(threshold: 150),
-          // ThresholdFilter(threshold: 10),
-          TriadChordChangeDetector(),
-        ],
+        filters: factory.filter.realtime,
       ));
 }

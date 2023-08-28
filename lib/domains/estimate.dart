@@ -60,6 +60,7 @@ abstract class ChromaChordEstimator
 
   void _flush() {
     chromas = [];
+    reducedChromas = [];
   }
 
   ChordProgression estimateFromChroma(List<Chroma> chroma);
@@ -67,7 +68,7 @@ abstract class ChromaChordEstimator
   @override
   Iterable<String> debugText() {
     return [
-      ...chromas.map((e) => e.toString()),
+      ...reducedChromas.map((e) => e.toString()),
       ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
     ];
   }
@@ -131,7 +132,7 @@ class SearchTreeChordEstimator extends ChromaChordEstimator {
   // 演奏したクロマに対して 65%以下のパワー を持つクロマはノイズ成分として見なされたためである.
   // 従って，演奏音の数は最大 4 つと なる.
   Notes _chooseNotes(Chroma chroma) {
-    final indexes = chroma.maxSortedIndex;
+    final indexes = chroma.maxSortedIndexes;
     final max = chroma[indexes.first];
     final threshold = max * thresholdRatio;
     final notes = indexes

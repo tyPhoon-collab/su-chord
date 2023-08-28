@@ -44,9 +44,9 @@ class Chroma extends Iterable<double> {
     return maxIndex;
   }
 
-  double get max => this[maxIndex];
+  double get max => _values[maxIndex];
 
-  late final Iterable<int> maxSortedIndex =
+  late final Iterable<int> maxSortedIndexes =
       _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
   late final normalized = _values.map((e) => e / l2norm).toList();

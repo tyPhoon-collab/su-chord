@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../config.dart';
+import '../../domains/chord_progression.dart';
 import '../../domains/estimate.dart';
 import '../../js_external.dart';
+import 'plot.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   final ChordEstimable _estimator = Get.find();
   final _recorder = WebRecorder(1.seconds);
   int _count = 0;
+  ChordProgression _progression = ChordProgression.empty();
 
   @override
   Future<void> dispose() async {
@@ -30,11 +33,9 @@ class _HomePageState extends State<HomePage> {
           valueListenable: _recorder.state,
           builder: (BuildContext context, value, _) {
             return StreamBuilder(
-              stream: _recorder.stream
-                  .map((data) => data.downSample(Config.sampleRate))
-                  .map((data) => _estimator.estimate(data, false)),
+              stream: _recorder.stream,
               builder: (_, snapshot) {
-                if (!snapshot.hasData) return const SizedBox();
+                if (!snapshot.hasData) return Text(_progression.toString());
                 //for debug
                 if (value == RecorderState.recording) {
                   _count++;
@@ -42,27 +43,23 @@ class _HomePageState extends State<HomePage> {
                   _count = 0;
                 }
 
-                final progress = snapshot.data!;
+                final data = snapshot.data!.downSample(Config.sampleRate);
+                final progression = _estimator.estimate(data, false);
 
                 return ListView(
                   children: [
                     Text(value.toString()),
                     Text(_count.toString()),
-                    Text(progress.toString()),
+                    Text(data.buffer.length.toString()),
+                    Text(progression.toString()),
+                    if (_estimator is ChromaChordEstimator)
+                      Chromagram(
+                        chromas:
+                            (_estimator as ChromaChordEstimator).reducedChromas,
+                      ),
                     if (_estimator is Debuggable)
                       for (final text in (_estimator as Debuggable).debugText())
                         Text(text),
-                    if (_estimator is ChromaChordEstimator)
-                      for (final chroma in (_estimator as ChromaChordEstimator)
-                          .reducedChromas
-                          .map((e) => e.normalized))
-                        Row(
-                          children: chroma
-                              .map((e) => ColoredBox(
-                                  color: Colors.cyan.withOpacity(e),
-                                  child: const SizedBox.square(dimension: 10)))
-                              .toList(),
-                        )
                   ],
                 );
               },
@@ -75,7 +72,9 @@ class _HomePageState extends State<HomePage> {
               _recorder.start();
             } else {
               _recorder.stop();
-              _estimator.flush();
+              setState(() {
+                _progression = _estimator.flush();
+              });
             }
           },
           child: const Icon(Icons.mic),

@@ -18,48 +18,48 @@ void main() {
     );
   });
 
-  test('chord equal', () {
+  test('equal', () {
     expect(Chord.fromLabel('C'), equals(Chord.fromLabel('C')));
     expect(Chord.fromLabel('CM7'), equals(Chord.fromLabel('CM7')));
   });
 
   group('chord label', () {
-    test('chord maj', () {
+    test('maj', () {
       expect(
         Chord.fromType(type: ChordType.major, root: Note.C).label,
         'C',
       );
     });
 
-    test('chord min', () {
+    test('min', () {
       expect(
         Chord.fromType(type: ChordType.minor, root: Note.C).label,
         'Cm',
       );
     });
 
-    test('chord dim', () {
+    test('dim', () {
       expect(
         Chord.fromType(type: ChordType.diminish, root: Note.C).label,
         'Cdim',
       );
     });
 
-    test('chord aug', () {
+    test('aug', () {
       expect(
         Chord.fromType(type: ChordType.augment, root: Note.C).label,
         'Caug',
       );
     });
 
-    test('chord sus4', () {
+    test('sus4', () {
       expect(
         Chord.fromType(type: ChordType.sus4, root: Note.C).label,
         'Csus4',
       );
     });
 
-    test('chord maj 7', () {
+    test('maj 7', () {
       expect(
         Chord.fromType(
           type: ChordType.major,
@@ -70,7 +70,7 @@ void main() {
       );
     });
 
-    test('chord maj M7', () {
+    test('maj M7', () {
       expect(
         Chord.fromType(
           type: ChordType.major,
@@ -81,7 +81,7 @@ void main() {
       );
     });
 
-    test('chord maj add9', () {
+    test('maj add9', () {
       expect(
         Chord.fromType(
           type: ChordType.major,
@@ -92,7 +92,7 @@ void main() {
       );
     });
 
-    test('chord maj 9,11', () {
+    test('maj 9,11', () {
       expect(
         Chord.fromType(
           type: ChordType.major,
@@ -108,31 +108,31 @@ void main() {
   });
 
   group('parse label to chord', () {
-    test('chord parse C', () {
+    test('C', () {
       expect(Chord.fromLabel('C').label, 'C');
     });
 
-    test('chord parse Cm', () {
+    test('Cm', () {
       expect(Chord.fromLabel('Cm').label, 'Cm');
     });
 
-    test('chord parse Cm7', () {
+    test('Cm7', () {
       expect(Chord.fromLabel('Cm7').label, 'Cm7');
     });
 
-    test('chord parse C7', () {
+    test('C7', () {
       expect(Chord.fromLabel('C7').label, 'C7');
     });
 
-    test('chord parse CM7', () {
+    test('CM7', () {
       expect(Chord.fromLabel('CM7').label, 'CM7');
     });
 
-    test('chord parse Cadd9', () {
+    test('Cadd9', () {
       expect(Chord.fromLabel('Cadd9').label, 'Cadd9');
     });
 
-    test('chord parse C6', () {
+    test('C6', () {
       expect(Chord.fromLabel('C6').label, 'C6');
     });
   });

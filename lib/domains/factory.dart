@@ -2,6 +2,8 @@ import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 
+typedef Filters = List<ChromaListFilter>;
+
 final class FactoryContext {
   const FactoryContext({
     required this.chunkSize,
@@ -16,6 +18,7 @@ final class FactoryContext {
   double get dt => (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
 }
 
+///必要な情報をContextに閉じ込めることによって、DIを簡単にするためのファクトリ
 final class EstimatorFactory {
   EstimatorFactory(this.context);
 
@@ -61,7 +64,12 @@ final class FilterFactory {
 
   final FactoryContext context;
 
-  List<ChromaListFilter> get eval => [
+  Filters get eval => [
         IntervalChordChangeDetector(interval: 4, dt: context.dt),
+      ];
+
+  Filters get realtime => [
+        ThresholdFilter(threshold: 150),
+        TriadChordChangeDetector(),
       ];
 }

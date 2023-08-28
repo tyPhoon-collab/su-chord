@@ -6,7 +6,7 @@ import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('chroma norm', () async {
+  test('norm', () async {
     final c1 = Chroma(const [1, 1, 1, 1]);
     expect(c1.l2norm, 2);
 
@@ -14,7 +14,7 @@ void main() {
     expect(c2.l2norm, 2);
   });
 
-  test('chroma normalized', () async {
+  test('normalized', () async {
     final c1 = Chroma(const [1, 1, 1, 1]);
     expect(c1.normalized, [0.5, 0.5, 0.5, 0.5]);
 
@@ -22,7 +22,7 @@ void main() {
     expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
   });
 
-  test('chroma cosine similarity', () async {
+  test('cosine similarity', () async {
     final c1 = Chroma(const [1, 1, 1, 1]);
     expect(c1.cosineSimilarity(c1), 1);
 

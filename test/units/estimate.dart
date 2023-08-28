@@ -39,7 +39,6 @@ void main() {
     );
 
     final data = await AudioLoader.sample.load();
-
     final chords = e.estimate(data);
 
     expect(chords.length, 20);

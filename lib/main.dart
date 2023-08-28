@@ -1,7 +1,7 @@
-import 'package:chord/widgets/pages/home.dart';
 import 'package:flutter/material.dart';
 
 import 'service.dart';
+import 'widgets/pages/home.dart';
 
 void main() {
   register();

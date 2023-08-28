@@ -47,11 +47,11 @@ class WebRecorder {
 
   void _process(JSFloat32Array array, int sampleRate) {
     _buffer = Float32List.fromList([...?_buffer, ...array.toDart]);
-    final maxSize = sampleRate * 2;
-    final size = _buffer!.length;
-    if (size > maxSize) {
-      _buffer = _buffer!.sublist(size - maxSize, maxSize);
-    }
+    // final maxSize = sampleRate * 2;
+    // final size = _buffer!.length;
+    // if (size > maxSize) {
+    //   _buffer = _buffer!.sublist(size - maxSize, maxSize);
+    // }
     _sampleRate = sampleRate;
   }
 
@@ -70,6 +70,7 @@ class WebRecorder {
         sampleRate: _sampleRate,
       );
       controller.sink.add(_audioData!);
+      _buffer = null;
       // controller.sink.add(AudioData.empty(sampleRate: Config.sampleRate));
       // controller.sink.add(_audioData!.cutByIndex(startIndex: _seek));
       // _seek = _audioData!.buffer.length;
