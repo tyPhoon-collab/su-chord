@@ -23,7 +23,8 @@ class IntervalChordChangeDetector implements ChromaListFilter {
   IntervalChordChangeDetector({required this.interval, required this.dt});
 
   final double dt;
-  final double interval;
+  final Duration interval;
+  late final _interval = interval.inMilliseconds / 1000;
 
   @override
   List<Chroma> filter(List<Chroma> chromas) {
@@ -37,15 +38,15 @@ class IntervalChordChangeDetector implements ChromaListFilter {
       accumulatedTime += dt;
       accumulatedCount++;
 
-      if (accumulatedTime >= interval) {
+      if (accumulatedTime >= _interval) {
         slices.add(accumulatedCount);
-        accumulatedTime -= interval;
+        accumulatedTime -= _interval;
         accumulatedCount = 0;
       }
     }
 
     //コンピュータ特有の誤差を考慮
-    if (accumulatedTime + epsilon >= interval) {
+    if (accumulatedTime + epsilon >= _interval) {
       slices.add(accumulatedCount);
     }
 

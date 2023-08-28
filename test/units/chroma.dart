@@ -4,6 +4,7 @@ import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 
 void main() {
   test('norm', () async {
@@ -92,7 +93,7 @@ void main() {
         lowest: MusicalScale.E2,
         perOctave: 6);
     final ccd = IntervalChordChangeDetector(
-        interval: 3, dt: chunkSize / Config.sampleRate);
+        interval: 3.seconds, dt: chunkSize / Config.sampleRate);
 
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
@@ -120,7 +121,7 @@ void main() {
         perOctave: 6);
 
     final ccd = IntervalChordChangeDetector(
-        interval: 3, dt: chunkSize / Config.sampleRate);
+        interval: 3.seconds, dt: chunkSize / Config.sampleRate);
 
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');

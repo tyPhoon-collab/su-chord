@@ -4,23 +4,24 @@ import 'package:chord/domains/estimate.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 
 void main() {
   group('interval', () {
     test('just', () {
-      final ccd = IntervalChordChangeDetector(interval: 1, dt: 0.25);
+      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.25);
       final chromas = List.filled(8, Chroma.empty);
       expect(ccd.filter(chromas).length, 2);
     });
 
     test('over', () {
-      final ccd = IntervalChordChangeDetector(interval: 1, dt: 0.251);
+      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.251);
       final chromas = List.filled(8, Chroma.empty);
       expect(ccd.filter(chromas).length, 2);
     });
 
     test('less', () {
-      final ccd = IntervalChordChangeDetector(interval: 1, dt: 0.251);
+      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.251);
       final chromas = List.filled(11, Chroma.empty);
       expect(ccd.filter(chromas).length, 2);
     });

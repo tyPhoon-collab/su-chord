@@ -95,7 +95,9 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
   }
 }
 
-//此木の論文を元に実装
+///此木の論文を元に実装
+///内部的には探索木を用いてはいないが、
+///クロマから音高を導き、音高からコードを導くという点では全く同じ動作をする
 class SearchTreeChordEstimator extends ChromaChordEstimator {
   SearchTreeChordEstimator({
     required super.chromaCalculable,

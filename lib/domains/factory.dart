@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
@@ -64,12 +66,13 @@ final class FilterFactory {
 
   final FactoryContext context;
 
-  Filters get eval => [
-        IntervalChordChangeDetector(interval: 4, dt: context.dt),
-      ];
+  Filters get eval => [interval(4.seconds)];
 
   Filters get realtime => [
         ThresholdFilter(threshold: 150),
         TriadChordChangeDetector(),
       ];
+
+  ChromaListFilter interval(Duration duration) =>
+      IntervalChordChangeDetector(interval: duration, dt: context.dt);
 }

@@ -19,6 +19,6 @@ void register() {
 
   Get.lazyPut<ChordEstimable>(() => PatternMatchingChordEstimator(
         chromaCalculable: Get.find(),
-        filters: factory.filter.realtime,
+        filters: factory.filter.eval,
       ));
 }
