@@ -51,7 +51,7 @@ enum ChordType {
       required this.label,
       this.availableTensions = const {...ChordQuality.values}});
 
-  factory ChordType.fromLabel(String label) {
+  factory ChordType.parse(String label) {
     for (final type in values) {
       if (type.label == label) return type;
     }
@@ -96,7 +96,7 @@ enum ChordQuality {
   const ChordQuality(
       {required this.degree, required this.label, this.combinable = true});
 
-  factory ChordQuality.fromLabel(String label) {
+  factory ChordQuality.parse(String label) {
     for (final quality in values) {
       if (quality.label == label) return quality;
     }
@@ -134,11 +134,11 @@ class ChordQualities extends Iterable<ChordQuality> {
   ChordQualities(this.values)
       : assert(values.where((e) => !e.combinable).length <= 1);
 
-  factory ChordQualities.fromLabel(String label) {
+  factory ChordQualities.parse(String label) {
     //TODO 全てのQualitiesに対応させる。現在は評価実験に出てくるもののみ
     if (label.isEmpty) return empty;
     label = label.replaceAll('add', '');
-    return ChordQualities({ChordQuality.fromLabel(label)});
+    return ChordQualities({ChordQuality.parse(label)});
   }
 
   static ChordQualities? fromTypeAndNotes({
@@ -192,42 +192,104 @@ class ChordQualities extends Iterable<ChordQuality> {
 }
 
 @immutable
-class Chord {
+class ChordBase {
+  ChordBase({
+    required this.type,
+    ChordQualities? qualities,
+  }) : qualities = qualities ?? ChordQualities.empty;
+
+  final ChordType type;
+  final ChordQualities qualities;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ChordBase) {
+      return type == other.type && qualities == other.qualities;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ type.hashCode ^ qualities.hashCode;
+}
+
+@immutable
+class DegreeChord extends ChordBase {
+  DegreeChord(this.degreeName, {required super.type, super.qualities});
+
+  factory DegreeChord.parse(String chord) {
+    final exp = RegExp(
+        r'^([#b]?(?:I|II|III|IV|V|VI|VII))((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
+    final match = exp.firstMatch(chord);
+
+    if (match == null) throw ArgumentError('invalid: $chord');
+
+    try {
+      final degreeName = DegreeName.parse(match.group(1)!);
+      final type = ChordType.parse(match.group(2) ?? '');
+      final qualities = ChordQualities.parse(match.group(3) ?? '');
+
+      return DegreeChord(degreeName, type: type, qualities: qualities);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  final DegreeName degreeName;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is DegreeChord) {
+      return super == this && degreeName == other.degreeName;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ degreeName.hashCode;
+
+  @override
+  String toString() => degreeName.label + type.label + qualities.label;
+
+// Chord toChord(Note key) {
+//
+// }
+}
+
+@immutable
+class Chord extends ChordBase {
   Chord({
     required this.notes,
     required this.root,
-    ChordQualities? qualities,
+    super.qualities,
   })  : assert(notes.contains(root)),
-        qualities = qualities ?? ChordQualities.empty,
-        type = _fromNotes(notes, root)
-            .firstWhere((record) =>
-                record.qualities == (qualities ?? ChordQualities.empty))
-            .type;
+        super(
+            type: _fromNotes(notes, root)
+                .firstWhere((record) =>
+                    record.qualities == (qualities ?? ChordQualities.empty))
+                .type);
 
-  Chord.fromType(
-      {required this.type, required this.root, ChordQualities? qualities})
+  Chord.fromType({required super.type, required this.root, super.qualities})
       : assert(
           qualities == null || type.validate(qualities),
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
         ),
-        qualities = qualities ?? ChordQualities.empty,
         notes = [
           ...type.degrees.map((e) => root.to(e)),
           ...?qualities?.map((e) => root.to(e.degree)),
         ];
 
-  factory Chord.fromLabel(String chord) {
-    //TODO 全てのコードタイプに対応させる。現在は評価実験に出てくるもののみ
+  factory Chord.parse(String chord) {
     final exp = RegExp(
-        r'([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)');
+        r'^([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
     final match = exp.firstMatch(chord);
 
-    if (match == null) throw ArgumentError('label is invalid');
+    if (match == null) throw ArgumentError('invalid: $chord');
 
     try {
-      final root = Note.fromLabel(match.group(1)!);
-      final type = ChordType.fromLabel(match.group(2) ?? '');
-      final qualities = ChordQualities.fromLabel(match.group(3) ?? '');
+      final root = Note.parse(match.group(1)!);
+      final type = ChordType.parse(match.group(2) ?? '');
+      final qualities = ChordQualities.parse(match.group(3) ?? '');
 
       return Chord.fromType(type: type, root: root, qualities: qualities);
     } catch (e) {
@@ -268,32 +330,24 @@ class Chord {
         .where((record) => record.type.validate(record.qualities));
   }
 
-  static const noChordLabel = '***';
-
-  late final String label = root.label + type.label + qualities.label;
   late final PCP pcp = PCP.fromNotes(notes);
 
   final Note root;
-  final ChordType type;
-
   final Notes notes;
-  final ChordQualities qualities;
 
   @override
   bool operator ==(Object other) {
     if (other is Chord) {
-      return root == other.root &&
-          type == other.type &&
-          setEquals(notes.toSet(), other.notes.toSet()) &&
-          qualities == other.qualities;
+      return super == this &&
+          root == other.root &&
+          setEquals(notes.toSet(), other.notes.toSet());
     }
     return false;
   }
 
   @override
-  int get hashCode =>
-      root.hashCode ^ type.hashCode ^ notes.hashCode ^ qualities.hashCode;
+  int get hashCode => super.hashCode ^ root.hashCode ^ notes.hashCode;
 
   @override
-  String toString() => label;
+  String toString() => root.label + type.label + qualities.label;
 }

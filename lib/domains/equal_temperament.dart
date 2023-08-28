@@ -27,7 +27,9 @@ class MusicalScale {
 
     final newNote = note.to(degree);
     var newPitch = pitch + degree ~/ 12;
-    if (note.degreeTo(newNote).isNegative) {
+    if (note
+        .degreeTo(newNote)
+        .isNegative) {
       newPitch += 1;
     }
     return MusicalScale(newNote, newPitch);
@@ -65,19 +67,46 @@ enum Accidental {
   final String label;
 }
 
-enum NaturalNote {
-  C(label: 'C'),
-  D(label: 'D'),
-  E(label: 'E'),
-  F(label: 'F'),
-  G(label: 'G'),
-  A(label: 'A'),
-  B(label: 'B');
+//ディグリーネームにおいて、シャープの表記は一般的でない
+//またかなり適当な実装なので、後でなんとかする
+//TODO シャープの実装（Noteと共通化）
+enum DegreeName {
+  I(label: 'I'),
+  bII(label: 'bII'),
+  II(label: 'II'),
+  bIII(label: 'bIII'),
+  III(label: 'III'),
+  IV(label: 'IV'),
+  bV(label: 'bV'),
+  V(label: 'V'),
+  bVI(label: 'bVI'),
+  VI(label: 'VI'),
+  bVII(label: 'bVII'),
+  VII(label: 'VII');
 
-  const NaturalNote({required this.label});
+  const DegreeName({required this.label});
+
+  //TODO スマートに書き換える
+  factory DegreeName.parse(String label) {
+    if (label == 'bIV') return III;
+    if (label == '#III') return IV;
+    if (label == 'bI') return VII;
+    if (label == '#VII') return I;
+
+    if (label.startsWith('#')) {
+      final name = DegreeName.parse(label.substring(1));
+      return values[name.index + 1];
+    }
+    for (final degreeName in values) {
+      if (degreeName.label == label) return degreeName;
+    }
+    throw ArgumentError();
+  }
 
   final String label;
 }
+
+enum NaturalNote { C, D, E, F, G, A, B }
 
 enum Note {
   C(naturalNote: NaturalNote.C),
@@ -95,7 +124,7 @@ enum Note {
 
   const Note({required this.naturalNote, this.accidental = Accidental.natural});
 
-  factory Note.fromLabel(String label) {
+  factory Note.parse(String label) {
     for (final note in values) {
       if (note.label == label) return note;
     }
@@ -110,7 +139,7 @@ enum Note {
   final NaturalNote naturalNote;
   final Accidental accidental;
 
-  String get label => naturalNote.label + accidental.label;
+  String get label => naturalNote.name + accidental.label;
 
   ///度数を渡すと新しいNoteを返す
   ///ex)
@@ -138,7 +167,7 @@ Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
   final hzList = List.generate(
     lowest.degreeTo(highest) + 2,
-    (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
+        (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
   );
 
   final bins = <double>[];

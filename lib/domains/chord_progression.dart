@@ -2,26 +2,48 @@ import 'dart:math';
 
 import 'chord.dart';
 
-class ChordProgression extends Iterable<Chord?> {
-  ChordProgression(this._values);
+class ProgressionBase<T extends ChordBase> extends Iterable<T?> {
+  ProgressionBase(this._values);
 
-  ChordProgression.empty() : _values = [];
+  static const noChordLabel = '***';
+  static const chordSeparator = '->';
 
-  final List<Chord?> _values;
+  final List<T?> _values;
 
   @override
-  Iterator<Chord?> get iterator => _values.iterator;
+  Iterator<T?> get iterator => _values.iterator;
 
   @override
   String toString() => _values.isEmpty
       ? 'No Chords'
-      : _values.map((e) => e?.label ?? Chord.noChordLabel).join('->');
+      : _values.map((e) => e?.toString() ?? noChordLabel).join(chordSeparator);
 
   List<String> toCSVRow() =>
-      _values.map((e) => e?.toString() ?? Chord.noChordLabel).toList();
+      _values.map((e) => e?.toString() ?? noChordLabel).toList();
 
-  void add(Chord? chord) {
+  void add(T? chord) {
     _values.add(chord);
+  }
+}
+
+class DegreeChordProgression extends ProgressionBase<DegreeChord> {
+  DegreeChordProgression(super.values);
+
+  DegreeChordProgression.empty() : super([]);
+
+  factory DegreeChordProgression.fromCSVRow(List<String> row) {
+    return DegreeChordProgression(
+        row.map((e) => DegreeChord.parse(e)).toList());
+  }
+}
+
+class ChordProgression extends ProgressionBase<Chord> {
+  ChordProgression(super._values);
+
+  ChordProgression.empty() : super([]);
+
+  factory ChordProgression.fromCSVRow(List<String> row) {
+    throw UnimplementedError();
   }
 
   double consistencyRate(ChordProgression other) {

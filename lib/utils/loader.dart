@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:csv/csv.dart';
 import 'package:flutter/widgets.dart';
 import 'package:wav/wav.dart';
 
@@ -100,7 +103,8 @@ final class SimpleAudioLoader implements AudioLoader {
       path == null ? Future.value(Wav.read(bytes!)) : Wav.readFile(path!);
 }
 
-final class DeltaAudioLoader implements AudioLoader {
+//デルタ関数をロードする関数
+final class DeltaFunctionAudioLoader implements AudioLoader {
   @override
   Future<AudioData> load({double? duration, int? sampleRate}) {
     sampleRate ??= Config.sampleRate;
@@ -110,5 +114,35 @@ final class DeltaAudioLoader implements AudioLoader {
       buffer: Float64List.fromList(buffer),
       sampleRate: sampleRate,
     ));
+  }
+}
+
+typedef CSV = List<List<dynamic>>;
+
+abstract interface class CSVLoader {
+  Future<CSV> load();
+
+  static const db = SimpleCSVLoader(path: 'assets/csv/chord_progression.csv');
+
+  static const corrects =
+      SimpleCSVLoader(path: 'assets/csv/correct_only_sharp.csv');
+}
+
+final class SimpleCSVLoader implements CSVLoader {
+  const SimpleCSVLoader({this.path, this.bytes})
+      : assert(path != null || bytes != null);
+
+  final String? path;
+  final Uint8List? bytes;
+
+  @override
+  Future<CSV> load() async {
+    final input = File(path!).openRead();
+    final csv = await input
+        .transform(utf8.decoder)
+        .transform(const CsvToListConverter())
+        .toList();
+
+    return csv;
   }
 }

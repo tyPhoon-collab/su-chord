@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
@@ -8,7 +7,6 @@ import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
-import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -210,18 +208,13 @@ MapEntry<_SongID, AudioLoader> _parsePathToMapEntries(String path) {
 }
 
 Future<_CorrectChords> _getCorrectChords() async {
-  final input = File('assets/csv/correct_only_sharp.csv').openRead();
-  final fields = await input
-      .transform(utf8.decoder)
-      .transform(const CsvToListConverter())
-      .toList();
+  final fields = await CSVLoader.corrects.load();
 
   //ignore header
   return Map.fromEntries(
     fields.sublist(1).map((e) => MapEntry(
           e.first.toString(),
-          ChordProgression(
-              e.sublist(1).map((e) => Chord.fromLabel(e)).toList()),
+          ChordProgression(e.sublist(1).map((e) => Chord.parse(e)).toList()),
         )),
   );
 }

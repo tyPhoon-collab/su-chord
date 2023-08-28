@@ -18,43 +18,50 @@ void main() {
     );
   });
 
-  test('equal', () {
-    expect(Chord.fromLabel('C'), equals(Chord.fromLabel('C')));
-    expect(Chord.fromLabel('CM7'), equals(Chord.fromLabel('CM7')));
+  group('equal', () {
+    test('chord', () {
+      expect(Chord.parse('C'), equals(Chord.parse('C')));
+      expect(Chord.parse('C'), isNot(Chord.parse('Cm')));
+      expect(Chord.parse('CM7'), equals(Chord.parse('CM7')));
+    });
+
+    test('degree name chord', () {
+      expect(DegreeChord.parse('I'), equals(DegreeChord.parse('I')));
+    });
   });
 
   group('chord label', () {
     test('maj', () {
       expect(
-        Chord.fromType(type: ChordType.major, root: Note.C).label,
+        Chord.fromType(type: ChordType.major, root: Note.C).toString(),
         'C',
       );
     });
 
     test('min', () {
       expect(
-        Chord.fromType(type: ChordType.minor, root: Note.C).label,
+        Chord.fromType(type: ChordType.minor, root: Note.C).toString(),
         'Cm',
       );
     });
 
     test('dim', () {
       expect(
-        Chord.fromType(type: ChordType.diminish, root: Note.C).label,
+        Chord.fromType(type: ChordType.diminish, root: Note.C).toString(),
         'Cdim',
       );
     });
 
     test('aug', () {
       expect(
-        Chord.fromType(type: ChordType.augment, root: Note.C).label,
+        Chord.fromType(type: ChordType.augment, root: Note.C).toString(),
         'Caug',
       );
     });
 
     test('sus4', () {
       expect(
-        Chord.fromType(type: ChordType.sus4, root: Note.C).label,
+        Chord.fromType(type: ChordType.sus4, root: Note.C).toString(),
         'Csus4',
       );
     });
@@ -65,7 +72,7 @@ void main() {
           type: ChordType.major,
           root: Note.C,
           qualities: ChordQualities(const {ChordQuality.seventh}),
-        ).label,
+        ).toString(),
         'C7',
       );
     });
@@ -76,7 +83,7 @@ void main() {
           type: ChordType.major,
           root: Note.C,
           qualities: ChordQualities(const {ChordQuality.majorSeventh}),
-        ).label,
+        ).toString(),
         'CM7',
       );
     });
@@ -87,7 +94,7 @@ void main() {
           type: ChordType.major,
           root: Note.C,
           qualities: ChordQualities(const {ChordQuality.ninth}),
-        ).label,
+        ).toString(),
         'Cadd9',
       );
     });
@@ -101,39 +108,74 @@ void main() {
             ChordQuality.ninth,
             ChordQuality.eleventh,
           }),
-        ).label,
+        ).toString(),
         'C(9,11)',
       );
     });
   });
 
-  group('parse label to chord', () {
-    test('C', () {
-      expect(Chord.fromLabel('C').label, 'C');
+  group('parse', () {
+    group('chord', () {
+      test('C', () {
+        final c = Chord.parse('C');
+        expect(c.toString(), 'C');
+        expect(c.type, ChordType.major);
+        expect(c.root, Note.C);
+      });
+
+      test('C', () {
+        expect(Chord.parse('C').toString(), 'C');
+      });
+
+      test('Cm', () {
+        expect(Chord.parse('Cm').toString(), 'Cm');
+      });
+
+      test('Cm7', () {
+        expect(Chord.parse('Cm7').toString(), 'Cm7');
+      });
+
+      test('C7', () {
+        expect(Chord.parse('C7').toString(), 'C7');
+      });
+
+      test('CM7', () {
+        expect(Chord.parse('CM7').toString(), 'CM7');
+      });
+
+      test('Cadd9', () {
+        expect(Chord.parse('Cadd9').toString(), 'Cadd9');
+      });
+
+      test('C6', () {
+        expect(Chord.parse('C6').toString(), 'C6');
+      });
     });
 
-    test('Cm', () {
-      expect(Chord.fromLabel('Cm').label, 'Cm');
-    });
+    group('degree name', () {
+      test(
+        'I',
+        () => expect(
+          DegreeChord.parse('I'),
+          equals(DegreeChord(DegreeName.I, type: ChordType.major)),
+        ),
+      );
 
-    test('Cm7', () {
-      expect(Chord.fromLabel('Cm7').label, 'Cm7');
-    });
+      test(
+        'bIV',
+        () => expect(
+          DegreeChord.parse('bIV'),
+          equals(DegreeChord(DegreeName.III, type: ChordType.major)),
+        ),
+      );
 
-    test('C7', () {
-      expect(Chord.fromLabel('C7').label, 'C7');
-    });
-
-    test('CM7', () {
-      expect(Chord.fromLabel('CM7').label, 'CM7');
-    });
-
-    test('Cadd9', () {
-      expect(Chord.fromLabel('Cadd9').label, 'Cadd9');
-    });
-
-    test('C6', () {
-      expect(Chord.fromLabel('C6').label, 'C6');
+      test(
+        '#Idim7',
+        () => expect(
+          DegreeChord.parse('#Idim7'),
+          equals(DegreeChord(DegreeName.bII, type: ChordType.diminish7)),
+        ),
+      );
     });
   });
 
