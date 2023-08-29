@@ -4,15 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('note', () {
     test('C to 2 be D', () {
-      expect(Note.C.to(2), Note.D);
+      expect(Note.C.transpose(2), Note.D);
     });
 
     test('C to 14 be D', () {
-      expect(Note.C.to(2), Note.D);
+      expect(Note.C.transpose(2), Note.D);
     });
 
     test('C to -3 be A', () {
-      expect(Note.C.to(-3), Note.A);
+      expect(Note.C.transpose(-3), Note.A);
     });
 
     group('degree', () {
@@ -33,17 +33,17 @@ void main() {
   group('music scale', () {
     test('C3 to 2 is D3', () {
       final scale = MusicalScale(Note.C, 3);
-      expect(scale.to(2), equals(MusicalScale(Note.D, 3)));
+      expect(scale.transpose(2), equals(MusicalScale(Note.D, 3)));
     });
 
     test('B3 to 1 is C4', () {
       final scale = MusicalScale(Note.B, 3);
-      expect(scale.to(1), equals(MusicalScale(Note.C, 4)));
+      expect(scale.transpose(1), equals(MusicalScale(Note.C, 4)));
     });
 
     test('E2 to 12 * 6 is E8', () {
       final scale = MusicalScale.E2;
-      expect(scale.to(12 * 6), equals(MusicalScale(Note.E, 8)));
+      expect(scale.transpose(12 * 6), equals(MusicalScale(Note.E, 8)));
     });
 
     group('degree', () {

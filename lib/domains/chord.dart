@@ -11,6 +11,9 @@ typedef Degrees = Iterable<Degree>;
 ///基本的なコードタイプ
 ///テンションなどはChordクラスで管理する
 ///dim7, m7b5もこちらに含める
+//m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
+//TODO 追加予定
+//omit5
 enum ChordType {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
@@ -73,7 +76,7 @@ enum ChordType {
   bool validate(ChordQualities qualities) =>
       qualities.every((e) => availableTensions.contains(e));
 
-  Notes toNotes(Note root) => degrees.map((i) => root.to(i));
+  Notes toNotes(Note root) => degrees.map((i) => root.transpose(i));
 }
 
 ///コードタイプに追加で付与されうる音
@@ -126,7 +129,7 @@ enum ChordQuality {
   final String label;
   final bool combinable;
 
-  Note toNote(Note root) => root.to(degree);
+  Note toNote(Note root) => root.transpose(degree);
 }
 
 @immutable
@@ -174,7 +177,7 @@ class ChordQualities extends Iterable<ChordQuality> {
   }
 
   @override
-  int get hashCode => values.hashCode;
+  int get hashCode => values.fold(0, (value, e) => value ^ e.hashCode);
 
   String _label() {
     final base = values.where((e) => !e.combinable).firstOrNull?.label ?? '';
@@ -214,14 +217,15 @@ class ChordBase {
   }
 
   @override
-  int get hashCode => super.hashCode ^ type.hashCode ^ qualities.hashCode;
+  int get hashCode => type.hashCode ^ qualities.hashCode;
 }
 
 @immutable
-class DegreeChord extends ChordBase {
+class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
   DegreeChord(this.degreeName, {required super.type, super.qualities});
 
   factory DegreeChord.parse(String chord) {
+    //TODO Chordと同じようにする
     final exp = RegExp(
         r'^([#b]?(?:I|II|III|IV|V|VI|VII))((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
     final match = exp.firstMatch(chord);
@@ -255,9 +259,17 @@ class DegreeChord extends ChordBase {
   @override
   String toString() => degreeName.label + type.label + qualities.label;
 
-// Chord toChord(Note key) {
-//
-// }
+  @override
+  DegreeChord transpose(int degree) {
+    return DegreeChord(
+      degreeName.transpose(degree),
+      type: type,
+      qualities: qualities,
+    );
+  }
+
+  Chord toChord(Note key) =>
+      Chord.fromType(type: type, root: key.transpose(degreeName.index));
 }
 
 @immutable
@@ -279,21 +291,24 @@ class Chord extends ChordBase {
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
         ),
         notes = [
-          ...type.degrees.map((e) => root.to(e)),
-          ...?qualities?.map((e) => root.to(e.degree)),
+          ...type.degrees.map((e) => root.transpose(e)),
+          ...?qualities?.map((e) => root.transpose(e.degree)),
         ];
 
   factory Chord.parse(String chord) {
+    //TODO 全てに対応できるようにする
     final exp = RegExp(
-        r'^([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
+        // r'^([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
+        r'^([A-G][#b]?)((?:m|dim|dim7|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
     final match = exp.firstMatch(chord);
 
     if (match == null) throw ArgumentError('invalid: $chord');
 
     try {
       final root = Note.parse(match.group(1)!);
-      final type = ChordType.parse(match.group(2) ?? '');
-      final qualities = ChordQualities.parse(match.group(3) ?? '');
+      final type = ChordType.parse(match.group(2) ?? match.group(4) ?? '');
+      final qualities =
+          ChordQualities.parse(match.group(3) ?? match.group(5) ?? '');
 
       return Chord.fromType(type: type, root: root, qualities: qualities);
     } catch (e) {
@@ -350,7 +365,10 @@ class Chord extends ChordBase {
   }
 
   @override
-  int get hashCode => super.hashCode ^ root.hashCode ^ notes.hashCode;
+  int get hashCode =>
+      super.hashCode ^
+      root.hashCode ^
+      notes.fold(0, (value, e) => value ^ e.hashCode);
 
   @override
   String toString() => root.label + type.label + qualities.label;

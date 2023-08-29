@@ -4,8 +4,12 @@ import 'package:flutter/widgets.dart';
 
 import '../utils/histogram.dart';
 
+abstract interface class Transposable<T> {
+  T transpose(int degree);
+}
+
 @immutable
-class MusicalScale {
+class MusicalScale implements Transposable<MusicalScale> {
   MusicalScale(this.note, this.pitch);
 
   static final A0 = MusicalScale(Note.A, 0);
@@ -22,14 +26,13 @@ class MusicalScale {
   late final double hz = hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
 
   ///度数を渡すと新しいMusicalScaleを返す
-  MusicalScale to(int degree) {
+  @override
+  MusicalScale transpose(int degree) {
     if (degree == 0) return this;
 
-    final newNote = note.to(degree);
+    final newNote = note.transpose(degree);
     var newPitch = pitch + degree ~/ 12;
-    if (note
-        .degreeTo(newNote)
-        .isNegative) {
+    if (note.degreeTo(newNote).isNegative) {
       newPitch += 1;
     }
     return MusicalScale(newNote, newPitch);
@@ -70,7 +73,7 @@ enum Accidental {
 //ディグリーネームにおいて、シャープの表記は一般的でない
 //またかなり適当な実装なので、後でなんとかする
 //TODO シャープの実装（Noteと共通化）
-enum DegreeName {
+enum DegreeName implements Transposable<DegreeName> {
   I(label: 'I'),
   bII(label: 'bII'),
   II(label: 'II'),
@@ -103,12 +106,21 @@ enum DegreeName {
     throw ArgumentError();
   }
 
+  factory DegreeName.fromIndex(int index) {
+    assert(index < 12);
+    return values[index];
+  }
+
+  @override
+  DegreeName transpose(int degree) =>
+      DegreeName.fromIndex((index + degree) % DegreeName.values.length);
+
   final String label;
 }
 
 enum NaturalNote { C, D, E, F, G, A, B }
 
-enum Note {
+enum Note implements Transposable<Note> {
   C(naturalNote: NaturalNote.C),
   Cs(naturalNote: NaturalNote.C, accidental: Accidental.sharp),
   D(naturalNote: NaturalNote.D),
@@ -144,7 +156,9 @@ enum Note {
   ///度数を渡すと新しいNoteを返す
   ///ex)
   ///Note.C.to(2) -> Note.D
-  Note to(int degree) => Note.fromIndex((index + degree) % Note.values.length);
+  @override
+  Note transpose(int degree) =>
+      Note.fromIndex((index + degree) % Note.values.length);
 
   ///度数の差。一般にCが基準であるため、それに準拠
   ///1オクターブで見た時の差とし、音高が高い方が正とする
@@ -167,7 +181,7 @@ Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
   final hzList = List.generate(
     lowest.degreeTo(highest) + 2,
-        (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
+    (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
   );
 
   final bins = <double>[];

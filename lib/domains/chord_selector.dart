@@ -1,20 +1,23 @@
+import 'package:collection/collection.dart';
+
 import '../utils/loader.dart';
 import '../utils/tree.dart';
 import 'chord.dart';
 import 'chord_progression.dart';
+import 'equal_temperament.dart';
 
 abstract interface class ChordSelectable {
-  Chord? select(Iterable<Chord> possibleChords, ChordProgression progression);
+  Chord? select(Iterable<Chord> chords, ChordProgression progression);
 }
 
 class FirstChordSelector implements ChordSelectable {
   @override
-  Chord? select(Iterable<Chord> possibleChords, ChordProgression progression) {
-    return possibleChords.firstOrNull;
+  Chord? select(Iterable<Chord> chords, ChordProgression progression) {
+    return chords.firstOrNull;
   }
 }
 
-typedef DBSearchTrees = Iterable<TreeNode<DegreeChord>>;
+typedef DBSearchTrees = Map<Chord, TreeNode<Chord>>;
 
 ///論文を元にDBの構築をし、コードの絞り込みを実装する
 ///計算量削減と重複を最小限に抑えるために探索木により定義する
@@ -38,37 +41,55 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       progressions.fold(0, (len, e) => len < e.length ? e.length : len);
 
   @override
-  Chord? select(Iterable<Chord> possibleChords, ChordProgression progression) {
-    if (possibleChords.length <= 1) return possibleChords.firstOrNull;
+  Chord? select(Iterable<Chord> chords, ChordProgression progression) {
+    //仮でnull（推定できていないもの）は落として考える
+    progression = ChordProgression(progression.nonNulls.toList());
+
+    final first = chords.firstOrNull;
+
+    if (chords.length <= 1 || progression.isEmpty) {
+      return first;
+    }
     final len = progression.length;
     if (len > _maxProgressionLength) {
       progression = progression.cut(len - _maxProgressionLength);
     }
-    final chords = _select(progression);
+    final possibleChords = _select(progression);
+    return possibleChords.firstWhereOrNull((e) => chords.contains(e)) ?? first;
   }
 
   Set<Chord> _select(ChordProgression progression) {
-    for (final root in _trees) {
-      for (final chord in progression) {
-        //コードタイプとテンションが等しい時、ディグリーネームを具象化し候補和音群に追加
-        if (chord != null && root.value.baseEqual(chord)) {}
-      }
+    if (progression.isEmpty) return const {};
+
+    final root = _trees[progression.first];
+    final withoutFirstProgression = progression.cut(1);
+
+    if (root == null) return _select(withoutFirstProgression);
+
+    var node = root;
+
+    for (final chord in withoutFirstProgression) {
+      final n = node.getChild(chord!);
+      if (n == null) return _select(withoutFirstProgression);
+      node = n;
     }
-    return {};
+    return node.childrenValues..addAll(_select(withoutFirstProgression));
   }
 
   DBSearchTrees _buildTrees() {
-    final Map<DegreeChord, TreeNode<DegreeChord>> nodes = {};
-    final DBSearchTrees trees = [];
+    final DBSearchTrees nodes = {};
 
-    for (final progression in progressions) {
-      final firstChord = progression.first!;
-      var node = nodes.putIfAbsent(firstChord, () => TreeNode(firstChord));
-      for (final chord in progression.toList().sublist(1)) {
-        node = node.putChildIfAbsent(chord!, () => TreeNode(chord));
+    for (final degreeChordProgression in progressions) {
+      for (int i = 0; i < 12; i++) {
+        final progression = degreeChordProgression.toChords(Note.fromIndex(i));
+        final firstChord = progression.first!;
+        var node = nodes.putIfAbsent(firstChord, () => TreeNode(firstChord));
+        for (final chord in progression.toList().sublist(1)) {
+          node = node.putChildIfAbsent(chord!, () => TreeNode(chord));
+        }
       }
     }
 
-    return trees;
+    return nodes;
   }
 }

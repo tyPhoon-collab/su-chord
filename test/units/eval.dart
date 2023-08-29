@@ -36,12 +36,12 @@ Future<void> main() async {
   final loaders = Map.fromEntries([
     ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
         .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/HojoGuitar')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/RealStrat')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
+    ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
+        .then((files) => files.map(_parsePathToMapEntries)),
+    ...await _getFiles('assets/evals/HojoGuitar')
+        .then((files) => files.map(_parsePathToMapEntries)),
+    ...await _getFiles('assets/evals/RealStrat')
+        .then((files) => files.map(_parsePathToMapEntries)),
   ]);
   final data = <_EvaluatorContext>[];
 
@@ -101,7 +101,7 @@ Future<void> main() async {
       ).evaluate(data, path: 'test/outputs/conv.csv');
     });
 
-    test('comb + search tree + db', () async {
+    test('_comb + search tree + db', () async {
       final progressions = await ChordProgressionDBChordSelector.load(
           'assets/csv/chord_progression.csv');
       _Evaluator(
@@ -112,7 +112,7 @@ Future<void> main() async {
           chordSelectable:
               ChordProgressionDBChordSelector(progressions: progressions),
         ),
-      ).evaluate(data, path: 'test/outputs/conv.csv');
+      ).evaluate(data, path: 'test/outputs/conv_db.csv');
     });
   });
 

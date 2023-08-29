@@ -6,19 +6,31 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('major', () {
     expect(
-      Chord.fromType(type: ChordType.major, root: Note.D).notes,
+      Chord
+          .fromType(type: ChordType.major, root: Note.D)
+          .notes,
       [Note.D, Note.Fs, Note.A],
     );
   });
 
   test('major pcp', () {
     expect(
-      Chord.fromType(type: ChordType.major, root: Note.D).pcp,
+      Chord
+          .fromType(type: ChordType.major, root: Note.D)
+          .pcp,
       [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
     );
   });
 
   group('equal', () {
+    test('hashcode', () {
+      expect(Chord
+          .parse('C')
+          .hashCode, equals(Chord
+          .parse('C')
+          .hashCode));
+    });
+
     test('chord', () {
       expect(Chord.parse('C'), equals(Chord.parse('C')));
       expect(Chord.parse('C'), isNot(Chord.parse('Cm')));
@@ -164,26 +176,29 @@ void main() {
     group('degree name', () {
       test(
         'I',
-        () => expect(
-          DegreeChord.parse('I'),
-          equals(DegreeChord(DegreeName.I, type: ChordType.major)),
-        ),
+            () =>
+            expect(
+              DegreeChord.parse('I'),
+              equals(DegreeChord(DegreeName.I, type: ChordType.major)),
+            ),
       );
 
       test(
         'bIV',
-        () => expect(
-          DegreeChord.parse('bIV'),
-          equals(DegreeChord(DegreeName.III, type: ChordType.major)),
-        ),
+            () =>
+            expect(
+              DegreeChord.parse('bIV'),
+              equals(DegreeChord(DegreeName.III, type: ChordType.major)),
+            ),
       );
 
       test(
         '#Idim7',
-        () => expect(
-          DegreeChord.parse('#Idim7'),
-          equals(DegreeChord(DegreeName.bII, type: ChordType.diminish7)),
-        ),
+            () =>
+            expect(
+              DegreeChord.parse('#Idim7'),
+              equals(DegreeChord(DegreeName.bII, type: ChordType.diminish7)),
+            ),
       );
     });
   });

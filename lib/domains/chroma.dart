@@ -153,8 +153,10 @@ class CombFilterChromaCalculator extends STFTCalculator
   }
 
   Chroma _getCombFilterChroma(Float64List magnitude, int sampleRate) {
-    return Chroma(List.generate(12,
-            (i) => _getCombFilterPower(magnitude, sampleRate, lowest.to(i))))
+    return Chroma(List.generate(
+            12,
+            (i) => _getCombFilterPower(
+                magnitude, sampleRate, lowest.transpose(i))))
         .shift(-lowest.note.degreeTo(Note.C));
   }
 
@@ -163,7 +165,7 @@ class CombFilterChromaCalculator extends STFTCalculator
     double sum = 0;
     final sr = sampleRate.toDouble();
     for (int i = 0; i < perOctave; ++i) {
-      final scale = lowest.to(i * 12);
+      final scale = lowest.transpose(i * 12);
       final mean = scale.hz;
       // final stdDev = scale.hz / 24;
       // 従来法の標準偏差では、周りが大きくなりすぎる
@@ -220,7 +222,8 @@ class ReassignmentChromaCalculator extends STFTCalculator
   double df = 0;
   Bin binX = [];
 
-  late final Bin binY = equalTemperamentBin(lowest, lowest.to(12 * perOctave));
+  late final Bin binY =
+      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
 
   @override
   List<Chroma> chroma(AudioData data, [bool flush = true]) {
