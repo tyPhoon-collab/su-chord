@@ -7,18 +7,33 @@ import 'domains/factory.dart';
 
 void register() {
   //TODO サンプルレートなどの設定が変更された時に、再登録できるようにする
-  final factory = EstimatorFactory(const FactoryContext(
-    chunkSize: Config.chunkSize,
-    chunkStride: Config.chunkStride,
-    sampleRate: Config.sampleRate,
-  ));
-
-  Get.lazyPut<ChromaCalculable>(
-    () => factory.guitarRange.reassignment,
+  final factory = EstimatorFactory(
+    // const EstimatorFactoryContext(
+    //   chunkSize: Config.chunkSize,
+    //   chunkStride: Config.chunkStride,
+    //   sampleRate: Config.sampleRate,
+    // ),
+    const EstimatorFactoryContext(
+      chunkSize: 8192,
+      chunkStride: 0,
+      sampleRate: Config.sampleRate,
+    ),
   );
 
-  Get.lazyPut<ChordEstimable>(() => PatternMatchingChordEstimator(
-        chromaCalculable: Get.find(),
-        filters: factory.filter.eval,
-      ));
+  Get.lazyPut<ChromaCalculable>(
+    // () => factory.guitarRange.reassignment,
+    () => factory.guitarRange.combFilter,
+  );
+
+  Get.lazyPut<ChordEstimable>(
+    // () => PatternMatchingChordEstimator(
+    //   chromaCalculable: Get.find(),
+    //   filters: factory.filter.eval,
+    // ),
+
+    () => PatternMatchingChordEstimator(
+      chromaCalculable: Get.find(),
+      filters: factory.filter.realtime,
+    ),
+  );
 }

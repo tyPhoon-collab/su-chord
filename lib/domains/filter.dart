@@ -102,7 +102,7 @@ class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
 
   @override
   List<Chroma> filter(List<Chroma> chroma) {
-    // TODO: implement reduce
+    // TODO: implement filter
     throw UnimplementedError();
   }
 }

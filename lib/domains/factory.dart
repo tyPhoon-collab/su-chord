@@ -6,8 +6,8 @@ import 'filter.dart';
 
 typedef Filters = List<ChromaListFilter>;
 
-final class FactoryContext {
-  const FactoryContext({
+final class EstimatorFactoryContext {
+  const EstimatorFactoryContext({
     required this.chunkSize,
     required this.chunkStride,
     required this.sampleRate,
@@ -24,7 +24,7 @@ final class FactoryContext {
 final class EstimatorFactory {
   EstimatorFactory(this.context);
 
-  final FactoryContext context;
+  final EstimatorFactoryContext context;
   late final filter = FilterFactory(context);
   late final guitarRange = ChromaCalculatorFactory(
     context,
@@ -42,7 +42,7 @@ final class ChromaCalculatorFactory {
   const ChromaCalculatorFactory(this.context,
       {required this.lowest, required this.perOctave});
 
-  final FactoryContext context;
+  final EstimatorFactoryContext context;
   final MusicalScale lowest;
   final int perOctave;
 
@@ -64,12 +64,12 @@ final class ChromaCalculatorFactory {
 final class FilterFactory {
   const FilterFactory(this.context);
 
-  final FactoryContext context;
+  final EstimatorFactoryContext context;
 
   Filters get eval => [interval(4.seconds)];
 
   Filters get realtime => [
-        ThresholdFilter(threshold: 150),
+        ThresholdFilter(threshold: 10),
         TriadChordChangeDetector(),
       ];
 

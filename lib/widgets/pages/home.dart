@@ -35,7 +35,9 @@ class _HomePageState extends State<HomePage> {
             return StreamBuilder(
               stream: _recorder.stream,
               builder: (_, snapshot) {
-                if (!snapshot.hasData) return Text(_progression.toString());
+                if (!snapshot.hasData) {
+                  return ChordProgressionView(progression: _progression);
+                }
                 //for debug
                 if (value == RecorderState.recording) {
                   _count++;
@@ -51,7 +53,7 @@ class _HomePageState extends State<HomePage> {
                     Text(value.toString()),
                     Text(_count.toString()),
                     Text(data.buffer.length.toString()),
-                    Text(progression.toString()),
+                    ChordProgressionView(progression: progression),
                     if (_estimator is ChromaChordEstimator)
                       Chromagram(
                         chromas:
@@ -79,5 +81,23 @@ class _HomePageState extends State<HomePage> {
           },
           child: const Icon(Icons.mic),
         ),
+      );
+}
+
+class ChordProgressionView extends StatelessWidget {
+  const ChordProgressionView({super.key, required this.progression});
+
+  final ChordProgression progression;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(progression.toString()),
+          Text(
+            progression.lastOrNull.toString(),
+            style: Get.textTheme.headlineLarge,
+          ),
+        ],
       );
 }

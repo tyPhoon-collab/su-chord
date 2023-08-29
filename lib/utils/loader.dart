@@ -12,7 +12,7 @@ import '../config.dart';
 class AudioData {
   const AudioData({required this.buffer, required this.sampleRate});
 
-  AudioData.empty({this.sampleRate = 0}) : buffer = Float64List(0);
+  AudioData.empty({this.sampleRate = 22050}) : buffer = Float64List(0);
 
   final Float64List buffer;
   final int sampleRate;

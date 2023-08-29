@@ -17,13 +17,13 @@ typedef _SongID = String;
 typedef _Paths = Iterable<String>;
 
 const sampleRate = 22050;
-final factory2048_1024 = EstimatorFactory(const FactoryContext(
+final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 2048,
   chunkStride: 1024,
   sampleRate: sampleRate,
 ));
 
-final factory8192_0 = EstimatorFactory(const FactoryContext(
+final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 8192,
   chunkStride: 0,
   sampleRate: sampleRate,

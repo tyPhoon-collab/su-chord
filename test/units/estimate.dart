@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
 
-final factory = EstimatorFactory(const FactoryContext(
+final factory = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 2048,
   chunkStride: 1024,
   sampleRate: 22050,
