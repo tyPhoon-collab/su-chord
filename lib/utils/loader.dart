@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'dart:html' deferred as html;
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:wav/wav.dart';
 
 import '../config.dart';
@@ -143,6 +143,22 @@ final class SimpleCSVLoader implements CSVLoader {
         .transform(const CsvToListConverter())
         .toList();
 
+    return csv;
+  }
+}
+
+final class WebCSVLoader implements CSVLoader {
+  const WebCSVLoader({required this.path});
+
+  final String path;
+
+  @override
+  Future<CSV> load() async {
+    final input = File(html.File(path.codeUnits, path).name).openRead();
+    final csv = await input
+        .transform(utf8.decoder)
+        .transform(const CsvToListConverter())
+        .toList();
     return csv;
   }
 }

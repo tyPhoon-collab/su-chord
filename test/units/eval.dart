@@ -102,15 +102,14 @@ Future<void> main() async {
     });
 
     test('_comb + search tree + db', () async {
-      final progressions = await ChordProgressionDBChordSelector.load(
-          'assets/csv/chord_progression.csv');
+      final csv = await CSVLoader.db.load();
+
       _Evaluator(
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
           thresholdRatio: 0.3,
-          chordSelectable:
-              ChordProgressionDBChordSelector(progressions: progressions),
+          chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
         ),
       ).evaluate(data, path: 'test/outputs/conv_db.csv');
     });

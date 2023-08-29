@@ -1,6 +1,4 @@
-import 'package:chord/domains/chord_selector.dart';
 import 'package:chord/utils/loader.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -17,13 +15,5 @@ void main() {
     final data = await loader.load(duration: 4);
 
     expect(data.duration.round(), 4);
-  });
-
-  test('db', () async {
-    final cp = await ChordProgressionDBChordSelector.load(
-        'assets/csv/chord_progression.csv');
-    for (final value in cp) {
-      debugPrint(value.toString());
-    }
   });
 }

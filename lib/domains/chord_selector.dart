@@ -26,8 +26,9 @@ typedef DBSearchTrees = Map<Chord, TreeNode<Chord>>;
 class ChordProgressionDBChordSelector implements ChordSelectable {
   ChordProgressionDBChordSelector({required this.progressions});
 
-  static Future<Iterable<DegreeChordProgression>> load(String path) async {
-    final csv = await SimpleCSVLoader(path: path).load();
+  ChordProgressionDBChordSelector.fromCSV(CSV csv) : progressions = parse(csv);
+
+  static Iterable<DegreeChordProgression> parse(CSV csv) {
     return csv.map((e) {
       final row = e.whereType<String>().toList();
       return DegreeChordProgression.fromCSVRow(row);
