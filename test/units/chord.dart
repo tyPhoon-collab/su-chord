@@ -28,6 +28,15 @@ void main() {
     test('degree name chord', () {
       expect(DegreeChord.parse('I'), equals(DegreeChord.parse('I')));
     });
+
+    test('chord and degree name', () {
+      expect(DegreeChord.parse('I'), isNot(Chord.parse('C')));
+    });
+
+    test('baseEqual', () {
+      expect(DegreeChord.parse('I').baseEqual(DegreeChord.parse('I')), true);
+      expect(DegreeChord.parse('I').baseEqual(Chord.parse('C')), true);
+    });
   });
 
   group('chord label', () {

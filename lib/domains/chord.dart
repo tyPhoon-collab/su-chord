@@ -201,10 +201,14 @@ class ChordBase {
   final ChordType type;
   final ChordQualities qualities;
 
+  bool baseEqual(ChordBase other) {
+    return type == other.type && qualities == other.qualities;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is ChordBase) {
-      return type == other.type && qualities == other.qualities;
+      return baseEqual(other);
     }
     return false;
   }

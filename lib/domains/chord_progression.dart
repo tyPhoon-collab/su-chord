@@ -57,4 +57,8 @@ class ChordProgression extends ProgressionBase<Chord> {
     }
     return count / len;
   }
+
+  ChordProgression cut(int start, [int? end]) {
+    return ChordProgression(_values.sublist(start, end));
+  }
 }

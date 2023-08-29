@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
+import 'package:chord/domains/chord_selector.dart';
 import 'package:chord/domains/estimate.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader.dart';
@@ -96,6 +97,20 @@ Future<void> main() async {
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
           thresholdRatio: 0.3,
+        ),
+      ).evaluate(data, path: 'test/outputs/conv.csv');
+    });
+
+    test('comb + search tree + db', () async {
+      final progressions = await ChordProgressionDBChordSelector.load(
+          'assets/csv/chord_progression.csv');
+      _Evaluator(
+        estimator: SearchTreeChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          filters: factory8192_0.filter.eval,
+          thresholdRatio: 0.3,
+          chordSelectable:
+              ChordProgressionDBChordSelector(progressions: progressions),
         ),
       ).evaluate(data, path: 'test/outputs/conv.csv');
     });

@@ -9,9 +9,6 @@ void main() {
       final csv = await CSVLoader.db.load();
       final chords = csv.map((e) {
         final row = e.whereType<String>().toList();
-        if (row.contains('')) {
-          debugPrint(row.toString());
-        }
         return DegreeChordProgression.fromCSVRow(row);
       });
       debugPrint(chords.toString());
