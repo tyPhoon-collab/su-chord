@@ -8,16 +8,21 @@ class Config {
   static const chunkSize = 2048;
   static const chunkStride = chunkSize ~/ 2;
 
-  static final defaultTemplateChords = [
-    for (final root in Note.values)
+  static final detectableChords = Set.unmodifiable([
+    for (final root in Note.values) ...[
       for (final type in ChordType.values.where((ct) => ct != ChordType.sus2))
         for (final qualities in [
           ChordQualities.empty,
-          ChordQualities(const {ChordQuality.seventh}),
-          ChordQualities(const {ChordQuality.majorSeventh}),
-          ChordQualities(const {ChordQuality.ninth}),
+          ChordQualities.seventh,
+          ChordQualities.majorSeventh,
         ])
           if (type.validate(qualities))
-            Chord.fromType(type: type, root: root, qualities: qualities)
-  ];
+            Chord.fromType(type: type, root: root, qualities: qualities),
+      Chord.fromType(
+        type: ChordType.major,
+        root: root,
+        qualities: ChordQualities(const {ChordQuality.ninth}),
+      )
+    ]
+  ]);
 }

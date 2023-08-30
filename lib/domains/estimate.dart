@@ -78,11 +78,11 @@ class PatternMatchingChordEstimator extends ChromaChordEstimator {
   PatternMatchingChordEstimator({
     required super.chromaCalculable,
     super.filters,
-    List<Chord>? templates,
+    Set<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
-        templates = templates ?? Config.defaultTemplateChords;
+        templates = templates ?? Config.detectableChords;
 
-  final List<Chord> templates;
+  final Set<Chord> templates;
 
   @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
@@ -104,22 +104,27 @@ class SearchTreeChordEstimator extends ChromaChordEstimator {
     ChordSelectable? chordSelectable,
     super.filters,
     this.thresholdRatio = 0.65,
-  }) : chordSelectable = chordSelectable ?? FirstChordSelector();
+    Set<Chord>? detectableChords,
+  })  : chordSelectable = chordSelectable ?? FirstChordSelector(),
+        detectableChords = detectableChords ?? Config.detectableChords;
 
   final double thresholdRatio;
   final ChordSelectable chordSelectable;
+  final Set<Chord> detectableChords;
 
   @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     final progression = ChordProgression.empty();
     for (final c in chroma) {
-      final chord = chordSelectable.select(
-        Chord.fromNotes(_chooseNotes(c)),
-        progression,
-      );
+      final chord = chordSelectable.select(_chooseChords(c), progression);
       progression.add(chord);
     }
     return progression;
+  }
+
+  Iterable<Chord> _chooseChords(Chroma chroma) {
+    final chords = Chord.fromNotes(_chooseNotes(chroma)).toSet();
+    return chords.intersection(detectableChords);
   }
 
   // 5.4 演奏音推定モジュール

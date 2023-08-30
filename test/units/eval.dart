@@ -36,12 +36,12 @@ Future<void> main() async {
   final loaders = Map.fromEntries([
     ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
         .then((files) => files.map(_parsePathToMapEntries)),
-    ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
-        .then((files) => files.map(_parsePathToMapEntries)),
-    ...await _getFiles('assets/evals/HojoGuitar')
-        .then((files) => files.map(_parsePathToMapEntries)),
-    ...await _getFiles('assets/evals/RealStrat')
-        .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/HojoGuitar')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
+    // ...await _getFiles('assets/evals/RealStrat')
+    //     .then((files) => files.map(_parsePathToMapEntries)),
   ]);
   final data = <_EvaluatorContext>[];
 

@@ -161,6 +161,8 @@ class ChordQualities extends Iterable<ChordQuality> {
   }
 
   static final empty = ChordQualities(const {});
+  static final seventh = ChordQualities(const {ChordQuality.seventh});
+  static final majorSeventh = ChordQualities(const {ChordQuality.majorSeventh});
 
   final Set<ChordQuality> values;
   late final String label = _label();
