@@ -36,7 +36,7 @@ class Config {
     'm7b5',
     '7sus4',
     'dim7',
-    '6',
+    // '6',
     'm6',
     'add9',
   ];

@@ -30,7 +30,7 @@ final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
 ));
 
 Future<void> main() async {
-  _Evaluator.bypassCsvWriting = true;
+  // _Evaluator.bypassCsvWriting = true;
 
   final corrects = await _getCorrectChords();
   final loaders = Map.fromEntries([
@@ -64,74 +64,89 @@ Future<void> main() async {
   group('prop', () {
     test('main', () async {
       _Evaluator(
+        header: [
+          'pattern matching + reassignment, ${factory2048_1024.context}'
+        ],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: factory2048_1024.guitarRange.reassignment,
           filters: factory2048_1024.filter.eval,
         ),
-      ).evaluate(data, path: 'test/outputs/prop.csv');
+      ).evaluate(data, path: 'test/outputs/pattern_matching_reassignment.csv');
     });
 
-    test('prop to conv chunkSize', () async {
-      _Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.reassignment,
-          filters: factory8192_0.filter.eval,
-        ),
-      ).evaluate(data, path: 'test/outputs/prop.csv');
-    });
+    // test('prop to conv chunkSize', () async {
+    //   _Evaluator(
+    //     estimator: PatternMatchingChordEstimator(
+    //       chromaCalculable: factory8192_0.guitarRange.reassignment,
+    //       filters: factory8192_0.filter.eval,
+    //     ),
+    //   ).evaluate(data, path: 'test/outputs/prop.csv');
+    // });
 
-    test('piano tuning', () async {
-      _Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory2048_1024.bigRange.reassignment,
-          filters: factory2048_1024.filter.eval,
-        ),
-      ).evaluate(data);
-    });
+    // test('piano tuning', () async {
+    //   _Evaluator(
+    //     estimator: PatternMatchingChordEstimator(
+    //       chromaCalculable: factory2048_1024.bigRange.reassignment,
+    //       filters: factory2048_1024.filter.eval,
+    //     ),
+    //   ).evaluate(data);
+    // });
   });
 
   group('conv', () {
-    test('comb + search tree', () async {
+    test('search tree + comb', () async {
+      const ratio = 0.3;
+
       _Evaluator(
+        header: ['search tree + comb, ratio: $ratio, ${factory8192_0.context}'],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
-          thresholdRatio: 0.3,
+          thresholdRatio: ratio,
         ),
-      ).evaluate(data, path: 'test/outputs/conv.csv');
+      ).evaluate(data, path: 'test/outputs/search_tree_comb.csv');
     });
 
-    test('comb + search tree + db', () async {
+    test('search tree + comb + db', () async {
       final csv = await CSVLoader.db.load();
+      const ratio = 0.3;
 
       _Evaluator(
+        header: [
+          'search tree + comb + db, ratio: $ratio, ${factory8192_0.context}'
+        ],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
-          thresholdRatio: 0.3,
+          thresholdRatio: ratio,
           chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
         ),
-      ).evaluate(data, path: 'test/outputs/conv_db.csv');
+      ).evaluate(data, path: 'test/outputs/search_tree_comb_db.csv');
     });
   });
 
   group('control experiment', () {
     test('pattern matching + comb filter', () {
       _Evaluator(
+        header: ['pattern matching + comb filter, ${factory8192_0.context}'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
         ),
-      ).evaluate(data);
+      ).evaluate(data, path: 'test/outputs/pattern_matching_comb.csv');
     });
 
-    test('search tree + reassignment', () async {
+    test('search tree + reassignment', () {
+      const ratio = 0.5;
       _Evaluator(
+          header: [
+            'search tree + reassignment, ratio: $ratio, ${factory8192_0.context}'
+          ],
           estimator: SearchTreeChordEstimator(
-        chromaCalculable: factory8192_0.guitarRange.reassignment,
-        filters: factory8192_0.filter.eval,
-        thresholdRatio: 0.5,
-      )).evaluate(data);
+            chromaCalculable: factory8192_0.guitarRange.reassignment,
+            filters: factory8192_0.filter.eval,
+            thresholdRatio: ratio,
+          )).evaluate(data, path: 'test/outputs/search_tree_reassignment.csv');
     });
   });
 }
@@ -157,10 +172,14 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 }
 
 class _Evaluator {
-  _Evaluator({required this.estimator});
+  _Evaluator({
+    required this.estimator,
+    this.header,
+  });
 
   static bool bypassCsvWriting = false;
 
+  final List<String>? header;
   final ChordEstimable estimator;
   Table? table;
 
@@ -169,6 +188,9 @@ class _Evaluator {
     if (path != null) {
       if (!bypassCsvWriting) {
         table = Table.empty();
+        if (header != null) {
+          table!.add(header!);
+        }
       } else {
         debugPrint('CSV writing is bypassing');
       }

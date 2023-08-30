@@ -60,7 +60,7 @@ abstract class ChromaChordEstimator
 
   void _flush() {
     chromas = [];
-    reducedChromas = [];
+    // reducedChromas = [];
   }
 
   ChordProgression estimateFromChroma(List<Chroma> chroma);

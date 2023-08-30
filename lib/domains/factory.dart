@@ -18,6 +18,10 @@ final class EstimatorFactoryContext {
   final int sampleRate;
 
   double get dt => (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
+
+  @override
+  String toString() =>
+      'chunkSize: $chunkSize, chunkStride: $chunkStride, sampleRate: $sampleRate';
 }
 
 ///必要な情報をContextに閉じ込めることによって、DIを簡単にするためのファクトリ

@@ -101,6 +101,17 @@ void main() {
       );
     });
 
+    test('sus4 7', () {
+      expect(
+        Chord.fromType(
+          type: ChordType.sus4,
+          root: Note.C,
+          qualities: ChordQualities.seventh,
+        ).toString(),
+        'C7sus4',
+      );
+    });
+
     test('maj add9', () {
       expect(
         Chord.fromType(

@@ -19,40 +19,48 @@ enum ChordType {
   //C C# D D# E F F# G G# A A# B
   major(degrees: [0, 4, 7], label: ''),
   minor(
-      degrees: [0, 3, 7],
-      label: 'm',
-      availableTensions: {
-        ...ChordQuality.normalTensions,
-        ...ChordQuality.tonicTensions
-      }),
+    degrees: [0, 3, 7],
+    label: 'm',
+    availableTensions: {
+      ...ChordQuality.normalTensions,
+      ...ChordQuality.tonicTensions
+    },
+  ),
   diminish(degrees: [0, 3, 6], label: 'dim', availableTensions: {}),
   diminish7(degrees: [0, 3, 6, 9], label: 'dim7', availableTensions: {}),
   augment(degrees: [0, 4, 8], label: 'aug'),
   sus2(
-      degrees: [0, 2, 7],
-      label: 'sus2',
-      availableTensions: {
-        ...ChordQuality.normalTensions,
-        ChordQuality.eleventh,
-        ChordQuality.thirteenth
-      }),
+    degrees: [0, 2, 7],
+    label: 'sus2',
+    availableTensions: {
+      ...ChordQuality.normalTensions,
+      ChordQuality.eleventh,
+      ChordQuality.thirteenth
+    },
+    isOperation: true,
+  ),
   sus4(
-      degrees: [0, 5, 7],
-      label: 'sus4',
-      availableTensions: {
-        ...ChordQuality.normalTensions,
-        ChordQuality.ninth,
-        ChordQuality.thirteenth
-      }),
+    degrees: [0, 5, 7],
+    label: 'sus4',
+    availableTensions: {
+      ...ChordQuality.normalTensions,
+      ChordQuality.ninth,
+      ChordQuality.thirteenth
+    },
+    isOperation: true,
+  ),
   minorSeventhFlatFive(
-      degrees: [0, 3, 6, 10],
-      label: 'm7b5',
-      availableTensions: ChordQuality.tonicTensions);
+    degrees: [0, 3, 6, 10],
+    label: 'm7b5',
+    availableTensions: ChordQuality.tonicTensions,
+  );
 
-  const ChordType(
-      {required this.degrees,
-      required this.label,
-      this.availableTensions = const {...ChordQuality.values}});
+  const ChordType({
+    required this.degrees,
+    required this.label,
+    this.availableTensions = const {...ChordQuality.values},
+    this.isOperation = false,
+  });
 
   factory ChordType.parse(String label) {
     for (final type in values) {
@@ -72,6 +80,7 @@ enum ChordType {
   final Degrees degrees;
   final String label;
   final Set<ChordQuality> availableTensions;
+  final bool isOperation; //操作系を表すコードタイプはテンションとコードタイプの表記が逆転する
 
   bool validate(ChordQualities qualities) =>
       qualities.every((e) => availableTensions.contains(e));
@@ -211,6 +220,14 @@ class ChordBase {
   }
 
   @override
+  String toString() {
+    if (type.isOperation) {
+      return qualities.label + type.label;
+    }
+    return type.label + qualities.label;
+  }
+
+  @override
   bool operator ==(Object other) {
     if (other is ChordBase) {
       return baseEqual(other);
@@ -259,7 +276,7 @@ class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
   int get hashCode => super.hashCode ^ degreeName.hashCode;
 
   @override
-  String toString() => degreeName.label + type.label + qualities.label;
+  String toString() => degreeName.label + super.toString();
 
   @override
   DegreeChord transpose(int degree) {
@@ -381,5 +398,5 @@ class Chord extends ChordBase {
       notes.fold(0, (value, e) => value ^ e.hashCode);
 
   @override
-  String toString() => root.label + type.label + qualities.label;
+  String toString() => root.label + super.toString();
 }
