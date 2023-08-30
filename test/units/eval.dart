@@ -101,7 +101,7 @@ Future<void> main() async {
       ).evaluate(data, path: 'test/outputs/conv.csv');
     });
 
-    test('_comb + search tree + db', () async {
+    test('comb + search tree + db', () async {
       final csv = await CSVLoader.db.load();
 
       _Evaluator(

@@ -173,7 +173,7 @@ class ChordQualities extends Iterable<ChordQuality> {
   @override
   bool operator ==(Object other) {
     if (other is ChordQualities) {
-      return setEquals(values.toSet(), values.toSet());
+      return setEquals(values.toSet(), other.values.toSet());
     }
     return false;
   }
@@ -301,16 +301,24 @@ class Chord extends ChordBase {
     //TODO 全てに対応できるようにする
     final exp = RegExp(
         // r'^([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
-        r'^([A-G][#b]?)((?:m|dim|dim7|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
+        r'^([A-G][#b]?)((?:m|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
     final match = exp.firstMatch(chord);
 
     if (match == null) throw ArgumentError('invalid: $chord');
 
     try {
       final root = Note.parse(match.group(1)!);
-      final type = ChordType.parse(match.group(2) ?? match.group(4) ?? '');
-      final qualities =
-          ChordQualities.parse(match.group(3) ?? match.group(5) ?? '');
+      var type = ChordType.parse(
+        match.group(2)!.isNotEmpty ? match.group(2)! : match.group(4)!,
+      );
+      var qualities = ChordQualities.parse(
+        match.group(3)! + match.group(5)!,
+      );
+
+      if (type == ChordType.diminish && qualities == ChordQualities.seventh) {
+        type = ChordType.diminish7;
+        qualities = ChordQualities.empty;
+      }
 
       return Chord.fromType(type: type, root: root, qualities: qualities);
     } catch (e) {

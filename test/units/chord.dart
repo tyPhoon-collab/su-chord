@@ -163,6 +163,14 @@ void main() {
       test('C6', () {
         expect(Chord.parse('C6').toString(), 'C6');
       });
+
+      test('Cdim', () {
+        expect(Chord.parse('Cdim').toString(), 'Cdim');
+      });
+
+      test('Cdim7', () {
+        expect(Chord.parse('Cdim7').toString(), 'Cdim7');
+      });
     });
 
     group('degree name', () {
