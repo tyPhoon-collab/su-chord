@@ -55,63 +55,97 @@ class _EstimatorPageState extends State<EstimatorPage> {
         appBar: AppBar(title: const Text('Chord')),
         body: ValueListenableBuilder(
           valueListenable: _recorder.state,
-          builder: (BuildContext context, value, _) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ChordEstimatorSelector(enable: value == RecorderState.stopped),
-                Expanded(
-                  child: StreamBuilder(
-                    stream: _recorder.stream,
-                    builder: (_, snapshot) {
-                      if (!snapshot.hasData) return const SizedBox();
-                      //for debug
-                      if (value == RecorderState.recording) {
-                        _count++;
-                      } else {
-                        _count = 0;
-                        return ChordProgressionView(progression: _progression);
-                      }
+          builder: (_, value, __) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ChordEstimatorSelector(
+                      enable: value == RecorderState.stopped),
+                  Expanded(
+                    child: StreamBuilder(
+                      stream: _recorder.stream,
+                      builder: (_, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox();
+                        //for debug
+                        if (value == RecorderState.recording) {
+                          _count++;
+                        } else {
+                          _count = 0;
+                          return ChordProgressionView(
+                              progression: _progression);
+                        }
 
-                      final data = snapshot.data!.downSample(Config.sampleRate);
-                      final progression = _estimator.estimate(data, false);
+                        final data =
+                            snapshot.data!.downSample(Config.sampleRate);
+                        final progression = _estimator.estimate(data, false);
 
-                      return ListView(
-                        children: [
-                          Text(value.toString()),
-                          Text(_count.toString()),
-                          Text(data.buffer.length.toString()),
-                          ChordProgressionView(progression: progression),
-                          if (_estimator is ChromaChordEstimator)
-                            Chromagram(
-                              chromas: (_estimator as ChromaChordEstimator)
-                                  .reducedChromas,
-                            ),
-                          if (_estimator is Debuggable)
-                            for (final text
-                                in (_estimator as Debuggable).debugText())
-                              Text(text),
-                        ],
-                      );
-                    },
+                        return ListView(
+                          children: [
+                            Text(value.toString()),
+                            Text(_count.toString()),
+                            Text(data.buffer.length.toString()),
+                            ChordProgressionView(progression: progression),
+                            if (_estimator is ChromaChordEstimator)
+                              Chromagram(
+                                chromas: (_estimator as ChromaChordEstimator)
+                                    .reducedChromas,
+                              ),
+                            if (_estimator is Debuggable)
+                              for (final text
+                                  in (_estimator as Debuggable).debugText())
+                                Text(text),
+                          ],
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            if (!_recorder.isRecording) {
-              _recorder.start();
-            } else {
-              _recorder.stop();
-              setState(() {
-                _progression = _estimator.flush();
-              });
-            }
+        floatingActionButton: RecFloatingActionButton(
+          recorder: _recorder,
+          onStop: () {
+            setState(() {
+              _progression = _estimator.flush();
+            });
           },
-          child: const Icon(Icons.mic),
+        ),
+      );
+}
+
+class RecFloatingActionButton extends StatefulWidget {
+  const RecFloatingActionButton(
+      {super.key, required this.recorder, this.onStop});
+
+  final WebRecorder recorder;
+  final VoidCallback? onStop;
+
+  @override
+  State<RecFloatingActionButton> createState() =>
+      _RecFloatingActionButtonState();
+}
+
+class _RecFloatingActionButtonState extends State<RecFloatingActionButton> {
+  WebRecorder get _recorder => widget.recorder;
+
+  @override
+  Widget build(BuildContext context) => FloatingActionButton(
+        onPressed: () {
+          if (!_recorder.isRecording) {
+            _recorder.start();
+          } else {
+            _recorder.stop();
+            widget.onStop?.call();
+          }
+        },
+        child: ValueListenableBuilder(
+          valueListenable: widget.recorder.state,
+          builder: (_, value, __) => value == RecorderState.recording
+              ? const Icon(Icons.stop)
+              : const Icon(Icons.mic),
         ),
       );
 }
