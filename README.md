@@ -2,6 +2,14 @@
 
 "A new Flutter project."
 
+### Project Console
+
+https://console.firebase.google.com/project/su-chord/overview
+
+### Hosting URL
+
+https://su-chord.web.app
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
