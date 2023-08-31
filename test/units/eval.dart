@@ -12,54 +12,33 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 //Song ID : ChordProgression
-typedef _CorrectChords = Map<String, ChordProgression>;
+typedef _CorrectChords = Map<_SongID, ChordProgression>;
 typedef _SongID = String;
-typedef _Paths = Iterable<String>;
+typedef _SoundSource = String;
 
 const sampleRate = 22050;
-final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 2048,
-  chunkStride: 1024,
-  sampleRate: sampleRate,
-));
-
-final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 8192,
-  chunkStride: 0,
-  sampleRate: sampleRate,
-));
 
 Future<void> main() async {
-  // _Evaluator.bypassCsvWriting = true;
+  final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
+    chunkSize: 2048,
+    chunkStride: 1024,
+    sampleRate: sampleRate,
+  ));
 
-  final corrects = await _getCorrectChords();
-  final loaders = Map.fromEntries([
-    ...await _getFiles('assets/evals/Halion_CleanGuitarVX')
-        .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/Halion_CleanStratGuitar')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/HojoGuitar')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
-    // ...await _getFiles('assets/evals/RealStrat')
-    //     .then((files) => files.map(_parsePathToMapEntries)),
+  final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
+    chunkSize: 8192,
+    chunkStride: 0,
+    sampleRate: sampleRate,
+  ));
+
+  final contexts = await _getEvaluatorContexts([
+    'assets/evals/Halion_CleanGuitarVX',
+    'assets/evals/Halion_CleanStratGuitar',
+    'assets/evals/HojoGuitar',
+    'assets/evals/RealStrat',
   ]);
-  final data = <_EvaluatorContext>[];
 
-  setUpAll(() async {
-    for (final entry in loaders.entries) {
-      final songId = entry.key;
-      final key = songId.split('_').first;
-      data.add(
-        _EvaluatorContext(
-          key: int.parse(key),
-          songId: songId,
-          data: await entry.value.load(duration: 83, sampleRate: sampleRate),
-          corrects: corrects[key]!,
-        ),
-      );
-    }
-    data.sort((a, b) => a.compareTo(b));
-  });
+  // _Evaluator.bypassCsvWriting = true;
 
   group('prop', () {
     test('main', () async {
@@ -71,26 +50,9 @@ Future<void> main() async {
           chromaCalculable: factory2048_1024.guitarRange.reassignment,
           filters: factory2048_1024.filter.eval,
         ),
-      ).evaluate(data, path: 'test/outputs/pattern_matching_reassignment.csv');
+      ).evaluate(contexts,
+          path: 'test/outputs/pattern_matching_reassignment.csv');
     });
-
-    // test('prop to conv chunkSize', () async {
-    //   _Evaluator(
-    //     estimator: PatternMatchingChordEstimator(
-    //       chromaCalculable: factory8192_0.guitarRange.reassignment,
-    //       filters: factory8192_0.filter.eval,
-    //     ),
-    //   ).evaluate(data, path: 'test/outputs/prop.csv');
-    // });
-
-    // test('piano tuning', () async {
-    //   _Evaluator(
-    //     estimator: PatternMatchingChordEstimator(
-    //       chromaCalculable: factory2048_1024.bigRange.reassignment,
-    //       filters: factory2048_1024.filter.eval,
-    //     ),
-    //   ).evaluate(data);
-    // });
   });
 
   group('conv', () {
@@ -104,7 +66,7 @@ Future<void> main() async {
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
-      ).evaluate(data, path: 'test/outputs/search_tree_comb.csv');
+      ).evaluate(contexts, path: 'test/outputs/search_tree_comb.csv');
     });
 
     test('search tree + comb + db', () async {
@@ -121,7 +83,7 @@ Future<void> main() async {
           thresholdRatio: ratio,
           chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
         ),
-      ).evaluate(data, path: 'test/outputs/search_tree_comb_db.csv');
+      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_db.csv');
     });
   });
 
@@ -133,22 +95,54 @@ Future<void> main() async {
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
         ),
-      ).evaluate(data, path: 'test/outputs/pattern_matching_comb.csv');
+      ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb.csv');
     });
 
     test('search tree + reassignment', () {
       const ratio = 0.5;
       _Evaluator(
-          header: [
+              header: [
             'search tree + reassignment, ratio: $ratio, ${factory8192_0.context}'
           ],
-          estimator: SearchTreeChordEstimator(
-            chromaCalculable: factory8192_0.guitarRange.reassignment,
-            filters: factory8192_0.filter.eval,
-            thresholdRatio: ratio,
-          )).evaluate(data, path: 'test/outputs/search_tree_reassignment.csv');
+              estimator: SearchTreeChordEstimator(
+                chromaCalculable: factory8192_0.guitarRange.reassignment,
+                filters: factory8192_0.filter.eval,
+                thresholdRatio: ratio,
+              ))
+          .evaluate(contexts,
+              path: 'test/outputs/search_tree_reassignment.csv');
     });
   });
+}
+
+class _LoaderContext {
+  _LoaderContext({required this.path}) {
+    final parts = path.split(Platform.pathSeparator); //パスの末尾を取得
+    soundSource = parts[parts.length - 2];
+    songId = parts.last.split('_').first;
+    loader = SimpleAudioLoader(path: path);
+  }
+
+  static Iterable<_LoaderContext> fromFolder(String folderPath) {
+    return _getFiles(folderPath).map((path) => _LoaderContext(path: path));
+  }
+
+  static Iterable<String> _getFiles(String path) {
+    final directory = Directory(path);
+
+    if (!directory.existsSync()) {
+      throw ArgumentError('Not exists $path');
+    }
+
+    final files = directory.listSync();
+
+    return files.whereType<File>().map((e) => e.path);
+  }
+
+  final String path;
+  late final AudioLoader loader;
+  late final _SongID songId;
+  late final _SoundSource soundSource;
 }
 
 class _EvaluatorContext implements Comparable<_EvaluatorContext> {
@@ -162,7 +156,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   ///ソート用の変数
   final int key;
   final _SongID songId;
-  final AudioData data;
+  final Map<_SoundSource, AudioData> data;
   final ChordProgression corrects;
 
   @override
@@ -171,6 +165,8 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   }
 }
 
+//描画するライブラリが乏しいため、全体的な統計や評価はExcelで行う
+//そのために必要なデータの書き出しや、基本的な統計量を提示する
 class _Evaluator {
   _Evaluator({
     required this.estimator,
@@ -185,6 +181,14 @@ class _Evaluator {
 
   void evaluate(Iterable<_EvaluatorContext> context, {String? path}) {
     assert(path == null || path.endsWith('.csv'));
+
+    _initTable(path);
+    _evaluate(context);
+
+    if (path != null) table?.toCSV(path);
+  }
+
+  void _initTable(String? path) {
     if (path != null) {
       if (!bypassCsvWriting) {
         table = Table.empty();
@@ -195,52 +199,33 @@ class _Evaluator {
         debugPrint('CSV writing is bypassing');
       }
     }
-
-    _evaluate(context);
-
-    if (path != null) table?.toCSV(path);
   }
 
-  void _evaluate(Iterable<_EvaluatorContext> context) {
-    final sum = context.map(_evaluateOne).sum;
-    final correctRate = sum / context.length * 100;
-    debugPrint('corrects: ${correctRate.toStringAsFixed(3)}%');
+  void _evaluate(Iterable<_EvaluatorContext> contexts) {
+    final correctRate = contexts.map(_evaluateOne).sum / contexts.length;
+    debugPrint('corrects: ${(correctRate * 100).toStringAsFixed(3)}%');
   }
 
   double _evaluateOne(_EvaluatorContext context) {
-    final data = context.data;
     final corrects = context.corrects;
-    final chords = estimator.estimate(data);
+    final progressions = <ChordProgression>[];
 
-    debugPrint(corrects.toString());
-    debugPrint(chords.toString());
+    _add(corrects, '${context.songId}_correct');
 
-    table?.add(corrects.toCSVRow()..insert(0, '${context.songId}_correct'));
-    table?.add(chords.toCSVRow()..insert(0, '${context.songId}_estimate'));
+    context.data.forEach((soundSource, data) {
+      final progression = estimator.estimate(data);
+      _add(progression, '${context.songId}_$soundSource');
+      progressions.add(progression);
+    });
 
-    return chords.consistencyRate(corrects);
-  }
-}
-
-Future<_Paths> _getFiles(String path) async {
-  final directory = Directory(path);
-
-  if (!directory.existsSync()) {
-    throw ArgumentError('Not exists $path');
+    return progressions.map((e) => e.consistencyRate(corrects)).sum /
+        context.data.length;
   }
 
-  final files = directory.listSync();
-
-  return files.whereType<File>().map((e) => e.path);
-}
-
-///ファイル名が/{song_id}_{identify}のフォーマットに沿っていると仮定している
-MapEntry<_SongID, AudioLoader> _parsePathToMapEntries(String path) {
-  final parts = path.split(Platform.pathSeparator);
-  final source = parts[parts.length - 2];
-  final num = parts.last.split('_').first;
-  final songId = '${num}_$source';
-  return MapEntry(songId, SimpleAudioLoader(path: path));
+  void _add(ChordProgression progression, String indexLabel) {
+    debugPrint(progression.toString());
+    table?.add(progression.toCSVRow()..insert(0, indexLabel));
+  }
 }
 
 Future<_CorrectChords> _getCorrectChords() async {
@@ -253,4 +238,34 @@ Future<_CorrectChords> _getCorrectChords() async {
           ChordProgression(e.sublist(1).map((e) => Chord.parse(e)).toList()),
         )),
   );
+}
+
+Future<Iterable<_EvaluatorContext>> _getEvaluatorContexts(
+    Iterable<String> folderPaths) async {
+  final contexts = <_EvaluatorContext>[];
+  final corrects = await _getCorrectChords();
+  final loaders =
+      folderPaths.map((e) => _LoaderContext.fromFolder(e)).flattened;
+
+  final loadersMap = loaders.groupListsBy((e) => e.songId);
+  for (final entry in loadersMap.entries) {
+    final songId = entry.key;
+    final loaderContexts = entry.value;
+    contexts.add(
+      _EvaluatorContext(
+        key: int.parse(songId),
+        songId: songId,
+        data: Map.fromIterables(
+          loaderContexts.map((e) => e.soundSource),
+          await Future.wait(loaderContexts.map(
+            (e) => e.loader.load(duration: 83, sampleRate: sampleRate),
+          )),
+        ),
+        corrects: corrects[songId]!,
+      ),
+    );
+  }
+
+  contexts.sort((a, b) => a.compareTo(b));
+  return contexts;
 }
