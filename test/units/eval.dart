@@ -5,10 +5,12 @@ import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chord_selector.dart';
 import 'package:chord/domains/estimate.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 //Song ID : ChordProgression
@@ -113,6 +115,23 @@ Future<void> main() async {
               path: 'test/outputs/search_tree_reassignment.csv');
     });
   });
+
+  //service.dartの推定器全てをテストする
+  group('riverpods front end estimators', () {
+    test('all', () async {
+      final container = ProviderContainer();
+      final estimators = container.read(estimatorsProvider);
+
+      for (final entry in estimators.entries) {
+        final estimator = await entry.value();
+        final id = entry.key;
+        _Evaluator(
+          header: [id],
+          estimator: estimator,
+        ).evaluate(contexts, path: 'test/outputs/front_ends/$id.csv');
+      }
+    });
+  });
 }
 
 class _LoaderContext {
@@ -179,11 +198,11 @@ class _Evaluator {
   final ChordEstimable estimator;
   Table? table;
 
-  void evaluate(Iterable<_EvaluatorContext> context, {String? path}) {
+  void evaluate(Iterable<_EvaluatorContext> contexts, {String? path}) {
     assert(path == null || path.endsWith('.csv'));
 
     _initTable(path);
-    _evaluate(context);
+    _evaluate(contexts);
 
     if (path != null) table?.toCSV(path);
   }

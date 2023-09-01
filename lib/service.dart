@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +9,7 @@ import 'config.dart';
 import 'domains/chord_selector.dart';
 import 'domains/estimate.dart';
 import 'domains/factory.dart';
+import 'utils/loader.dart';
 
 part 'service.g.dart';
 
@@ -34,23 +37,32 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final filters = factory.filter.eval; //TODO deal as provider or hardcoding.
 
   return {
-    'main': () async => PatternMatchingChordEstimator(
+    'main': () async =>
+        PatternMatchingChordEstimator(
           chromaCalculable: factory.guitarRange.reassignment,
           filters: filters,
         ),
-    'comb + pattern matching': () async => PatternMatchingChordEstimator(
+    'comb + pattern matching': () async =>
+        PatternMatchingChordEstimator(
           chromaCalculable: factory.guitarRange.combFilter,
           filters: filters,
         ),
-    'comb + search tree': () async => SearchTreeChordEstimator(
+    'comb + search tree': () async =>
+        SearchTreeChordEstimator(
           chromaCalculable: factory.guitarRange.combFilter,
           filters: filters,
           thresholdRatio: 0.3,
         ),
     'comb + search tree + db': () async {
-      final csvString =
-          await rootBundle.loadString('assets/csv/chord_progression.csv');
-      final csv = const CsvToListConverter().convert(csvString);
+      late final CSV csv;
+      if (kIsWeb || Platform.isIOS || Platform.isAndroid) {
+        final csvString =
+        await rootBundle.loadString('assets/csv/chord_progression.csv');
+        csv = const CsvToListConverter().convert(csvString);
+      } else {
+        csv = await CSVLoader.db.load();
+      }
+
       return SearchTreeChordEstimator(
         chromaCalculable: factory.guitarRange.combFilter,
         filters: filters,
