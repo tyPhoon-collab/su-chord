@@ -13,7 +13,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-//Song ID : ChordProgression
 typedef _CorrectChords = Map<_SongID, ChordProgression>;
 typedef _SongID = String;
 typedef _SoundSource = String;
@@ -118,10 +117,10 @@ Future<void> main() async {
 
   //service.dartの推定器全てをテストする
   group('riverpods front end estimators', () {
-    test('all', () async {
-      final container = ProviderContainer();
-      final estimators = container.read(estimatorsProvider);
+    final container = ProviderContainer();
+    final estimators = container.read(estimatorsProvider);
 
+    test('all', () async {
       for (final entry in estimators.entries) {
         final estimator = await entry.value();
         final id = entry.key;
@@ -130,6 +129,16 @@ Future<void> main() async {
           estimator: estimator,
         ).evaluate(contexts, path: 'test/outputs/front_ends/$id.csv');
       }
+    });
+
+    test('one', () async {
+      const id = 'main';
+
+      final estimator = await estimators[id]!.call();
+      _Evaluator(
+        header: [id],
+        estimator: estimator,
+      ).evaluate(contexts, path: 'test/outputs/front_ends/$id.csv');
     });
   });
 }

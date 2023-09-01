@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:wav/wav.dart';
 
 import '../config.dart';
@@ -121,26 +122,43 @@ typedef CSV = List<List<dynamic>>;
 abstract interface class CSVLoader {
   Future<CSV> load();
 
-  static const db = SimpleCSVLoader(path: 'assets/csv/chord_progression.csv');
+  static CSVLoader get db {
+    const path = 'assets/csv/chord_progression.csv';
+    return (kIsWeb || Platform.isIOS || Platform.isAndroid)
+        ? const FlutterCSVLoader(path: path)
+        : const SimpleCSVLoader(path: path);
+  }
 
   static const corrects =
       SimpleCSVLoader(path: 'assets/csv/correct_only_sharp.csv');
 }
 
 final class SimpleCSVLoader implements CSVLoader {
-  const SimpleCSVLoader({this.path, this.bytes})
-      : assert(path != null || bytes != null);
+  const SimpleCSVLoader({required this.path});
 
-  final String? path;
-  final Uint8List? bytes;
+  final String path;
 
   @override
   Future<CSV> load() async {
-    final input = File(path!).openRead();
+    final input = File(path).openRead();
     final csv = await input
         .transform(utf8.decoder)
         .transform(const CsvToListConverter())
         .toList();
+
+    return csv;
+  }
+}
+
+final class FlutterCSVLoader implements CSVLoader {
+  const FlutterCSVLoader({required this.path});
+
+  final String path;
+
+  @override
+  Future<CSV> load() async {
+    final csvString = await rootBundle.loadString(path);
+    final csv = const CsvToListConverter().convert(csvString);
 
     return csv;
   }
