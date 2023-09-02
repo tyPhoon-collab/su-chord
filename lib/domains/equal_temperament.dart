@@ -120,6 +120,7 @@ enum DegreeName implements Transposable<DegreeName> {
 
 enum NaturalNote { C, D, E, F, G, A, B }
 
+//TODO フラットを追加する
 enum Note implements Transposable<Note> {
   C(naturalNote: NaturalNote.C),
   Cs(naturalNote: NaturalNote.C, accidental: Accidental.sharp),

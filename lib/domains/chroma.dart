@@ -126,17 +126,27 @@ class STFTCalculator {
   Magnitudes magnitudes = [];
 }
 
+class CombFilterContext {
+  const CombFilterContext({
+    this.stdDevCoefficient = 1 / 72,
+  });
+
+  final double stdDevCoefficient;
+}
+
 class CombFilterChromaCalculator extends STFTCalculator
     implements ChromaCalculable {
   CombFilterChromaCalculator({
     super.chunkSize,
     super.chunkStride,
     MusicalScale? lowest,
+    this.context = const CombFilterContext(),
     this.perOctave = 7,
   })  : lowest = lowest ?? MusicalScale.C1,
         super.hanning();
 
   final MusicalScale lowest;
+  final CombFilterContext context;
   final int perOctave;
 
   @override
@@ -170,10 +180,7 @@ class CombFilterChromaCalculator extends STFTCalculator
       // final stdDev = scale.hz / 24;
       // 従来法の標準偏差では、周りが大きくなりすぎる
       // 従来法のコードを見ても、論文に準拠していない。よくわからない値を使用している
-      // 2σで考えてみる
-      // final stdDev = scale.hz / 48;
-      // 3σで考えてみる
-      final stdDev = scale.hz / 72;
+      final stdDev = scale.hz * context.stdDevCoefficient;
       // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
       final range = 4 * stdDev;
       final closure = normalDistributionClosure(mean, stdDev);
