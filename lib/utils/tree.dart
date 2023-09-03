@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 
 class TreeNode<T> {
-  TreeNode(this.value) : children = {};
+  TreeNode(this.value);
 
   final T value;
-  Set<TreeNode<T>> children;
+  final Set<TreeNode<T>> children = {};
 
-  Set<T> get childrenValues => children.map((e) => e.value).toSet();
+  Iterable<T> get childrenValues => children.map((e) => e.value);
 
   void addChild(TreeNode<T> child) {
     children.add(child);
@@ -23,5 +23,5 @@ class TreeNode<T> {
       });
 
   @override
-  String toString() => '$value: $childrenValues';
+  String toString() => '$value: ${children.map((e) => e.toString())}';
 }

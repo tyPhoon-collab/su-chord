@@ -74,7 +74,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       if (n == null) return _select(withoutFirstProgression);
       node = n;
     }
-    return node.childrenValues..addAll(_select(withoutFirstProgression));
+    return {...node.childrenValues, ..._select(withoutFirstProgression)};
   }
 
   DBSearchTrees _buildTrees() {
