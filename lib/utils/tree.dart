@@ -23,5 +23,5 @@ class TreeNode<T> {
       });
 
   @override
-  String toString() => '$value: ${children.map((e) => e.toString())}';
+  String toString() => '$value: [${children.join(', ')}]';
 }

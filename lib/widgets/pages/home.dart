@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
-import '../../config.dart';
 import '../../domains/chord_progression.dart';
-import '../../domains/estimate.dart';
+import '../../domains/estimator.dart';
+import '../../domains/factory.dart';
 import '../../js_external.dart';
 import '../../service.dart';
 import 'loading.dart';
@@ -21,18 +21,27 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final estimator = ref.watch(estimatorProvider);
+    final context = ref.watch(factoryContextProvider);
     return switch (estimator) {
-      AsyncData(:final value) => EstimatorPage(estimator: value),
-      AsyncError() => const Text('Oops, something unexpected happened'),
+      AsyncData(:final value) => EstimatorPage(
+          estimator: value,
+          context: context,
+        ),
+      AsyncError(:final error) => Text(error.toString()),
       _ => const LoadingPage(),
     };
   }
 }
 
 class EstimatorPage extends StatefulWidget {
-  const EstimatorPage({super.key, required this.estimator});
+  const EstimatorPage({
+    super.key,
+    required this.estimator,
+    required this.context,
+  });
 
   final ChordEstimable estimator;
+  final EstimatorFactoryContext context;
 
   @override
   State<EstimatorPage> createState() => _EstimatorPageState();
@@ -76,8 +85,8 @@ class _EstimatorPageState extends State<EstimatorPage> {
                               progression: _progression);
                         }
 
-                        final data =
-                            snapshot.data!.downSample(Config.sampleRate);
+                        final data = snapshot.data!
+                            .downSample(widget.context.sampleRate);
                         final progression = _estimator.estimate(data, false);
 
                         return ListView(

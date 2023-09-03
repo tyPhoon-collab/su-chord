@@ -5,7 +5,7 @@
 以下のChordEstimableを実装したクラスを検証できる
 
 ```dart
-// domains/estimate.dart
+// domains/estimator.dart
 abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data, [bool flush = true]);
 

@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'config.dart';
 import 'domains/chord_selector.dart';
-import 'domains/estimate.dart';
+import 'domains/estimator.dart';
 import 'domains/factory.dart';
 import 'utils/loader.dart';
 

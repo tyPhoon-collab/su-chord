@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chord_selector.dart';
-import 'package:chord/domains/estimate.dart';
+import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/loader.dart';
@@ -121,13 +121,12 @@ Future<void> main() async {
     final estimators = container.read(estimatorsProvider);
 
     test('all', () async {
-      for (final entry in estimators.entries) {
-        final estimator = await entry.value();
-        final id = entry.key;
+      for (final MapEntry(:key, :value) in estimators.entries) {
+        final estimator = await value();
         _Evaluator(
-          header: [id],
+          header: [key],
           estimator: estimator,
-        ).evaluate(contexts, path: 'test/outputs/front_ends/$id.csv');
+        ).evaluate(contexts, path: 'test/outputs/front_ends/$key.csv');
       }
     });
 

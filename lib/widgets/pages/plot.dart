@@ -43,6 +43,7 @@ class Chromagram extends StatelessWidget {
   }
 }
 
+///再割り当て時のウィンドウを可視化するためのデバッグ用ページ
 class WindowPlotPage extends StatelessWidget {
   const WindowPlotPage({super.key});
 

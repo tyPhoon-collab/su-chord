@@ -5,7 +5,6 @@ import 'package:collection/collection.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter/widgets.dart';
 
-import '../config.dart';
 import '../utils/formula.dart';
 import '../utils/histogram.dart';
 import '../utils/loader.dart';
@@ -112,8 +111,8 @@ class PCP extends Chroma {
 
 class STFTCalculator {
   STFTCalculator.hanning({
-    this.chunkSize = Config.chunkSize,
-    this.chunkStride = Config.chunkStride,
+    this.chunkSize = 2048,
+    this.chunkStride = 1024,
   }) : window = Window.hanning(chunkSize) {
     stft = STFT(chunkSize, window);
   }

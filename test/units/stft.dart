@@ -53,7 +53,7 @@ void main() {
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     final data = await loader.load(sampleRate: Config.sampleRate);
 
-    const chunkSize = Config.chunkSize;
+    const chunkSize = 2048;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));
 
     final spectrogram = <Float64List>[];

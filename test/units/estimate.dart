@@ -1,4 +1,4 @@
-import 'package:chord/domains/estimate.dart';
+import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader.dart';
 import 'package:flutter/cupertino.dart';
