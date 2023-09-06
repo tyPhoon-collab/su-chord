@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 
-import '../utils/loader.dart';
+import '../utils/loader/csv.dart';
 import '../utils/tree.dart';
 import 'chord.dart';
 import 'chord_progression.dart';

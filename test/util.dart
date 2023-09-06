@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:chord/config.dart';
-import 'package:chord/utils/loader.dart';
+import 'package:chord/utils/loader/audio.dart';
 
 class AudioStreamEmulator {
   const AudioStreamEmulator({

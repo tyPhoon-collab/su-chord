@@ -3,7 +3,7 @@ import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
-import 'package:chord/utils/loader.dart';
+import 'package:chord/utils/loader/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -47,10 +47,10 @@ void main() {
     test('chord', () async {
       final c = ReassignmentChromaCalculator();
 
-      const loader = SimpleAudioLoader(
-          path: 'assets/evals/guitar_normal_c.wav');
-      final data = await loader.load(
-          duration: 4, sampleRate: Config.sampleRate);
+      const loader =
+          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+      final data =
+          await loader.load(duration: 4, sampleRate: Config.sampleRate);
       final chromas = c.chroma(data);
 
       expect(chromas[0].maxIndex, 0);
@@ -59,8 +59,7 @@ void main() {
     test('long duration', () async {
       final c = ReassignmentChromaCalculator();
 
-      const loader =
-      SimpleAudioLoader(
+      const loader = SimpleAudioLoader(
           path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
       final data = await loader.load(sampleRate: Config.sampleRate);
       final chromas = c.chroma(data);
@@ -71,11 +70,10 @@ void main() {
     test('normalized', () async {
       final c = ReassignmentChromaCalculator();
 
-      const loader =
-      SimpleAudioLoader(
+      const loader = SimpleAudioLoader(
           path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
-      final data = await loader.load(
-          duration: 4, sampleRate: Config.sampleRate);
+      final data =
+          await loader.load(duration: 4, sampleRate: Config.sampleRate);
       final chromas = c.chroma(data);
       final chroma = chromas[0].normalized;
 
@@ -83,15 +81,14 @@ void main() {
     });
   });
 
-
   group('comb filter', () {
     test('chord', () async {
       final c = CombFilterChromaCalculator();
 
       const loader =
-      SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
       final data =
-      await loader.load(duration: 4, sampleRate: Config.sampleRate);
+          await loader.load(duration: 4, sampleRate: Config.sampleRate);
       final chromas = c.chroma(data);
 
       expect(chromas[0], isNotNull);
@@ -117,15 +114,14 @@ void main() {
       ];
 
       final chromas = contexts.map(
-            (e) =>
-            factory.filter
-                .interval(4.seconds)
-                .filter(CombFilterChromaCalculator(
+        (e) => factory.filter
+            .interval(4.seconds)
+            .filter(CombFilterChromaCalculator(
               chunkSize: factory.context.chunkSize,
               chunkStride: factory.context.chunkStride,
               context: e,
             ).chroma(data))
-                .toList(),
+            .toList(),
       );
 
       for (final e in chromas) {
@@ -145,10 +141,10 @@ void main() {
           interval: 3.seconds, dt: chunkSize / Config.sampleRate);
 
       const loader =
-      SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
       // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
       final data =
-      await loader.load(duration: 4, sampleRate: Config.sampleRate);
+          await loader.load(duration: 4, sampleRate: Config.sampleRate);
       final chromas = ccd.filter(c.chroma(data));
 
       expect(chromas[0], isNotNull);
@@ -178,14 +174,8 @@ void main() {
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chroma1 = ccd
-        .filter(cc1.chroma(data))
-        .first
-        .normalized;
-    final chroma2 = ccd
-        .filter(cc2.chroma(data))
-        .first
-        .normalized;
+    final chroma1 = ccd.filter(cc1.chroma(data)).first.normalized;
+    final chroma2 = ccd.filter(cc2.chroma(data)).first.normalized;
 
     expect(chroma1, isNotNull);
     expect(chroma2, isNotNull);

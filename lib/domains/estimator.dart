@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 
 import '../config.dart';
-import '../utils/loader.dart';
+import '../utils/loader/audio.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
 import 'chord_progression.dart';

@@ -1,5 +1,5 @@
 import 'package:chord/domains/chord_progression.dart';
-import 'package:chord/utils/loader.dart';
+import 'package:chord/utils/loader/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 

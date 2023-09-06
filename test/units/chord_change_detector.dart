@@ -2,7 +2,7 @@ import 'package:chord/config.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/filter.dart';
-import 'package:chord/utils/loader.dart';
+import 'package:chord/utils/loader/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
