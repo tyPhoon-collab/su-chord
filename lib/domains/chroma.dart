@@ -16,7 +16,7 @@ typedef Magnitudes = List<Float64List>;
 typedef Spectrogram = List<Float64x2List>;
 
 abstract interface class ChromaCalculable {
-  List<Chroma> chroma(AudioData data, [bool flush = true]);
+  List<Chroma> call(AudioData data, [bool flush = true]);
 }
 
 ///クロマ同士の計算などの利便化のために、クラス化する
@@ -152,7 +152,7 @@ abstract class MagnitudesChromaCalculator extends STFTCalculator
   final MagnitudeScalar scalar;
 
   @override
-  List<Chroma> chroma(AudioData data, [bool flush = true]) {
+  List<Chroma> call(AudioData data, [bool flush = true]) {
     final magnitudes = [];
     void callback(Float64x2List freq) =>
         magnitudes.add(freq.discardConjugates().magnitudes());
@@ -270,7 +270,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
       equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
 
   @override
-  List<Chroma> chroma(AudioData data, [bool flush = true]) {
+  List<Chroma> call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) =
         measure('reassign', () => reassign(data, flush));
     binX = List.generate(magnitudes.length + 1, (i) => i * dt);
