@@ -39,9 +39,10 @@ void main() {
 
       const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
       final data = await loader.load();
-      final chromas = c.chroma(data);
+      final chroma = c.chroma(data).first;
 
-      expect(chromas[0].maxIndex, 0);
+      debugPrint(chroma.toString());
+      expect(chroma.maxIndex, 0);
     });
 
     test('chord', () async {
@@ -82,6 +83,17 @@ void main() {
   });
 
   group('comb filter', () {
+    test('one note', () async {
+      final c = CombFilterChromaCalculator();
+
+      const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
+      final data = await loader.load();
+      final chroma = c.chroma(data).first;
+
+      debugPrint(chroma.toString());
+      expect(chroma.maxIndex, 0);
+    });
+
     test('chord', () async {
       final c = CombFilterChromaCalculator();
 
@@ -121,12 +133,46 @@ void main() {
               chunkStride: factory.context.chunkStride,
               context: e,
             ).chroma(data))
-            .toList(),
+            .first,
       );
 
       for (final e in chromas) {
-        debugPrint(e.toString());
+        debugPrint(e.normalized.toString());
       }
+    });
+
+    test('log vs normal', () async {
+      final factory = EstimatorFactory(const EstimatorFactoryContext(
+        chunkSize: 8192,
+        chunkStride: 0,
+        sampleRate: 22050,
+      ));
+
+      final data = await AudioLoader.sample.load(
+        duration: 4,
+        sampleRate: factory.context.sampleRate,
+      );
+
+      final filter = factory.filter.interval(4.seconds);
+
+      debugPrint(filter
+          .filter(CombFilterChromaCalculator(
+            chunkSize: factory.context.chunkSize,
+            chunkStride: factory.context.chunkStride,
+          ).chroma(data))
+          .first
+          .normalized
+          .toString());
+
+      debugPrint(filter
+          .filter(CombFilterChromaCalculator(
+                  chunkSize: factory.context.chunkSize,
+                  chunkStride: factory.context.chunkStride,
+                  scalar: MagnitudeScalar.log)
+              .chroma(data))
+          .first
+          .normalized
+          .toString());
     });
 
     test('guitar tuning', () async {
