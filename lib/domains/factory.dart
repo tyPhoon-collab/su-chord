@@ -57,6 +57,14 @@ final class ChromaCalculatorFactory {
         perOctave: perOctave,
       );
 
+  ChromaCalculable get combFilterLogScaling => CombFilterChromaCalculator(
+        chunkSize: context.chunkSize,
+        chunkStride: context.chunkStride,
+        scalar: MagnitudeScalar.log,
+        lowest: lowest,
+        perOctave: perOctave,
+      );
+
   ChromaCalculable get reassignment => ReassignmentChromaCalculator(
         chunkSize: context.chunkSize,
         chunkStride: context.chunkStride,

@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 
+typedef Header = List<String>;
+
 class Table {
   Table(this._table);
 
-  Table.empty() : _table = [];
+  Table.empty(Header? header) : _table = [if (header != null) header];
 
   final List<List<String>> _table;
 

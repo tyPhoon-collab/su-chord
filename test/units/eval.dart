@@ -33,12 +33,15 @@ Future<void> main() async {
     sampleRate: sampleRate,
   ));
 
-  final contexts = await _getEvaluatorContexts([
-    'assets/evals/Halion_CleanGuitarVX',
-    'assets/evals/Halion_CleanStratGuitar',
-    'assets/evals/HojoGuitar',
-    'assets/evals/RealStrat',
-  ]);
+  final contexts = await _getEvaluatorContexts(
+    [
+      'assets/evals/Halion_CleanGuitarVX',
+      'assets/evals/Halion_CleanStratGuitar',
+      'assets/evals/HojoGuitar',
+      'assets/evals/RealStrat',
+    ],
+    // songIds: ['13'],
+  );
 
   // _Evaluator.bypassCsvWriting = true;
 
@@ -71,6 +74,21 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb.csv');
     });
 
+    test('search tree + log comb', () async {
+      const ratio = 0.5;
+
+      _Evaluator(
+        header: [
+          'search tree + log comb, ratio: $ratio, ${factory8192_0.context}'
+        ],
+        estimator: SearchTreeChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.combFilterLogScaling,
+          filters: factory8192_0.filter.eval,
+          thresholdRatio: ratio,
+        ),
+      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log.csv');
+    });
+
     test('search tree + comb + db', () async {
       final csv = await CSVLoader.db.load();
       const ratio = 0.3;
@@ -87,6 +105,23 @@ Future<void> main() async {
         ),
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb_db.csv');
     });
+
+    test('search tree + log comb + db', () async {
+      final csv = await CSVLoader.db.load();
+      const ratio = 0.5;
+
+      _Evaluator(
+        header: [
+          'search tree + log comb + db, ratio: $ratio, ${factory8192_0.context}'
+        ],
+        estimator: SearchTreeChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          filters: factory8192_0.filter.eval,
+          thresholdRatio: ratio,
+          chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
+        ),
+      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log_db.csv');
+    });
   });
 
   group('control experiment', () {
@@ -100,23 +135,34 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb.csv');
     });
 
+    test('pattern matching + log comb filter', () {
+      _Evaluator(
+        header: [
+          'pattern matching + log comb filter, ${factory8192_0.context}'
+        ],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.combFilterLogScaling,
+          filters: factory8192_0.filter.eval,
+        ),
+      ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb_log.csv');
+    });
+
     test('search tree + reassignment', () {
       const ratio = 0.5;
       _Evaluator(
-              header: [
-            'search tree + reassignment, ratio: $ratio, ${factory8192_0.context}'
-          ],
-              estimator: SearchTreeChordEstimator(
-                chromaCalculable: factory8192_0.guitarRange.reassignment,
-                filters: factory8192_0.filter.eval,
-                thresholdRatio: ratio,
-              ))
-          .evaluate(contexts,
-              path: 'test/outputs/search_tree_reassignment.csv');
+        header: [
+          'search tree + reassignment, ratio: $ratio, ${factory8192_0.context}'
+        ],
+        estimator: SearchTreeChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.reassignment,
+          filters: factory8192_0.filter.eval,
+          thresholdRatio: ratio,
+        ),
+      ).evaluate(contexts, path: 'test/outputs/search_tree_reassignment.csv');
     });
   });
 
-  //service.dartの推定器全てをテストする
+  //service.dartの推定器をテストする
   group('riverpods front end estimators', () {
     final container = ProviderContainer();
     final estimators = container.read(estimatorsProvider);
@@ -132,7 +178,7 @@ Future<void> main() async {
     });
 
     test('one', () async {
-      const id = 'main';
+      const id = 'main'; // change here
 
       final estimator = await estimators[id]!.call();
       _Evaluator(
@@ -145,7 +191,7 @@ Future<void> main() async {
 
 class _LoaderContext {
   _LoaderContext({required this.path}) {
-    final parts = path.split(Platform.pathSeparator); //パスの末尾を取得
+    final parts = path.split(Platform.pathSeparator); //パスを分解
     soundSource = parts[parts.length - 2];
     songId = parts.last.split('_').first;
     loader = SimpleAudioLoader(path: path);
@@ -217,15 +263,12 @@ class _Evaluator {
   }
 
   void _initTable(String? path) {
-    if (path != null) {
-      if (!bypassCsvWriting) {
-        table = Table.empty();
-        if (header != null) {
-          table!.add(header!);
-        }
-      } else {
-        debugPrint('CSV writing is bypassing');
-      }
+    if (path == null) return;
+
+    if (!bypassCsvWriting) {
+      table = Table.empty(header);
+    } else {
+      debugPrint('CSV writing is bypassing');
     }
   }
 
@@ -269,23 +312,24 @@ Future<_CorrectChords> _getCorrectChords() async {
 }
 
 Future<Iterable<_EvaluatorContext>> _getEvaluatorContexts(
-    Iterable<String> folderPaths) async {
+    Iterable<String> folderPaths,
+    {Iterable<_SongID>? songIds}) async {
   final contexts = <_EvaluatorContext>[];
   final corrects = await _getCorrectChords();
   final loaders =
       folderPaths.map((e) => _LoaderContext.fromFolder(e)).flattened;
 
-  final loadersMap = loaders.groupListsBy((e) => e.songId);
-  for (final entry in loadersMap.entries) {
-    final songId = entry.key;
-    final loaderContexts = entry.value;
+  final loadersMap = loaders
+      .where((e) => songIds?.contains(e.songId) ?? true)
+      .groupListsBy((e) => e.songId);
+  for (final MapEntry(key: songId, :value) in loadersMap.entries) {
     contexts.add(
       _EvaluatorContext(
         key: int.parse(songId),
         songId: songId,
         data: Map.fromIterables(
-          loaderContexts.map((e) => e.soundSource),
-          await Future.wait(loaderContexts.map(
+          value.map((e) => e.soundSource),
+          await Future.wait(value.map(
             (e) => e.loader.load(duration: 83, sampleRate: sampleRate),
           )),
         ),
