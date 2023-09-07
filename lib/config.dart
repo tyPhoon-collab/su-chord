@@ -38,6 +38,6 @@ class Config {
   ];
   static final detectableChords = Set.unmodifiable([
     for (final root in Note.values)
-      for (final quality in _qualities) Chord.parse(root.label + quality)
+      for (final quality in _qualities) Chord.parse(root.toString() + quality)
   ]);
 }

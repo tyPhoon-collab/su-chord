@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
+import '../../domains/chord.dart';
 import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
@@ -207,10 +208,26 @@ class ChordProgressionView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(progression.toString()),
-          Text(
-            progression.lastOrNull.toString(),
-            style: Get.textTheme.headlineLarge,
-          ),
+          ChordView(chord: progression.lastOrNull),
         ],
       );
+}
+
+class ChordView extends StatelessWidget {
+  const ChordView({super.key, required this.chord});
+
+  final Chord? chord;
+
+  TextStyle? get style => Get.textTheme.headlineLarge;
+
+  @override
+  Widget build(BuildContext context) => chord == null
+      ? Text('No Chord', style: style)
+      : Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(chord.toString(), style: style),
+            Text(chord!.notes.join(', ')),
+          ],
+        );
 }

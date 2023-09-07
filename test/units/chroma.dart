@@ -1,5 +1,7 @@
 import 'package:chord/config.dart';
+import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader/audio.dart';
 import 'package:chord/utils/measure.dart';
@@ -178,8 +180,23 @@ void main() {
       factory8192_0.guitarRange.reassignmentWith(scalar: MagnitudeScalar.ln),
     ];
 
+    final templates = [
+      Chord.fromType(type: ChordType.major, root: Note.C),
+      Chord.fromType(
+        type: ChordType.major,
+        root: Note.C,
+        qualities: ChordQualities.majorSeventh,
+      ),
+    ];
+
     for (final c in calculator) {
-      debugPrint(ccd(c(data)).first.normalized.toString());
+      final chroma = ccd(c(data)).first;
+      debugPrint('chroma: ${chroma.normalized}');
+      for (final value in templates) {
+        debugPrint(
+            'cosine similarity: ${chroma.cosineSimilarity(value.pcp).toStringAsFixed(3)} of $value');
+      }
+      debugPrint('');
     }
   });
 }

@@ -398,5 +398,5 @@ class Chord extends ChordBase {
       notes.fold(0, (value, e) => value ^ e.hashCode);
 
   @override
-  String toString() => root.label + super.toString();
+  String toString() => root.toString() + super.toString();
 }
