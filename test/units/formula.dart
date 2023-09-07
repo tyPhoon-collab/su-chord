@@ -3,8 +3,8 @@ import 'package:chord/utils/formula.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  final hzOfC3 = const MusicalScale(Note.C, 3).toHz();
   test('normal distribution', () async {
-    final hzOfC3 = MusicalScale(Note.C, 3).hz;
     final mu = hzOfC3;
     final sigma = hzOfC3 / 24;
     final ret1 = normalDistribution(mu, mu, sigma);
@@ -14,7 +14,6 @@ void main() {
   });
 
   test('normal distribution 3sigma', () async {
-    final hzOfC3 = MusicalScale(Note.C, 3).hz;
     final mu = hzOfC3;
     final sigma = hzOfC3 / 24;
     final ret1 = normalDistribution(mu + 3 * sigma, mu, sigma);
@@ -24,7 +23,6 @@ void main() {
   });
 
   test('normal distribution closure', () async {
-    final hzOfC3 = MusicalScale(Note.C, 3).hz;
     final mu = hzOfC3;
     final sigma = hzOfC3 / 24;
     final ret1 = normalDistribution(mu + 3 * sigma, mu, sigma);

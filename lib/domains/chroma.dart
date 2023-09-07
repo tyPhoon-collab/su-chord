@@ -179,12 +179,11 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
   CombFilterChromaCalculator({
     super.chunkSize,
     super.chunkStride,
-    MusicalScale? lowest,
+    this.lowest = MusicalScale.C1,
     this.context = const CombFilterContext(),
     this.perOctave = 7,
     super.scalar,
-  })  : lowest = lowest ?? MusicalScale.C1,
-        super();
+  }) : super();
 
   final MusicalScale lowest;
   final CombFilterContext context;
@@ -212,11 +211,12 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
     final sr = sampleRate.toDouble();
     for (int i = 0; i < perOctave; ++i) {
       final scale = lowest.transpose(i * 12);
-      final mean = scale.hz;
+      final hz = scale.toHz();
+      final mean = hz;
       // final stdDev = scale.hz / 24;
       // 従来法の標準偏差では、周りが大きくなりすぎる
       // 従来法のコードを見ても、論文に準拠していない。よくわからない値を使用している
-      final stdDev = scale.hz * context.stdDevCoefficient;
+      final stdDev = hz * context.stdDevCoefficient;
       // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
       final range = 4 * stdDev;
       final closure = normalDistributionClosure(mean, stdDev);
@@ -241,11 +241,10 @@ class ReassignmentChromaCalculator extends STFTCalculator
   ReassignmentChromaCalculator({
     super.chunkSize,
     super.chunkStride,
-    MusicalScale? lowest,
+    this.lowest = MusicalScale.C1,
     this.perOctave = 7,
     this.withTimeReassignment = false,
-  })  : lowest = lowest ?? MusicalScale.C1,
-        super.hanning() {
+  }) : super.hanning() {
     final windowD = Float64List.fromList(window
         .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
         .toList());

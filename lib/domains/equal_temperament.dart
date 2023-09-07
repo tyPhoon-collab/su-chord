@@ -10,20 +10,17 @@ abstract interface class Transposable<T> {
 
 @immutable
 class MusicalScale implements Transposable<MusicalScale> {
-  MusicalScale(this.note, this.pitch);
+  const MusicalScale(this.note, this.pitch);
 
-  static final A0 = MusicalScale(Note.A, 0);
-  static final C1 = MusicalScale(Note.C, 1);
-  static final E2 = MusicalScale(Note.E, 2);
+  static const A0 = MusicalScale(Note.A, 0);
+  static const C1 = MusicalScale(Note.C, 1);
+  static const E2 = MusicalScale(Note.E, 2);
 
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;
 
   final Note note;
   final int pitch;
-
-  //計算量削減のために、lateにする
-  late final double hz = hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
 
   ///度数を渡すと新しいMusicalScaleを返す
   @override
@@ -38,13 +35,6 @@ class MusicalScale implements Transposable<MusicalScale> {
     return MusicalScale(newNote, newPitch);
   }
 
-  ///ピッチを考慮する度数の差
-  ///ex)
-  ///A0 -> C1 = 3
-  ///C3 -> C4 = 12
-  int degreeTo(MusicalScale other) =>
-      note.degreeTo(other.note) + 12 * (other.pitch - pitch);
-
   @override
   bool operator ==(Object other) {
     if (other is MusicalScale) {
@@ -58,6 +48,15 @@ class MusicalScale implements Transposable<MusicalScale> {
 
   @override
   String toString() => '$note$pitch';
+
+  ///ピッチを考慮する度数の差
+  ///ex)
+  ///A0 -> C1 = 3
+  ///C3 -> C4 = 12
+  int degreeTo(MusicalScale other) =>
+      note.degreeTo(other.note) + 12 * (other.pitch - pitch);
+
+  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
 }
 
 enum Accidental {
@@ -180,9 +179,10 @@ Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
   // 音域の参考サイト: https://tomari.org/main/java/oto.html
   // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
+  final hz = lowest.toHz();
   final hzList = List.generate(
     lowest.degreeTo(highest) + 2,
-    (i) => lowest.hz * pow(MusicalScale.ratio, i - 1),
+    (i) => hz * pow(MusicalScale.ratio, i - 1),
   );
 
   final bins = <double>[];

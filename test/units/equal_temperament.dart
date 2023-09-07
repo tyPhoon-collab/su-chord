@@ -32,36 +32,36 @@ void main() {
 
   group('music scale', () {
     test('C3 to 2 is D3', () {
-      final scale = MusicalScale(Note.C, 3);
-      expect(scale.transpose(2), equals(MusicalScale(Note.D, 3)));
+      const scale = MusicalScale(Note.C, 3);
+      expect(scale.transpose(2), equals(const MusicalScale(Note.D, 3)));
     });
 
     test('B3 to 1 is C4', () {
-      final scale = MusicalScale(Note.B, 3);
-      expect(scale.transpose(1), equals(MusicalScale(Note.C, 4)));
+      const scale = MusicalScale(Note.B, 3);
+      expect(scale.transpose(1), equals(const MusicalScale(Note.C, 4)));
     });
 
     test('E2 to 12 * 6 is E8', () {
-      final scale = MusicalScale.E2;
-      expect(scale.transpose(12 * 6), equals(MusicalScale(Note.E, 8)));
+      const scale = MusicalScale.E2;
+      expect(scale.transpose(12 * 6), equals(const MusicalScale(Note.E, 8)));
     });
 
     group('degree', () {
       test('A0 to C1 is 3', () {
-        final scale = MusicalScale.A0;
-        final int degree = scale.degreeTo(MusicalScale(Note.C, 1));
+        const scale = MusicalScale.A0;
+        final int degree = scale.degreeTo(MusicalScale.C1);
         expect(degree, 3);
       });
 
       test('C1 to C2 is 12', () {
-        final scale = MusicalScale(Note.C, 1);
-        final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
+        const scale = MusicalScale.C1;
+        final int degree = scale.degreeTo(const MusicalScale(Note.C, 2));
         expect(degree, 12);
       });
 
       test('C3 to C2 is -12', () {
-        final scale = MusicalScale(Note.C, 3);
-        final int degree = scale.degreeTo(MusicalScale(Note.C, 2));
+        const scale = MusicalScale(Note.C, 3);
+        final int degree = scale.degreeTo(const MusicalScale(Note.C, 2));
         expect(degree, -12);
       });
     });

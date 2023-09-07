@@ -52,7 +52,7 @@ class ChordProgression extends ProgressionBase<Chord> {
   ChordProgression.empty() : super([]);
 
   factory ChordProgression.fromCSVRow(List<String> row) {
-    throw UnimplementedError();
+    return ChordProgression(row.map((e) => Chord.parse(e)).toList());
   }
 
   double consistencyRate(ChordProgression other) {
