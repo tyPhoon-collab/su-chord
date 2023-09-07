@@ -6,7 +6,7 @@ import 'chroma.dart';
 import 'equal_temperament.dart';
 
 abstract interface class ChromaListFilter {
-  List<Chroma> filter(List<Chroma> chroma);
+  List<Chroma> call(List<Chroma> chroma);
 }
 
 class ThresholdFilter implements ChromaListFilter {
@@ -15,7 +15,7 @@ class ThresholdFilter implements ChromaListFilter {
   final double threshold;
 
   @override
-  List<Chroma> filter(List<Chroma> chroma) =>
+  List<Chroma> call(List<Chroma> chroma) =>
       chroma.where((e) => e.max >= threshold).toList();
 }
 
@@ -27,7 +27,7 @@ class IntervalChordChangeDetector implements ChromaListFilter {
   late final _interval = interval.inMilliseconds / 1000;
 
   @override
-  List<Chroma> filter(List<Chroma> chromas) {
+  List<Chroma> call(List<Chroma> chromas) {
     if (chromas.isEmpty) return [];
 
     final slices = <int>[];
@@ -67,7 +67,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
   // final int lookaheadSize;
 
   @override
-  List<Chroma> filter(List<Chroma> chroma) {
+  List<Chroma> call(List<Chroma> chroma) {
     if (chroma.isEmpty) return [];
 
     final chords = chroma
@@ -101,7 +101,7 @@ class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
   final double threshold;
 
   @override
-  List<Chroma> filter(List<Chroma> chroma) {
+  List<Chroma> call(List<Chroma> chroma) {
     // TODO: implement filter
     throw UnimplementedError();
   }

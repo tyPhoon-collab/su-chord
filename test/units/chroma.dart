@@ -127,8 +127,7 @@ void main() {
 
       final chromas = contexts.map(
         (e) => factory.filter
-            .interval(4.seconds)
-            .filter(CombFilterChromaCalculator(
+            .interval(4.seconds)(CombFilterChromaCalculator(
               chunkSize: factory.context.chunkSize,
               chunkStride: factory.context.chunkStride,
               context: e,
@@ -155,34 +154,31 @@ void main() {
 
       final filter = factory.filter.interval(4.seconds);
 
-      debugPrint(filter
-          .filter(CombFilterChromaCalculator(
-            chunkSize: factory.context.chunkSize,
-            chunkStride: factory.context.chunkStride,
-          ).chroma(data))
-          .first
-          .normalized
-          .toString());
+      debugPrint(filter(
+        CombFilterChromaCalculator(
+          chunkSize: factory.context.chunkSize,
+          chunkStride: factory.context.chunkStride,
+        ).chroma(data),
+      ).first.normalized.toString());
 
-      debugPrint(filter
-          .filter(CombFilterChromaCalculator(
-                  chunkSize: factory.context.chunkSize,
-                  chunkStride: factory.context.chunkStride,
-                  scalar: MagnitudeScalar.log)
-              .chroma(data))
-          .first
-          .normalized
-          .toString());
+      debugPrint(filter(
+        CombFilterChromaCalculator(
+          chunkSize: factory.context.chunkSize,
+          chunkStride: factory.context.chunkStride,
+          scalar: MagnitudeScalar.log,
+        ).chroma(data),
+      ).first.normalized.toString());
     });
 
     test('guitar tuning', () async {
       const chunkSize = 8192;
       const chunkStride = 0;
       final c = CombFilterChromaCalculator(
-          chunkSize: chunkSize,
-          chunkStride: chunkStride,
-          lowest: MusicalScale.E2,
-          perOctave: 6);
+        chunkSize: chunkSize,
+        chunkStride: chunkStride,
+        lowest: MusicalScale.E2,
+        perOctave: 6,
+      );
       final ccd = IntervalChordChangeDetector(
           interval: 3.seconds, dt: chunkSize / Config.sampleRate);
 
@@ -191,7 +187,7 @@ void main() {
       // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
       final data =
           await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = ccd.filter(c.chroma(data));
+      final chromas = ccd(c.chroma(data));
 
       expect(chromas[0], isNotNull);
     });
@@ -220,8 +216,8 @@ void main() {
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chroma1 = ccd.filter(cc1.chroma(data)).first.normalized;
-    final chroma2 = ccd.filter(cc2.chroma(data)).first.normalized;
+    final chroma1 = ccd(cc1.chroma(data)).first.normalized;
+    final chroma2 = ccd(cc2.chroma(data)).first.normalized;
 
     expect(chroma1, isNotNull);
     expect(chroma2, isNotNull);

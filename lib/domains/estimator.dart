@@ -43,7 +43,7 @@ abstract class ChromaChordEstimator
     reducedChromas = List.of(chromas);
     measure('filter calc', () {
       for (final e in filters) {
-        reducedChromas = e.filter(reducedChromas);
+        reducedChromas = e(reducedChromas);
       }
     });
 
