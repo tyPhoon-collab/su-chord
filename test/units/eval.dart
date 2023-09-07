@@ -4,6 +4,7 @@ import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chord_selector.dart';
+import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/service.dart';
@@ -69,7 +70,8 @@ Future<void> main() async {
           'search tree + log comb, ratio: $ratio, ${factory8192_0.context}'
         ],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilterLogScaling,
+          chromaCalculable: factory8192_0.guitarRange
+              .combFilterWith(scalar: MagnitudeScalar.ln),
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
@@ -128,7 +130,8 @@ Future<void> main() async {
           'pattern matching + log comb filter, ${factory8192_0.context}'
         ],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilterLogScaling,
+          chromaCalculable: factory8192_0.guitarRange
+              .combFilterWith(scalar: MagnitudeScalar.ln),
           filters: factory8192_0.filter.eval,
         ),
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb_log.csv');

@@ -67,26 +67,32 @@ final class ChromaCalculatorFactory {
   final MusicalScale lowest;
   final int perOctave;
 
-  ChromaCalculable get combFilter => CombFilterChromaCalculator(
-        chunkSize: context.chunkSize,
-        chunkStride: context.chunkStride,
+  int get _chunkStride => context.chunkStride;
+
+  int get _chunkSize => context.chunkSize;
+
+  ChromaCalculable get combFilter => combFilterWith();
+
+  ChromaCalculable combFilterWith(
+          {CombFilterContext? context, MagnitudeScalar? scalar}) =>
+      CombFilterChromaCalculator(
+        chunkSize: _chunkSize,
+        chunkStride: _chunkStride,
         lowest: lowest,
         perOctave: perOctave,
+        context: context ?? const CombFilterContext(),
+        scalar: scalar ?? MagnitudeScalar.none,
       );
 
-  ChromaCalculable get combFilterLogScaling => CombFilterChromaCalculator(
-        chunkSize: context.chunkSize,
-        chunkStride: context.chunkStride,
-        scalar: MagnitudeScalar.log,
-        lowest: lowest,
-        perOctave: perOctave,
-      );
+  ChromaCalculable get reassignment => reassignmentWith();
 
-  ChromaCalculable get reassignment => ReassignmentChromaCalculator(
-        chunkSize: context.chunkSize,
-        chunkStride: context.chunkStride,
+  ChromaCalculable reassignmentWith({MagnitudeScalar? scalar}) =>
+      ReassignmentChromaCalculator(
+        chunkSize: _chunkSize,
+        chunkStride: _chunkStride,
         lowest: lowest,
         perOctave: perOctave,
+        scalar: scalar ?? MagnitudeScalar.none,
       );
 }
 

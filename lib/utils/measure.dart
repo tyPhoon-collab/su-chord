@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 mixin class Measure {
-  static bool enableOutput = true;
+  static Function? logger = debugPrint;
 
   final _stopwatch = Stopwatch();
   final Map<String, int> calculateTimes = {};
@@ -16,7 +16,7 @@ mixin class Measure {
 
   void printMeasuredResult() {
     calculateTimes.forEach((key, value) {
-      debugPrint('$key: $value ms');
+      logger?.call('$key: $value ms');
     });
   }
 
@@ -27,6 +27,6 @@ mixin class Measure {
 
   void stopMeasuring([String key = 'calc']) {
     _stopwatch.stop();
-    debugPrint('$key: ${_stopwatch.elapsedMilliseconds} ms');
+    logger?.call('$key: ${_stopwatch.elapsedMilliseconds} ms');
   }
 }

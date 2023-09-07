@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
@@ -49,7 +49,7 @@ class Chroma extends Iterable<double> {
       _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
   late final normalized = Chroma(_values.map((e) => e / l2norm).toList());
-  late final l2norm = math.sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
+  late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
     assert(_values.length == other._values.length);
@@ -124,21 +124,29 @@ class STFTCalculator {
 }
 
 enum MagnitudeScalar {
-  log,
-  // dB,
+  ln,
+  dB,
   none;
 
   Float64List call(Float64List list) {
     switch (this) {
-      case log:
+      case ln:
         for (int i = 0; i < list.length; ++i) {
-          list[i] = math.log(list[i] + 1);
+          list[i] = log(list[i] + 1);
+        }
+        return list;
+      case dB:
+        const referenceMagnitude = 1;
+        for (int i = 0; i < list.length; ++i) {
+          list[i] = 20 * _log10(list[i] / referenceMagnitude);
         }
         return list;
       case none:
         return list;
     }
   }
+
+  double _log10(double x) => log(x) / ln10;
 }
 
 abstract class MagnitudesChromaCalculator extends STFTCalculator
@@ -234,7 +242,7 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
 }
 
 ///再割り当て法を元にクロマを算出する
-///時間軸方向の再割り当てはオプション。リアルタイム処理の場合、先読みが必要になるのでしない前提
+///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
 class ReassignmentChromaCalculator extends STFTCalculator
     with Measure
     implements ChromaCalculable {
@@ -243,7 +251,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
     super.chunkStride,
     this.lowest = MusicalScale.C1,
     this.perOctave = 7,
-    this.withTimeReassignment = false,
+    this.scalar = MagnitudeScalar.none,
   }) : super.hanning() {
     final windowD = Float64List.fromList(window
         .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
@@ -257,7 +265,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
   final MusicalScale lowest;
   final int perOctave;
-  final bool withTimeReassignment;
+  final MagnitudeScalar scalar;
   late final STFT stftD;
   late final STFT stftT;
 
@@ -312,7 +320,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
 
     void sCallback(Float64x2List freq) {
       final f = freq.discardConjugates();
-      magnitudes.add(f.magnitudes());
+      magnitudes.add(scalar(f.magnitudes()));
       s.add(f.sublist(0));
     }
 
@@ -350,8 +358,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
         points.add(Point(
           x: i * dt,
           // x: i * dt + complexDivision(sT[i][j], s[i][j]).x / sr,
-          y: j * df -
-              complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / math.pi),
+          y: j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi),
           weight: magnitudes[i][j],
         ));
       }

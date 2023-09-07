@@ -2,6 +2,7 @@ import 'package:chord/config.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loader/audio.dart';
+import 'package:chord/utils/measure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -139,7 +140,7 @@ void main() {
       ).first.normalized.toString());
 
       debugPrint(filter(
-        factory8192_0.bigRange.combFilterLogScaling(data),
+        factory8192_0.bigRange.combFilterWith(scalar: MagnitudeScalar.ln)(data),
       ).first.normalized.toString());
     });
 
@@ -164,13 +165,21 @@ void main() {
 
     final ccd = factory8192_0.filter.interval(3.seconds);
 
-    final chromas = [
-      ccd(factory8192_0.guitarRange.combFilter(data)).first.normalized,
-      ccd(factory8192_0.guitarRange.reassignment(data)).first.normalized,
+    Measure.logger = null;
+
+    final calculator = [
+      factory8192_0.guitarRange.combFilter,
+      factory8192_0.guitarRange.combFilterWith(
+        context: const CombFilterContext(stdDevCoefficient: 1 / 96),
+      ),
+      factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.ln),
+      // factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
+      factory8192_0.guitarRange.reassignment,
+      factory8192_0.guitarRange.reassignmentWith(scalar: MagnitudeScalar.ln),
     ];
 
-    for (final value in chromas) {
-      debugPrint(value.toString());
+    for (final c in calculator) {
+      debugPrint(ccd(c(data)).first.normalized.toString());
     }
   });
 }
