@@ -1,10 +1,27 @@
 import 'package:get/get.dart';
 
+import '../config.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 
 typedef Filters = List<ChromaListFilter>;
+
+final factory2048_1024 = EstimatorFactory(
+  const EstimatorFactoryContext(
+    chunkSize: 2048,
+    chunkStride: 1024,
+    sampleRate: Config.sampleRate,
+  ),
+);
+
+final factory8192_0 = EstimatorFactory(
+  const EstimatorFactoryContext(
+    chunkSize: 8192,
+    chunkStride: 0,
+    sampleRate: Config.sampleRate,
+  ),
+);
 
 final class EstimatorFactoryContext {
   const EstimatorFactoryContext({

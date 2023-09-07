@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chord_selector.dart';
@@ -18,21 +19,7 @@ typedef _CorrectChords = Map<_SongID, ChordProgression>;
 typedef _SongID = String;
 typedef _SoundSource = String;
 
-const sampleRate = 22050;
-
 Future<void> main() async {
-  final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
-    chunkSize: 2048,
-    chunkStride: 1024,
-    sampleRate: sampleRate,
-  ));
-
-  final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
-    chunkSize: 8192,
-    chunkStride: 0,
-    sampleRate: sampleRate,
-  ));
-
   final contexts = await _getEvaluatorContexts(
     [
       'assets/evals/Halion_CleanGuitarVX',
@@ -330,7 +317,7 @@ Future<Iterable<_EvaluatorContext>> _getEvaluatorContexts(
         data: Map.fromIterables(
           value.map((e) => e.soundSource),
           await Future.wait(value.map(
-            (e) => e.loader.load(duration: 83, sampleRate: sampleRate),
+            (e) => e.loader.load(duration: 83, sampleRate: Config.sampleRate),
           )),
         ),
         corrects: corrects[songId]!,

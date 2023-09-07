@@ -1,8 +1,6 @@
 import 'package:chord/config.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
-import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loader/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,85 +127,50 @@ void main() {
     });
 
     test('log vs normal', () async {
-      final factory = EstimatorFactory(const EstimatorFactoryContext(
-        chunkSize: 8192,
-        chunkStride: 0,
-        sampleRate: 22050,
-      ));
-
       final data = await AudioLoader.sample.load(
         duration: 4,
-        sampleRate: factory.context.sampleRate,
+        sampleRate: Config.sampleRate,
       );
 
-      final filter = factory.filter.interval(4.seconds);
+      final filter = factory8192_0.filter.interval(4.seconds);
 
       debugPrint(filter(
-        CombFilterChromaCalculator(
-          chunkSize: factory.context.chunkSize,
-          chunkStride: factory.context.chunkStride,
-        )(data),
+        factory8192_0.bigRange.combFilter(data),
       ).first.normalized.toString());
 
       debugPrint(filter(
-        CombFilterChromaCalculator(
-          chunkSize: factory.context.chunkSize,
-          chunkStride: factory.context.chunkStride,
-          scalar: MagnitudeScalar.log,
-        )(data),
+        factory8192_0.bigRange.combFilterLogScaling(data),
       ).first.normalized.toString());
     });
 
     test('guitar tuning', () async {
-      const chunkSize = 8192;
-      const chunkStride = 0;
-      final c = CombFilterChromaCalculator(
-        chunkSize: chunkSize,
-        chunkStride: chunkStride,
-        lowest: MusicalScale.E2,
-        perOctave: 6,
-      );
-      final ccd = IntervalChordChangeDetector(
-          interval: 3.seconds, dt: chunkSize / Config.sampleRate);
-
       const loader =
           SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
       // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
       final data =
           await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = ccd(c(data));
+
+      final ccd = factory8192_0.filter.interval(3.seconds);
+      final chromas = ccd(factory8192_0.guitarRange.combFilter(data));
 
       expect(chromas[0], isNotNull);
     });
   });
 
-  test('compare comb vs reassignment', () async {
-    const chunkSize = 8192;
-    const chunkStride = 0;
-    // const chunkSize = Config.chunkSize;
-    // const chunkStride = Config.chunkStride;
-
-    final cc1 = CombFilterChromaCalculator(
-        chunkSize: chunkSize,
-        chunkStride: chunkStride,
-        lowest: MusicalScale.E2,
-        perOctave: 6);
-    final cc2 = ReassignmentChromaCalculator(
-        chunkSize: chunkSize,
-        chunkStride: chunkStride,
-        lowest: MusicalScale.E2,
-        perOctave: 6);
-
-    final ccd = IntervalChordChangeDetector(
-        interval: 3.seconds, dt: chunkSize / Config.sampleRate);
-
-    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
+  test('compare chromas', () async {
+    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-    final chroma1 = ccd(cc1(data)).first.normalized;
-    final chroma2 = ccd(cc2(data)).first.normalized;
 
-    expect(chroma1, isNotNull);
-    expect(chroma2, isNotNull);
+    final ccd = factory8192_0.filter.interval(3.seconds);
+
+    final chromas = [
+      ccd(factory8192_0.guitarRange.combFilter(data)).first.normalized,
+      ccd(factory8192_0.guitarRange.reassignment(data)).first.normalized,
+    ];
+
+    for (final value in chromas) {
+      debugPrint(value.toString());
+    }
   });
 }

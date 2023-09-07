@@ -48,7 +48,7 @@ class Chroma extends Iterable<double> {
   late final Iterable<int> maxSortedIndexes =
       _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
-  late final normalized = _values.map((e) => e / l2norm).toList();
+  late final normalized = Chroma(_values.map((e) => e / l2norm).toList());
   late final l2norm = math.sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
