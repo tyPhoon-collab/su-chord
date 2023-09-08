@@ -215,23 +215,18 @@ class ChordBase {
   factory ChordBase.parse(String chord) {
     //TODO 全てに対応できるようにする
     final exp = RegExp(
-        r'^((?:m|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
+        r'^((?:m|dim7|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
     final match = exp.firstMatch(chord);
 
     if (match == null) throw ArgumentError('invalid in ChordBase: $chord');
 
     try {
-      var type = ChordType.parse(
+      final type = ChordType.parse(
         match.group(1)!.isNotEmpty ? match.group(1)! : match.group(3)!,
       );
-      var qualities = ChordQualities.parse(
+      final qualities = ChordQualities.parse(
         match.group(2)! + match.group(4)!,
       );
-
-      if (type == ChordType.diminish && qualities == ChordQualities.seventh) {
-        type = ChordType.diminish7;
-        qualities = ChordQualities.empty;
-      }
 
       return ChordBase(type: type, qualities: qualities);
     } catch (e) {
