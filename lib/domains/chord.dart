@@ -212,12 +212,45 @@ class ChordBase {
     ChordQualities? qualities,
   }) : qualities = qualities ?? ChordQualities.empty;
 
+  factory ChordBase.parse(String chord) {
+    //TODO 全てに対応できるようにする
+    final exp = RegExp(
+        r'^((?:m|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
+    final match = exp.firstMatch(chord);
+
+    if (match == null) throw ArgumentError('invalid in ChordBase: $chord');
+
+    try {
+      var type = ChordType.parse(
+        match.group(1)!.isNotEmpty ? match.group(1)! : match.group(3)!,
+      );
+      var qualities = ChordQualities.parse(
+        match.group(2)! + match.group(4)!,
+      );
+
+      if (type == ChordType.diminish && qualities == ChordQualities.seventh) {
+        type = ChordType.diminish7;
+        qualities = ChordQualities.empty;
+      }
+
+      return ChordBase(type: type, qualities: qualities);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   final ChordType type;
   final ChordQualities qualities;
 
   bool baseEqual(ChordBase other) {
     return type == other.type && qualities == other.qualities;
   }
+
+  Chord toChord(Note root) =>
+      Chord.fromType(type: type, root: root, qualities: qualities);
+
+  DegreeChord toDegreeChord(DegreeName degreeName) =>
+      DegreeChord(degreeName, type: type, qualities: qualities);
 
   @override
   String toString() {
@@ -244,19 +277,14 @@ class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
   DegreeChord(this.degreeName, {required super.type, super.qualities});
 
   factory DegreeChord.parse(String chord) {
-    //TODO Chordと同じようにする
-    final exp = RegExp(
-        r'^([#b]?(?:I|II|III|IV|V|VI|VII))((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
+    final exp = RegExp(r'^([#b]?(?:VII|VI|V|IV|I{0,3}|))(.*?)$');
     final match = exp.firstMatch(chord);
 
-    if (match == null) throw ArgumentError('invalid: $chord');
+    if (match == null) throw ArgumentError('invalid DegreeChord: $chord');
 
     try {
       final degreeName = DegreeName.parse(match.group(1)!);
-      final type = ChordType.parse(match.group(2) ?? '');
-      final qualities = ChordQualities.parse(match.group(3) ?? '');
-
-      return DegreeChord(degreeName, type: type, qualities: qualities);
+      return ChordBase.parse(match.group(2)!).toDegreeChord(degreeName);
     } catch (e) {
       rethrow;
     }
@@ -287,8 +315,11 @@ class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
     );
   }
 
-  Chord toChord(Note key) =>
-      Chord.fromType(type: type, root: key.transpose(degreeName.index));
+  Chord toChordFromKey(Note key) => Chord.fromType(
+        type: type,
+        root: key.transpose(degreeName.index),
+        qualities: qualities,
+      );
 }
 
 @immutable
@@ -315,29 +346,14 @@ class Chord extends ChordBase {
         ];
 
   factory Chord.parse(String chord) {
-    //TODO 全てに対応できるようにする
-    final exp = RegExp(
-        // r'^([A-G][#b]?)((?:m|dim|dim7|aug|sus4|sus2|m7b5)?)((?:6|7|M7|add9)?)$');
-        r'^([A-G][#b]?)((?:m|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
+    final exp = RegExp(r'^([A-G][#b]?)(.*?)$');
     final match = exp.firstMatch(chord);
 
-    if (match == null) throw ArgumentError('invalid: $chord');
+    if (match == null) throw ArgumentError('invalid in Chord: $chord');
 
     try {
       final root = Note.parse(match.group(1)!);
-      var type = ChordType.parse(
-        match.group(2)!.isNotEmpty ? match.group(2)! : match.group(4)!,
-      );
-      var qualities = ChordQualities.parse(
-        match.group(3)! + match.group(5)!,
-      );
-
-      if (type == ChordType.diminish && qualities == ChordQualities.seventh) {
-        type = ChordType.diminish7;
-        qualities = ChordQualities.empty;
-      }
-
-      return Chord.fromType(type: type, root: root, qualities: qualities);
+      return ChordBase.parse(match.group(2)!).toChord(root);
     } catch (e) {
       rethrow;
     }

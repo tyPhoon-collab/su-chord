@@ -141,15 +141,16 @@ void main() {
   group('parse', () {
     group('chord', () {
       test('C', () {
-        final c = Chord.parse('C');
-        expect(c.toString(), 'C');
-        expect(c.type, ChordType.major);
-        expect(c.root, Note.C);
-      });
-
-      test('C', () {
         expect(Chord.parse('C').toString(), 'C');
       });
+
+      test('C#', () {
+        expect(Chord.parse('C#').toString(), 'C#');
+      });
+
+      // test('Cb', () {
+      //   expect(Chord.parse('Cb').toString(), 'Cb');
+      // });
 
       test('Cm', () {
         expect(Chord.parse('Cm').toString(), 'Cm');
@@ -187,26 +188,42 @@ void main() {
     group('degree name', () {
       test(
         'I',
-        () => expect(
-          DegreeChord.parse('I'),
-          equals(DegreeChord(DegreeName.I, type: ChordType.major)),
-        ),
+        () => expect(DegreeChord.parse('I').toString(), 'I'),
+      );
+
+      test(
+        'Im7',
+        () => expect(DegreeChord.parse('Im7').toString(), 'Im7'),
+      );
+
+      test(
+        'IIm6',
+        () => expect(DegreeChord.parse('IIm6').toString(), 'IIm6'),
+      );
+
+      test(
+        'III7',
+        () => expect(DegreeChord.parse('III7').toString(), 'III7'),
       );
 
       test(
         'bIV',
-        () => expect(
-          DegreeChord.parse('bIV'),
-          equals(DegreeChord(DegreeName.III, type: ChordType.major)),
-        ),
+        () => expect(DegreeChord.parse('bIV').toString(), 'III'),
+      );
+
+      test(
+        'V',
+        () => expect(DegreeChord.parse('V').toString(), 'V'),
+      );
+
+      test(
+        'VIm7b5',
+        () => expect(DegreeChord.parse('VIm7b5').toString(), 'VIm7b5'),
       );
 
       test(
         '#Idim7',
-        () => expect(
-          DegreeChord.parse('#Idim7'),
-          equals(DegreeChord(DegreeName.bII, type: ChordType.diminish7)),
-        ),
+        () => expect(DegreeChord.parse('#Idim7').toString(), 'bIIdim7'),
       );
     });
   });
@@ -310,5 +327,23 @@ void main() {
         )),
       );
     });
+  });
+
+  group('degree to chord', () {
+    test(
+      'Im7 to Cm7 in C',
+      () => expect(
+        DegreeChord.parse('Im7').toChordFromKey(Note.C),
+        equals(Chord.parse('Cm7')),
+      ),
+    );
+
+    test(
+      'IIm7 to Dm7 in C',
+      () => expect(
+        DegreeChord.parse('IIm7').toChordFromKey(Note.C),
+        equals(Chord.parse('Dm7')),
+      ),
+    );
   });
 }

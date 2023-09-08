@@ -32,8 +32,8 @@ class Config {
     'm7b5',
     '7sus4',
     'dim7',
-    // '6',
-    // 'm6',
+    '6',
+    'm6',
     'add9',
   ];
   static final detectableChords = Set.unmodifiable([

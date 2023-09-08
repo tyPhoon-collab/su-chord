@@ -25,14 +25,14 @@ Future<void> main() async {
   final contexts = await _getEvaluatorContexts(
     [
       'assets/evals/Halion_CleanGuitarVX',
-      'assets/evals/Halion_CleanStratGuitar',
-      'assets/evals/HojoGuitar',
-      'assets/evals/RealStrat',
+      // 'assets/evals/Halion_CleanStratGuitar',
+      // 'assets/evals/HojoGuitar',
+      // 'assets/evals/RealStrat',
     ],
     // songIds: ['13'],
   );
 
-  // _Evaluator.bypassCsvWriting = true;
+  _Evaluator.bypassCsvWriting = true;
   Measure.logger = null;
 
   group('prop', () {

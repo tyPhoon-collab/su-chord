@@ -48,19 +48,23 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 
     final first = chords.firstOrNull;
 
-    if (chords.length <= 1 || progression.isEmpty) {
-      return first;
-    }
+    if (chords.length <= 1) return first;
+
+    //DBの最長進行でカットする
     final len = progression.length;
     if (len > _maxProgressionLength) {
       progression = progression.cut(len - _maxProgressionLength);
     }
+
     final possibleChords = _select(progression);
     return possibleChords.firstWhereOrNull((e) => chords.contains(e)) ?? first;
   }
 
+  ///再帰的にコード進行を辿ってDBを参照する
+  ///空のコード進行の場合はDBの最初のコードの全てが返される
+  ///DartのSetは順番を持つため、再帰の順番に気をつければ、優先度は長い進行に適合するコードになる
   Set<Chord> _select(ChordProgression progression) {
-    if (progression.isEmpty) return const {};
+    if (progression.isEmpty) return _trees.keys.toSet();
 
     final root = _trees[progression.first];
     final withoutFirstProgression = progression.cut(1);

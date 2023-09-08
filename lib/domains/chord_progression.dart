@@ -43,7 +43,7 @@ class DegreeChordProgression extends ProgressionBase<DegreeChord>
       DegreeChordProgression(_values.map((e) => e?.transpose(degree)).toList());
 
   ChordProgression toChords(Note key) =>
-      ChordProgression(_values.map((e) => e?.toChord(key)).toList());
+      ChordProgression(_values.map((e) => e?.toChordFromKey(key)).toList());
 }
 
 class ChordProgression extends ProgressionBase<Chord> {

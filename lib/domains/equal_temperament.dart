@@ -29,9 +29,7 @@ class MusicalScale implements Transposable<MusicalScale> {
 
     final newNote = note.transpose(degree);
     var newPitch = pitch + degree ~/ 12;
-    if (note
-        .degreeTo(newNote)
-        .isNegative) {
+    if (note.degreeTo(newNote).isNegative) {
       newPitch += 1;
     }
     return MusicalScale(newNote, newPitch);
@@ -104,7 +102,7 @@ enum DegreeName implements Transposable<DegreeName> {
     for (final degreeName in values) {
       if (degreeName.label == label) return degreeName;
     }
-    throw ArgumentError();
+    throw ArgumentError('invalid Degree Name: $label');
   }
 
   factory DegreeName.fromIndex(int index) {
@@ -153,7 +151,6 @@ enum Note implements Transposable<Note> {
   final NaturalNote naturalNote;
   final Accidental accidental;
 
-
   @override
   String toString() => naturalNote.name + accidental.label;
 
@@ -186,7 +183,7 @@ Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
   final hz = lowest.toHz();
   final hzList = List.generate(
     lowest.degreeTo(highest) + 2,
-        (i) => hz * pow(MusicalScale.ratio, i - 1),
+    (i) => hz * pow(MusicalScale.ratio, i - 1),
   );
 
   final bins = <double>[];
