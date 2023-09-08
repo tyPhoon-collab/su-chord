@@ -1,4 +1,4 @@
-"pattern matching + reassignment, chunkSize: 2048, chunkStride: 1024, sampleRate: 22050"
+"matching + reassignment, chunkSize: 2048, chunkStride: 1024, sampleRate: 22050"
 1_correct,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
 1_Halion_CleanGuitarVX,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
 1_Halion_CleanStratGuitar,GM7,Em,Bm,C,Am7,D7,GM7,Em,Bm,C,Am7,D7,C,D,GM7,C,Am7,D7,G,G7

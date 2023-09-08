@@ -10,6 +10,7 @@ import 'package:chord/domains/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/loader/audio.dart';
 import 'package:chord/utils/loader/csv.dart';
+import 'package:chord/utils/measure.dart';
 import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -32,13 +33,12 @@ Future<void> main() async {
   );
 
   // _Evaluator.bypassCsvWriting = true;
+  Measure.logger = null;
 
   group('prop', () {
     test('main', () async {
       _Evaluator(
-        header: [
-          'pattern matching + reassignment, ${factory2048_1024.context}'
-        ],
+        header: ['matching + reassignment, ${factory2048_1024.context}'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: factory2048_1024.guitarRange.reassignment,
           filters: factory2048_1024.filter.eval,
@@ -49,11 +49,11 @@ Future<void> main() async {
   });
 
   group('conv', () {
-    test('search tree + comb', () async {
+    test('search + comb', () async {
       const ratio = 0.3;
 
       _Evaluator(
-        header: ['search tree + comb, ratio: $ratio, ${factory8192_0.context}'],
+        header: ['search + comb, ratio: $ratio, ${factory8192_0.context}'],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
@@ -62,13 +62,11 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb.csv');
     });
 
-    test('search tree + log comb', () async {
+    test('search + log comb', () async {
       const ratio = 0.5;
 
       _Evaluator(
-        header: [
-          'search tree + log comb, ratio: $ratio, ${factory8192_0.context}'
-        ],
+        header: ['search + log comb, ratio: $ratio, ${factory8192_0.context}'],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange
               .combFilterWith(scalar: MagnitudeScalar.ln),
@@ -78,14 +76,12 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log.csv');
     });
 
-    test('search tree + comb + db', () async {
+    test('search + comb + db', () async {
       final csv = await CSVLoader.db.load();
       const ratio = 0.3;
 
       _Evaluator(
-        header: [
-          'search tree + comb + db, ratio: $ratio, ${factory8192_0.context}'
-        ],
+        header: ['search + comb + db, ratio: $ratio, ${factory8192_0.context}'],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
@@ -95,16 +91,17 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb_db.csv');
     });
 
-    test('search tree + log comb + db', () async {
+    test('search + log comb + db', () async {
       final csv = await CSVLoader.db.load();
       const ratio = 0.5;
 
       _Evaluator(
         header: [
-          'search tree + log comb + db, ratio: $ratio, ${factory8192_0.context}'
+          'search + log comb + db, ratio: $ratio, ${factory8192_0.context}'
         ],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          chromaCalculable: factory8192_0.guitarRange
+              .combFilterWith(scalar: MagnitudeScalar.ln),
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
           chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
@@ -114,9 +111,9 @@ Future<void> main() async {
   });
 
   group('control experiment', () {
-    test('pattern matching + comb filter', () {
+    test('matching + comb filter', () {
       _Evaluator(
-        header: ['pattern matching + comb filter, ${factory8192_0.context}'],
+        header: ['matching + comb filter, ${factory8192_0.context}'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
@@ -124,11 +121,9 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb.csv');
     });
 
-    test('pattern matching + log comb filter', () {
+    test('matching + log comb filter', () {
       _Evaluator(
-        header: [
-          'pattern matching + log comb filter, ${factory8192_0.context}'
-        ],
+        header: ['matching + log comb filter, ${factory8192_0.context}'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: factory8192_0.guitarRange
               .combFilterWith(scalar: MagnitudeScalar.ln),
@@ -137,11 +132,11 @@ Future<void> main() async {
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb_log.csv');
     });
 
-    test('search tree + reassignment', () {
+    test('search + reassignment', () {
       const ratio = 0.5;
       _Evaluator(
         header: [
-          'search tree + reassignment, ratio: $ratio, ${factory8192_0.context}'
+          'search + reassignment, ratio: $ratio, ${factory8192_0.context}'
         ],
         estimator: SearchTreeChordEstimator(
           chromaCalculable: factory8192_0.guitarRange.reassignment,
@@ -152,7 +147,7 @@ Future<void> main() async {
     });
   });
 
-  //service.dartの推定器をテストする
+  //service.dartに登録されている推定器のテスト
   group('riverpods front end estimators', () {
     final container = ProviderContainer();
     final estimators = container.read(estimatorsProvider);
@@ -209,6 +204,9 @@ class _LoaderContext {
   late final _SoundSource soundSource;
 }
 
+///評価する際の必要な情報を詰め込んだクラス
+///正解ラベルに対して、音源識別子と音源がkey-valueになったMapを持つ
+///そのため、正解ラベルと音源は1対多の関係とする
 class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   const _EvaluatorContext({
     required this.key,

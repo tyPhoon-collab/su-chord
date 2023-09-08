@@ -1,4 +1,4 @@
-"pattern matching + comb filter, chunkSize: 8192, chunkStride: 0, sampleRate: 22050"
+"matching + comb filter, chunkSize: 8192, chunkStride: 0, sampleRate: 22050"
 1_correct,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
 1_Halion_CleanGuitarVX,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
 1_Halion_CleanStratGuitar,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
@@ -6,12 +6,12 @@
 1_RealStrat,G,Em,Bm,C,Am7,D7,G,Em,Bm,C,Am7,D7,C,D,G,C,Am7,D7,G,G7
 2_correct,D7,G,F#m7b5,B7,Em7,EmM7,C7,B7,Em,Bm7b5,E7,Am7,D7,B7,Em,Am7,D7,G,F#m7b5,B7
 2_Halion_CleanGuitarVX,D7,G,F#m7,B7,Em7,Em,C7,B7,Em,Bm7,E,Am7,D7,B7,Em,Am7,D7,G,F#m7,B7
-2_Halion_CleanStratGuitar,D7,G,F#m7b5,B,Em7,EmM7,C7,B,Em,Dm6,E7,Am7,D7,B,Em,Am7,D7,G,F#m7b5,B
+2_Halion_CleanStratGuitar,D7,G,F#m7b5,B,Em7,EmM7,C7,B,Em,Bm7b5,E7,Am7,D7,B,Em,Am7,D7,G,F#m7b5,B
 2_HojoGuitar,D7,G,F#m7b5,B7,Em7,EmM7,C7,B7,Em,Bm7,E7,Am7,D7,B7,Em,Am7,D7,G,F#m7b5,B7
 2_RealStrat,D7,G,F#m7b5,B7,Em7,EmM7,C7,B7,Em,Bm,E7,Am7,D7,B7,Em,Am7,D7,GM7,F#m7b5,B7
 3_correct,F,C,Dm,Bm7b5,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,F,C,Dm,Bm7b5,E
 3_Halion_CleanGuitarVX,FM7,C,Dm,Bm7,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,FM7,C,Dm,Bm7,E
-3_Halion_CleanStratGuitar,F,C,Dm,Dm6,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,F,C,Dm,Dm6,E
+3_Halion_CleanStratGuitar,F,C,Dm,Bm7b5,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,F,C,Dm,Bm7b5,E
 3_HojoGuitar,F,C,Dm,Bm7,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,F,C,Dm,Bm7,E
 3_RealStrat,FM7,C,Dm,Bm,E,Am7,D7,Dm7,G7,Gm7,C7,FM7,D,E,Am,F,C,Dm,Bm,E
 4_correct,F#m7,B7,Esus4,E,A,C#m7,F#m7,B7,Esus4,E,A,E,F#m7,E,A,F#m7,A,D,G7,A
@@ -20,10 +20,10 @@
 4_HojoGuitar,F#m7,B7,Esus4,E,A,C#m7,F#m7,B7,Esus4,E,A,E,F#m7,E,A,F#m7,A,D,G7,A
 4_RealStrat,F#m7,B7,Bsus4,E,A,C#m7,F#m7,B7,Bsus4,E,A,E,F#m7,E,A,F#m7,A,D,GM7,A
 5_correct,D#,F,A#,Gm,Am7b5,D7,Gm,Am7,Gm,D#,F,A#,Gm,Am7b5,D7,G,C,D7,Bm7,Em
-5_Halion_CleanGuitarVX,D#,FM7,A#,Gm,Cm6,D7,Gm,Am7,Gm,D#,FM7,A#,Gm,Cm6,D7,G,C,D7,Bm7,Em
-5_Halion_CleanStratGuitar,D#,F,A#,Gm,Cm6,D7,Gm,Am7,Gm,D#,F,A#,Gm,Cm6,D7,G,C,D7,Bm,Em
-5_HojoGuitar,D#,F,A#,Gm,Cm6,D7,Gm,Am7,Gm,D#,F,A#,Gm,Cm6,D7,G,C,D7,Bm7,Em
-5_RealStrat,D#,F,A#,Gm,Cm6,D7,Gm,Am7,Gm,D#,F,A#,Gm,Cm6,D7,G,C,D7,Bm7,Em
+5_Halion_CleanGuitarVX,D#,FM7,A#,Gm,Am7b5,D7,Gm,Am7,Gm,D#,FM7,A#,Gm,Am7b5,D7,G,C,D7,Bm7,Em
+5_Halion_CleanStratGuitar,D#,F,A#,Gm,Am7b5,D7,Gm,Am7,Gm,D#,F,A#,Gm,Am7b5,D7,G,C,D7,Bm,Em
+5_HojoGuitar,D#,F,A#,Gm,Am7b5,D7,Gm,Am7,Gm,D#,F,A#,Gm,Am7b5,D7,G,C,D7,Bm7,Em
+5_RealStrat,D#,F,A#,Gm,Am7b5,D7,Gm,Am7,Gm,D#,F,A#,Gm,Am7b5,D7,G,C,D7,Bm7,Em
 6_correct,E,C#7,F#m,F#m7,B7,Edim,E,Edim,F#m7,B7,F#m7,B7,E,AM7,B7,Am,B7,E,F#m7,Bdim
 6_Halion_CleanGuitarVX,E,C#7,F#m,F#m7,B7,Edim,E,Edim,F#m7,B7,F#m7,B7,E,AM7,B7,Am,B7,E,F#m7,Bdim
 6_Halion_CleanStratGuitar,E,C#7,F#m,F#m7,B,Edim,E,Edim,F#m7,B,F#m7,B,E,AM7,B,Am,B,E,F#m7,Bdim
