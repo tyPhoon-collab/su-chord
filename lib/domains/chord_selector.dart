@@ -7,12 +7,12 @@ import 'chord_progression.dart';
 import 'equal_temperament.dart';
 
 abstract interface class ChordSelectable {
-  Chord? select(Iterable<Chord> chords, ChordProgression progression);
+  Chord? call(Iterable<Chord> chords, ChordProgression progression);
 }
 
 class FirstChordSelector implements ChordSelectable {
   @override
-  Chord? select(Iterable<Chord> chords, ChordProgression progression) {
+  Chord? call(Iterable<Chord> chords, ChordProgression progression) {
     return chords.firstOrNull;
   }
 }
@@ -42,7 +42,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       progressions.fold(0, (len, e) => len < e.length ? e.length : len);
 
   @override
-  Chord? select(Iterable<Chord> chords, ChordProgression progression) {
+  Chord? call(Iterable<Chord> chords, ChordProgression progression) {
     //仮でnull（推定できていないもの）は落として考える
     progression = ChordProgression(progression.nonNulls.toList());
 

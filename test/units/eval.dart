@@ -57,6 +57,25 @@ Future<void> main() async {
       ).evaluate(contexts,
           path: 'test/outputs/pattern_matching_reassignment.csv');
     });
+
+    group('scalar', () {
+      test('thirdHarmonic', () async {
+        const factor = 0.2;
+
+        _Evaluator(
+          header: [
+            'matching + reassignment + db + scalar, ${factory2048_1024.context}'
+          ],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: factory2048_1024.guitarRange.reassignment,
+            filters: factory2048_1024.filter.eval,
+            chordSelectable: await factory2048_1024.selector.db,
+            scalar: TemplateChromaScalar.thirdHarmonic(factor),
+          ),
+        ).evaluate(contexts,
+            path: 'test/outputs/pattern_matching_reassignment_db_scalar.csv');
+      });
+    });
   });
 
   group('conv', () {
@@ -128,6 +147,19 @@ Future<void> main() async {
           filters: factory8192_0.filter.eval,
         ),
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb.csv');
+    });
+
+    test('matching + comb filter + scalar', () async {
+      _Evaluator(
+        header: ['matching + comb filter, ${factory8192_0.context}'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: factory8192_0.guitarRange.combFilter,
+          filters: factory8192_0.filter.eval,
+          chordSelectable: await factory8192_0.selector.db,
+          scalar: TemplateChromaScalar.thirdHarmonic(0.1),
+        ),
+      ).evaluate(contexts,
+          path: 'test/outputs/pattern_matching_comb_scalar.csv');
     });
 
     test('matching + log comb filter', () {
@@ -271,7 +303,7 @@ class _Evaluator {
 
   void _evaluate(Iterable<_EvaluatorContext> contexts) {
     final correctRate = contexts.map(_evaluateOne).sum / contexts.length;
-    debugPrint('corrects: ${(correctRate * 100).toStringAsFixed(3)}%');
+    debugPrint('correct rate: ${(correctRate * 100).toStringAsFixed(3)}%');
   }
 
   double _evaluateOne(_EvaluatorContext context) {
