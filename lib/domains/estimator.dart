@@ -73,24 +73,67 @@ abstract class ChromaChordEstimator
   }
 }
 
+enum TemplatePCPScalarType {
+  ///３倍音を操作する
+  ///３倍音は3fの整数倍倍音で、平均律では12+4度が該当する
+  thirdHarmonic,
+  none;
+}
+
+class TemplatePCPScalar {
+  const TemplatePCPScalar({required this.type, required this.factor});
+
+  factory TemplatePCPScalar.thirdHarmonic(double factor) => TemplatePCPScalar(
+        type: TemplatePCPScalarType.thirdHarmonic,
+        factor: factor,
+      );
+
+  static const none = TemplatePCPScalar(
+    type: TemplatePCPScalarType.none,
+    factor: 0,
+  );
+
+  final TemplatePCPScalarType type;
+  final double factor;
+
+  PCP call(PCP pcp) {
+    switch (type) {
+      case TemplatePCPScalarType.thirdHarmonic:
+        return ((pcp * factor).shift(16) + pcp).toPCP();
+      case TemplatePCPScalarType.none:
+        return pcp;
+    }
+  }
+}
+
 class PatternMatchingChordEstimator extends ChromaChordEstimator {
   PatternMatchingChordEstimator({
     required super.chromaCalculable,
+    ChordSelectable? chordSelectable,
     super.filters,
+    this.scalar = TemplatePCPScalar.none,
     Set<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
+        chordSelectable = chordSelectable ?? FirstChordSelector(),
         templates = templates ?? Config.detectableChords;
 
   final Set<Chord> templates;
+  final TemplatePCPScalar scalar;
+
+  final ChordSelectable chordSelectable;
+  late final Map<Chroma, List<Chord>> templateChromas =
+      groupBy(templates, (p0) => scalar(p0.pcp));
 
   @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
-    return measure(
-      'progress calc',
-      () => ChordProgression(chroma
-          .map((e) => maxBy(templates, (t) => e.cosineSimilarity(t.pcp))!)
-          .toList()),
-    );
+    final progression = ChordProgression.empty();
+    for (final c in chroma) {
+      final chords = maxBy(
+          templateChromas.entries, (entry) => c.cosineSimilarity(entry.key))!;
+      final chord = chordSelectable.select(chords.value, progression);
+      progression.add(chord);
+    }
+    return progression;
   }
 }
 

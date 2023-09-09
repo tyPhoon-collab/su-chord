@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
-import 'package:chord/domains/chord_selector.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
@@ -37,6 +36,18 @@ Future<void> main() async {
 
   group('prop', () {
     test('main', () async {
+      _Evaluator(
+        header: ['matching + reassignment + db, ${factory2048_1024.context}'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: factory2048_1024.guitarRange.reassignment,
+          filters: factory2048_1024.filter.eval,
+          chordSelectable: await factory2048_1024.selector.db,
+        ),
+      ).evaluate(contexts,
+          path: 'test/outputs/pattern_matching_reassignment_db.csv');
+    });
+
+    test('sub', () async {
       _Evaluator(
         header: ['matching + reassignment, ${factory2048_1024.context}'],
         estimator: PatternMatchingChordEstimator(
@@ -77,7 +88,6 @@ Future<void> main() async {
     });
 
     test('search + comb + db', () async {
-      final csv = await CSVLoader.db.load();
       const ratio = 0.3;
 
       _Evaluator(
@@ -86,13 +96,12 @@ Future<void> main() async {
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
-          chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
+          chordSelectable: await factory8192_0.selector.db,
         ),
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb_db.csv');
     });
 
     test('search + log comb + db', () async {
-      final csv = await CSVLoader.db.load();
       const ratio = 0.5;
 
       _Evaluator(
@@ -104,7 +113,7 @@ Future<void> main() async {
               .combFilterWith(scalar: MagnitudeScalar.ln),
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
-          chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
+          chordSelectable: await factory8192_0.selector.db,
         ),
       ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log_db.csv');
     });

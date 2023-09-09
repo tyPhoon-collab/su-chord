@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 
 import '../config.dart';
+import '../utils/loader/csv.dart';
+import 'chord_selector.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
@@ -57,6 +59,8 @@ final class EstimatorFactory {
     lowest: MusicalScale.C1,
     perOctave: 7,
   );
+
+  late final selector = ChordSelectorFactory();
 }
 
 final class ChromaCalculatorFactory {
@@ -74,7 +78,7 @@ final class ChromaCalculatorFactory {
   ChromaCalculable get combFilter => combFilterWith();
 
   ChromaCalculable combFilterWith(
-          {CombFilterContext? context, MagnitudeScalar? scalar}) =>
+      {CombFilterContext? context, MagnitudeScalar? scalar}) =>
       CombFilterChromaCalculator(
         chunkSize: _chunkSize,
         chunkStride: _chunkStride,
@@ -103,11 +107,23 @@ final class FilterFactory {
 
   Filters get eval => [interval(4.seconds)];
 
-  Filters get realtime => [
+  Filters get realtime =>
+      [
         ThresholdFilter(threshold: 10),
         TriadChordChangeDetector(),
       ];
 
   ChromaListFilter interval(Duration duration) =>
       IntervalChordChangeDetector(interval: duration, dt: context.dt);
+}
+
+final class ChordSelectorFactory {
+  CSV? _csv;
+
+  ChordSelectable get first => FirstChordSelector();
+
+  Future<ChordSelectable> get db async {
+    _csv ??= await CSVLoader.db.load();
+    return ChordProgressionDBChordSelector.fromCSV(_csv!);
+  }
 }
