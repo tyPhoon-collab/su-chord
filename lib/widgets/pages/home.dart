@@ -99,7 +99,7 @@ class _EstimatorPageState extends State<EstimatorPage> {
                             if (_estimator is ChromaChordEstimator)
                               Chromagram(
                                 chromas: (_estimator as ChromaChordEstimator)
-                                    .reducedChromas,
+                                    .filteredChromas,
                               ),
                             if (_estimator is Debuggable)
                               for (final text

@@ -34,9 +34,7 @@ abstract class ChromaChordEstimator
   final Iterable<ChromaListFilter> filters;
 
   List<Chroma> chromas = [];
-
-  //Debugs
-  List<Chroma> reducedChromas = [];
+  List<Chroma> filteredChromas = [];
 
   @override
   ChordProgression estimate(AudioData data, [bool flush = true]) {
@@ -46,12 +44,12 @@ abstract class ChromaChordEstimator
     );
     chromas.addAll(chroma);
 
-    reducedChromas = measure(
+    filteredChromas = measure(
       'filter calc',
       () => filters.fold(chromas, (pre, filter) => filter(pre)),
     );
 
-    final progression = estimateFromChroma(reducedChromas);
+    final progression = estimateFromChroma(filteredChromas);
 
     if (flush) _flush();
     return progression;
@@ -72,7 +70,7 @@ abstract class ChromaChordEstimator
   @override
   Iterable<String> debugText() {
     return [
-      ...reducedChromas.map((e) => e.toString()),
+      ...filteredChromas.map((e) => e.toString()),
       ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
     ];
   }
@@ -91,7 +89,7 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     final progression = ChordProgression.empty();
     measure('estimate', () {
-      for (final c in reducedChromas) {
+      for (final c in filteredChromas) {
         final chord = chordSelectable(estimateOneFromChroma(c), progression);
         progression.add(chord);
       }

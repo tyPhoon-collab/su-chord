@@ -46,7 +46,7 @@ class Chroma extends Iterable<double> {
   double get max => _values[maxIndex];
 
   late final Iterable<int> maxSortedIndexes =
-  _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
+      _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
   late final normalized = Chroma(_values.map((e) => e / l2norm).toList());
   late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
@@ -71,7 +71,7 @@ class Chroma extends Iterable<double> {
 
   Chroma operator +(Chroma other) {
     assert(_values.length == other._values.length,
-    'source: ${_values.length}, other: ${other._values.length}');
+        'source: ${_values.length}, other: ${other._values.length}');
     return Chroma(
         List.generate(_values.length, (i) => _values[i] + other._values[i]));
   }
@@ -102,14 +102,13 @@ class Chroma extends Iterable<double> {
 
     return false;
   }
-  
+
   @override
   int get hashCode => _values.fold(0, (value, e) => value ^ e.hashCode);
-
-  PCP toPCP() => PCP(_values);
 }
 
 ///必ず12個の特徴量をもったクロマ
+@immutable
 class PCP extends Chroma {
   PCP(super.values) : assert(values.length == 12);
 
@@ -220,20 +219,19 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
     return Chroma(
       List.generate(
         12,
-            (i) =>
-            _getCombFilterPower(
-              magnitude,
-              data.sampleRate,
-              lowest.transpose(i),
-            ),
+        (i) => _getCombFilterPower(
+          magnitude,
+          data.sampleRate,
+          lowest.transpose(i),
+        ),
       ),
     ).shift(-lowest.note.degreeTo(Note.C));
   }
 
   ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
   ///正規分布の平均値は各音階の周波数、標準偏差は[CombFilterContext]の値を参照する
-  double _getCombFilterPower(Float64List magnitude, int sampleRate,
-      MusicalScale lowest) {
+  double _getCombFilterPower(
+      Float64List magnitude, int sampleRate, MusicalScale lowest) {
     double sum = 0;
     final sr = sampleRate.toDouble();
     for (int i = 0; i < perOctave; ++i) {
@@ -294,21 +292,20 @@ class ReassignmentChromaCalculator extends STFTCalculator
   Bin binX = [];
 
   late final Bin binY =
-  equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
+      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) =
-    measure('reassign', () => reassign(data, flush));
+        measure('reassign', () => reassign(data, flush));
     binX = List.generate(magnitudes.length + 1, (i) => i * dt);
     histogram2d = measure(
       'hist2d',
-          () =>
-          WeightedHistogram2d.from(
-            points,
-            binX: binX,
-            binY: binY,
-          ),
+      () => WeightedHistogram2d.from(
+        points,
+        binX: binX,
+        binY: binY,
+      ),
     );
     printMeasuredResult();
     return histogram2d!.values.map(_fold).toList();

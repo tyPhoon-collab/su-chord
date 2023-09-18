@@ -110,6 +110,7 @@ void main() {
       const contexts = [
         CombFilterContext(stdDevCoefficient: 1 / 24),
         CombFilterContext(stdDevCoefficient: 1 / 48),
+        // ignore: avoid_redundant_argument_values
         CombFilterContext(stdDevCoefficient: 1 / 72),
         CombFilterContext(stdDevCoefficient: 1 / 96),
       ];

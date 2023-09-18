@@ -2,6 +2,8 @@
 
 マイクなどの入力による、リアルタイムコード推定器の精度検証用アプリケーション
 
+## はじめに
+
 以下のChordEstimableを実装したクラスを検証できる
 
 ```dart
@@ -33,7 +35,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           filters: filters,
         ),
     // snip...
-    'new your estimator': () async => YourChordEstimatorImpl(),
+    'new your estimator': () async => YourChordEstimatorImpl(), // LIKE HERE
   };
 }
 ```
@@ -58,7 +60,7 @@ Future<void> main() async {
 
     // snip...
     test('one', () async {
-      const id = 'new your estimator'; // ここを新しく作った推定器の名前に変更する
+      const id = 'new your estimator'; // CHANGE HERE or add new test
 
       final estimator = await estimators[id]!.call();
       _Evaluator(
@@ -79,9 +81,7 @@ Flutterはクロスプラットフォームに対応できるため、マイク�
 
 ### Web
 
-FirebaseによってHosting
-
-個人のアカウントなので、他の人がリリース版を更新したい場合は、適宜別のプロジェクトでデプロイしてください
+FirebaseによってHosting中
 
 #### Project Console
 
@@ -90,3 +90,26 @@ https://console.firebase.google.com/project/su-chord/overview
 #### URL
 
 https://su-chord.web.app
+
+## 設計方針
+
+- Flutterでフロントエンドを実現する
+- RiverPodを用いてDIする
+    - 状態管理も一部RiverPodに任せる
+- ストラテジーパターンに近い
+    - クラス名などは準拠していない
+        - Contextに当たるものがChordEstimableになる
+        - Contextというクラス名はStructやRecordなどに該当する、データの集合を管理するクラスに命名している
+    - インタフェースでそれぞれの実装を付け替えられるようにしている
+    - Strategyに当たるものは呼び出し可能クラスにしている
+        - callメソッドの実装を強制するインタフェースが該当する
+- 基本的にイミュータブルを意識して設計、実装しているが、一部はミュータブルになっている
+- ユニットテストで評価実験を行う
+
+## ライセンス
+
+MIT
+
+## 最終更新日
+
+2023/09/10
