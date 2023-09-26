@@ -166,6 +166,8 @@ enum MagnitudeScalar {
   double _log10(double x) => log(x) / ln10;
 }
 
+///STFTのマグニチュードだけ使用するChromaCalculatorの基底クラス
+///chromaFromMagnitudesをオーバーライドして使う
 abstract class MagnitudesChromaCalculator extends STFTCalculator
     implements ChromaCalculable {
   MagnitudesChromaCalculator({
@@ -200,19 +202,18 @@ class CombFilterContext {
   final double stdDevCoefficient;
 }
 
+///コムフィルタを使用してクロマを求める
 class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
   CombFilterChromaCalculator({
     super.chunkSize,
     super.chunkStride,
-    this.lowest = MusicalScale.C1,
+    this.chromaContext = const ChromaContext(),
     this.context = const CombFilterContext(),
-    this.perOctave = 7,
     super.scalar,
   }) : super();
 
-  final MusicalScale lowest;
   final CombFilterContext context;
-  final int perOctave;
+  final ChromaContext chromaContext;
 
   @override
   Chroma chromaFromMagnitudes(Float64List magnitude, AudioData data) {
@@ -222,10 +223,10 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
         (i) => _getCombFilterPower(
           magnitude,
           data.sampleRate,
-          lowest.transpose(i),
+          chromaContext.lowest.transpose(i),
         ),
       ),
-    ).shift(-lowest.note.degreeTo(Note.C));
+    ).shift(-chromaContext.lowest.note.degreeTo(Note.C));
   }
 
   ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
@@ -234,7 +235,7 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
       Float64List magnitude, int sampleRate, MusicalScale lowest) {
     double sum = 0;
     final sr = sampleRate.toDouble();
-    for (int i = 0; i < perOctave; ++i) {
+    for (int i = 0; i < chromaContext.perOctave; ++i) {
       final scale = lowest.transpose(i * 12);
       final hz = scale.toHz();
       final mean = hz;
@@ -258,6 +259,19 @@ class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
   }
 }
 
+class ChromaContext {
+  const ChromaContext({
+    this.lowest = MusicalScale.C1,
+    this.perOctave = 7,
+  });
+
+  final MusicalScale lowest;
+  final int perOctave;
+
+  Bin toEqualTemperamentBin() =>
+      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
+}
+
 ///再割り当て法を元にクロマを算出する
 ///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
 class ReassignmentChromaCalculator extends STFTCalculator
@@ -266,23 +280,25 @@ class ReassignmentChromaCalculator extends STFTCalculator
   ReassignmentChromaCalculator({
     super.chunkSize,
     super.chunkStride,
-    this.lowest = MusicalScale.C1,
-    this.perOctave = 7,
+    this.chromaContext = const ChromaContext(),
     this.scalar = MagnitudeScalar.none,
   }) : super.hanning() {
-    final windowD = Float64List.fromList(window
-        .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
-        .toList());
+    final windowD = Float64List.fromList(
+      window
+          .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
+          .toList(),
+    );
     final windowT = Float64List.fromList(
-        window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList());
+      window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
+    );
 
     stftD = STFT(chunkSize, windowD);
     stftT = STFT(chunkSize, windowT);
   }
 
-  final MusicalScale lowest;
-  final int perOctave;
+  final ChromaContext chromaContext;
   final MagnitudeScalar scalar;
+
   late final STFT stftD;
   late final STFT stftT;
 
@@ -291,8 +307,7 @@ class ReassignmentChromaCalculator extends STFTCalculator
   double df = 0;
   Bin binX = [];
 
-  late final Bin binY =
-      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
+  late final Bin binY = chromaContext.toEqualTemperamentBin();
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
@@ -316,12 +331,12 @@ class ReassignmentChromaCalculator extends STFTCalculator
       double sum = 0;
 
       //折りたたむ
-      for (var j = 0; j < perOctave; j++) {
+      for (var j = 0; j < chromaContext.perOctave; j++) {
         final index = i + 12 * j;
         sum += value[index];
       }
       return sum;
-    })).shift(-lowest.note.degreeTo(Note.C));
+    })).shift(-chromaContext.lowest.note.degreeTo(Note.C));
   }
 
   ///デバッグのしやすさとモジュール強度を考慮して

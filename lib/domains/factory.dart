@@ -51,25 +51,21 @@ final class EstimatorFactory {
   late final filter = FilterFactory(context);
   late final guitarRange = ChromaCalculatorFactory(
     context,
-    lowest: MusicalScale.E2,
-    perOctave: 6,
+    chromaContext: const ChromaContext(lowest: MusicalScale.E2, perOctave: 6),
   );
-  late final bigRange = ChromaCalculatorFactory(
-    context,
-    lowest: MusicalScale.C1,
-    perOctave: 7,
-  );
+  late final bigRange = ChromaCalculatorFactory(context);
 
   late final selector = ChordSelectorFactory();
 }
 
 final class ChromaCalculatorFactory {
-  const ChromaCalculatorFactory(this.context,
-      {required this.lowest, required this.perOctave});
+  const ChromaCalculatorFactory(
+    this.context, {
+    this.chromaContext = const ChromaContext(),
+  });
 
   final EstimatorFactoryContext context;
-  final MusicalScale lowest;
-  final int perOctave;
+  final ChromaContext chromaContext;
 
   int get _chunkStride => context.chunkStride;
 
@@ -78,12 +74,11 @@ final class ChromaCalculatorFactory {
   ChromaCalculable get combFilter => combFilterWith();
 
   ChromaCalculable combFilterWith(
-      {CombFilterContext? context, MagnitudeScalar? scalar}) =>
+          {CombFilterContext? context, MagnitudeScalar? scalar}) =>
       CombFilterChromaCalculator(
         chunkSize: _chunkSize,
         chunkStride: _chunkStride,
-        lowest: lowest,
-        perOctave: perOctave,
+        chromaContext: chromaContext,
         context: context ?? const CombFilterContext(),
         scalar: scalar ?? MagnitudeScalar.none,
       );
@@ -94,8 +89,7 @@ final class ChromaCalculatorFactory {
       ReassignmentChromaCalculator(
         chunkSize: _chunkSize,
         chunkStride: _chunkStride,
-        lowest: lowest,
-        perOctave: perOctave,
+        chromaContext: chromaContext,
         scalar: scalar ?? MagnitudeScalar.none,
       );
 }
@@ -107,8 +101,7 @@ final class FilterFactory {
 
   Filters get eval => [interval(4.seconds)];
 
-  Filters get realtime =>
-      [
+  Filters get realtime => [
         ThresholdFilter(threshold: 10),
         TriadChordChangeDetector(),
       ];

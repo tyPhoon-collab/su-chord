@@ -34,6 +34,27 @@ Future<void> main() async {
   _Evaluator.bypassCsvWriting = true;
   Measure.logger = null;
 
+  test('cross validation', () {
+    //TODO impl this
+    //以下の場合をすべて確かめて、csvに出力する
+
+    //パターンマッチング
+    //探索木
+
+    //スパース + 平均律ビン
+    //スパース + コムフィルタ
+    //コムフィルタ
+
+    //L2ノルム
+    //自然対数
+    //(dB)
+
+    //DB
+    //DBなし
+
+    // final f = factory8192_0;
+  });
+
   group('prop', () {
     test('main', () async {
       _Evaluator(
