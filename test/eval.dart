@@ -79,7 +79,7 @@ Future<void> main() async {
           path: 'test/outputs/pattern_matching_reassignment.csv');
     });
 
-    group('scalar', () {
+    group('template scalar', () {
       test('thirdHarmonic', () async {
         const factor = 0.2;
 
@@ -119,8 +119,9 @@ Future<void> main() async {
       _Evaluator(
         header: ['search + log comb, ratio: $ratio, ${factory8192_0.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange
-              .combFilterWith(scalar: MagnitudeScalar.ln),
+          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+              magnitudesCalculable:
+                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
@@ -149,8 +150,9 @@ Future<void> main() async {
           'search + log comb + db, ratio: $ratio, ${factory8192_0.context}'
         ],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange
-              .combFilterWith(scalar: MagnitudeScalar.ln),
+          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+              magnitudesCalculable:
+                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
           chordSelectable: await factory8192_0.selector.db,
@@ -187,8 +189,9 @@ Future<void> main() async {
       _Evaluator(
         header: ['matching + log comb filter, ${factory8192_0.context}'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange
-              .combFilterWith(scalar: MagnitudeScalar.ln),
+          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+              magnitudesCalculable:
+                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: factory8192_0.filter.eval,
         ),
       ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb_log.csv');

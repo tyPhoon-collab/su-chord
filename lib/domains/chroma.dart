@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import '../utils/formula.dart';
 import '../utils/histogram.dart';
 import '../utils/loader/audio.dart';
-import '../utils/measure.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 
@@ -138,149 +137,25 @@ class STFTCalculator {
   late final STFT stft;
   final int chunkSize;
   final int chunkStride;
+
+  double deltaTime(int sampleRate) =>
+      (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
+
+  double deltaFrequency(int sampleRate) => sampleRate / chunkSize;
 }
 
-enum MagnitudeScalar {
-  ln,
-  dB,
-  none;
+abstract interface class MagnitudesCalculable {
+  Magnitudes call(AudioData data, [bool flush = true]);
 
-  Float64List call(Float64List list) {
-    switch (this) {
-      case ln:
-        for (int i = 0; i < list.length; ++i) {
-          list[i] = log(list[i] + 1);
-        }
-        return list;
-      case dB:
-        const referenceMagnitude = 1;
-        for (int i = 0; i < list.length; ++i) {
-          list[i] = 20 * _log10(list[i] / referenceMagnitude);
-        }
-        return list;
-      case none:
-        return list;
-    }
-  }
+  double indexOfFrequency(double freq, int sampleRate);
 
-  double _log10(double x) => log(x) / ln10;
+  double frequency(int index, int sampleRate);
 }
 
-///STFTのマグニチュードだけ使用するChromaCalculatorの基底クラス
-///chromaFromMagnitudesをオーバーライドして使う
-abstract class MagnitudesChromaCalculator extends STFTCalculator
-    implements ChromaCalculable {
-  MagnitudesChromaCalculator({
+class ReassignmentCalculator extends STFTCalculator {
+  ReassignmentCalculator.hanning({
     super.chunkSize,
     super.chunkStride,
-    this.scalar = MagnitudeScalar.none,
-  }) : super.hanning();
-
-  final MagnitudeScalar scalar;
-
-  @override
-  List<Chroma> call(AudioData data, [bool flush = true]) {
-    final magnitudes = [];
-    void callback(Float64x2List freq) =>
-        magnitudes.add(freq.discardConjugates().magnitudes());
-    stft.stream(data.buffer, callback, chunkStride);
-    if (flush) stft.flush(callback);
-
-    return magnitudes
-        .map((e) => chromaFromMagnitudes(scalar(e), data))
-        .toList();
-  }
-
-  Chroma chromaFromMagnitudes(Float64List magnitude, AudioData data);
-}
-
-class CombFilterContext {
-  const CombFilterContext({
-    this.stdDevCoefficient = 1 / 72,
-  });
-
-  final double stdDevCoefficient;
-}
-
-///コムフィルタを使用してクロマを求める
-class CombFilterChromaCalculator extends MagnitudesChromaCalculator {
-  CombFilterChromaCalculator({
-    super.chunkSize,
-    super.chunkStride,
-    this.chromaContext = const ChromaContext(),
-    this.context = const CombFilterContext(),
-    super.scalar,
-  }) : super();
-
-  final CombFilterContext context;
-  final ChromaContext chromaContext;
-
-  @override
-  Chroma chromaFromMagnitudes(Float64List magnitude, AudioData data) {
-    return Chroma(
-      List.generate(
-        12,
-        (i) => _getCombFilterPower(
-          magnitude,
-          data.sampleRate,
-          chromaContext.lowest.transpose(i),
-        ),
-      ),
-    ).shift(-chromaContext.lowest.note.degreeTo(Note.C));
-  }
-
-  ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
-  ///正規分布の平均値は各音階の周波数、標準偏差は[CombFilterContext]の値を参照する
-  double _getCombFilterPower(
-      Float64List magnitude, int sampleRate, MusicalScale lowest) {
-    double sum = 0;
-    final sr = sampleRate.toDouble();
-    for (int i = 0; i < chromaContext.perOctave; ++i) {
-      final scale = lowest.transpose(i * 12);
-      final hz = scale.toHz();
-      final mean = hz;
-      // final stdDev = scale.hz / 24;
-      // 従来法の標準偏差では、周りが大きくなりすぎる
-      // 従来法のコードを見ても、論文に準拠していない。よくわからない値を使用している
-      final stdDev = hz * context.stdDevCoefficient;
-      // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
-      final range = 4 * stdDev;
-      final closure = normalDistributionClosure(mean, stdDev);
-      final startIndex = stft.indexOfFrequency(mean - range, sr).round();
-      final endIndex = stft.indexOfFrequency(mean + range, sr).round();
-
-      sum += magnitude
-          .sublist(startIndex, endIndex)
-          .mapIndexed((j, e) => closure(stft.frequency(j + startIndex, sr)) * e)
-          .sum;
-    }
-
-    return sum;
-  }
-}
-
-class ChromaContext {
-  const ChromaContext({
-    this.lowest = MusicalScale.C1,
-    this.perOctave = 7,
-  });
-
-  final MusicalScale lowest;
-  final int perOctave;
-
-  Bin toEqualTemperamentBin() =>
-      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
-}
-
-///再割り当て法を元にクロマを算出する
-///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
-class ReassignmentChromaCalculator extends STFTCalculator
-    with Measure
-    implements ChromaCalculable {
-  ReassignmentChromaCalculator({
-    super.chunkSize,
-    super.chunkStride,
-    this.chromaContext = const ChromaContext(),
     this.scalar = MagnitudeScalar.none,
   }) : super.hanning() {
     final windowD = Float64List.fromList(
@@ -296,48 +171,9 @@ class ReassignmentChromaCalculator extends STFTCalculator
     stftT = STFT(chunkSize, windowT);
   }
 
-  final ChromaContext chromaContext;
-  final MagnitudeScalar scalar;
-
   late final STFT stftD;
   late final STFT stftT;
-
-  WeightedHistogram2d? histogram2d;
-  double dt = 0;
-  double df = 0;
-  Bin binX = [];
-
-  late final Bin binY = chromaContext.toEqualTemperamentBin();
-
-  @override
-  List<Chroma> call(AudioData data, [bool flush = true]) {
-    final (points, magnitudes) =
-        measure('reassign', () => reassign(data, flush));
-    binX = List.generate(magnitudes.length + 1, (i) => i * dt);
-    histogram2d = measure(
-      'hist2d',
-      () => WeightedHistogram2d.from(
-        points,
-        binX: binX,
-        binY: binY,
-      ),
-    );
-    printMeasuredResult();
-    return histogram2d!.values.map(_fold).toList();
-  }
-
-  Chroma _fold(List<double> value) {
-    return PCP(List.generate(12, (i) {
-      double sum = 0;
-
-      //折りたたむ
-      for (var j = 0; j < chromaContext.perOctave; j++) {
-        final index = i + 12 * j;
-        sum += value[index];
-      }
-      return sum;
-    })).shift(-chromaContext.lowest.note.degreeTo(Note.C));
-  }
+  final MagnitudeScalar scalar;
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
@@ -345,7 +181,6 @@ class ReassignmentChromaCalculator extends STFTCalculator
       [bool flush = true]) {
     final Magnitudes magnitudes = [];
 
-    startMeasuring();
     final s = <Float64x2List>[];
     final sD = <Float64x2List>[];
     final sT = <Float64x2List>[];
@@ -374,14 +209,10 @@ class ReassignmentChromaCalculator extends STFTCalculator
       stftT.flush(sTCallback);
     }
 
-    stopMeasuring('3 times stft');
-
-    startMeasuring();
-
     final points = <Point>[];
     final sr = data.sampleRate;
-    dt = (chunkStride == 0 ? chunkSize : chunkStride) / sr;
-    df = sr / chunkSize;
+    final dt = (chunkStride == 0 ? chunkSize : chunkStride) / sr;
+    final df = sr / chunkSize;
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
@@ -396,8 +227,217 @@ class ReassignmentChromaCalculator extends STFTCalculator
       }
     }
 
-    stopMeasuring('create reassign points');
-
     return (points, magnitudes);
+  }
+}
+
+enum MagnitudeScalar {
+  ln,
+  dB,
+  none;
+
+  Float64List call(Float64List list) {
+    switch (this) {
+      case ln:
+        for (int i = 0; i < list.length; ++i) {
+          list[i] = log(list[i] + 1);
+        }
+        return list;
+      case dB:
+        const referenceMagnitude = 1;
+        for (int i = 0; i < list.length; ++i) {
+          list[i] = 20 * _log10(list[i] / referenceMagnitude);
+        }
+        return list;
+      case none:
+        return list;
+    }
+  }
+
+  double _log10(double x) => log(x) / ln10;
+}
+
+class MagnitudesCalculator extends STFTCalculator
+    implements MagnitudesCalculable {
+  MagnitudesCalculator({
+    super.chunkSize,
+    super.chunkStride,
+    this.scalar = MagnitudeScalar.none,
+  }) : super.hanning();
+
+  final MagnitudeScalar scalar;
+
+  @override
+  Magnitudes call(AudioData data, [bool flush = true]) {
+    final magnitudes = <Float64List>[];
+    void callback(Float64x2List freq) =>
+        magnitudes.add(scalar(freq.discardConjugates().magnitudes()));
+    stft.stream(data.buffer, callback, chunkStride);
+    if (flush) stft.flush(callback);
+
+    return magnitudes;
+  }
+
+  @override
+  double indexOfFrequency(double freq, int sampleRate) =>
+      stft.indexOfFrequency(freq, sampleRate.toDouble());
+
+  @override
+  double frequency(int index, int sampleRate) =>
+      stft.frequency(index, sampleRate.toDouble());
+}
+
+class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
+    implements MagnitudesCalculable {
+  ReassignmentMagnitudesCalculator(
+      {super.chunkSize, super.chunkStride, super.scalar})
+      : super.hanning();
+
+  @override
+  Magnitudes call(AudioData data, [bool flush = true]) {
+    final (points, magnitudes) = reassign(data, flush);
+
+    final dt = deltaTime(data.sampleRate);
+    final df = deltaFrequency(data.sampleRate);
+
+    //TODO improve
+    final binX = List.generate(magnitudes.length + 1, (i) => i * dt);
+    final binY = List.generate(chunkSize ~/ 2 + 1, (i) => i * df);
+
+    return WeightedHistogram2d.from(
+      points,
+      binX: binX,
+      binY: binY,
+    ).values as List<Float64List>;
+  }
+
+  @override
+  double indexOfFrequency(double freq, int sampleRate) =>
+      stft.indexOfFrequency(freq, sampleRate.toDouble());
+
+  @override
+  double frequency(int index, int sampleRate) =>
+      stft.frequency(index, sampleRate.toDouble());
+}
+
+class CombFilterContext {
+  const CombFilterContext({
+    this.stdDevCoefficient = 1 / 72,
+  });
+
+  final double stdDevCoefficient;
+}
+
+///コムフィルタを使用してクロマを求める
+class CombFilterChromaCalculator implements ChromaCalculable {
+  CombFilterChromaCalculator({
+    required this.magnitudesCalculable,
+    this.chromaContext = const ChromaContext(),
+    this.context = const CombFilterContext(),
+  }) : super();
+
+  final CombFilterContext context;
+  final ChromaContext chromaContext;
+  final MagnitudesCalculable magnitudesCalculable;
+
+  @override
+  List<Chroma> call(AudioData data, [bool flush = true]) {
+    return magnitudesCalculable(data, flush)
+        .map((e) => Chroma(
+              List.generate(
+                  12,
+                  (i) => _getCombFilterPower(
+                      e, data.sampleRate, chromaContext.lowest.transpose(i))),
+            ).shift(-chromaContext.lowest.note.degreeTo(Note.C)))
+        .toList();
+  }
+
+  ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
+  ///正規分布の平均値は各音階の周波数、標準偏差は[CombFilterContext]の値を参照する
+  double _getCombFilterPower(
+      Float64List magnitude, int sampleRate, MusicalScale lowest) {
+    double sum = 0;
+    for (int i = 0; i < chromaContext.perOctave; ++i) {
+      final scale = lowest.transpose(i * 12);
+      final hz = scale.toHz();
+      final mean = hz;
+      final stdDev = hz * context.stdDevCoefficient;
+      // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
+      final range = 4 * stdDev;
+      final closure = normalDistributionClosure(mean, stdDev);
+      final startIndex = magnitudesCalculable
+          .indexOfFrequency(mean - range, sampleRate)
+          .round();
+      final endIndex = magnitudesCalculable
+          .indexOfFrequency(mean + range, sampleRate)
+          .round();
+
+      sum += magnitude
+          .sublist(startIndex, endIndex)
+          .mapIndexed((j, e) =>
+              closure(
+                  magnitudesCalculable.frequency(j + startIndex, sampleRate)) *
+              e)
+          .sum;
+    }
+
+    return sum;
+  }
+}
+
+class ChromaContext {
+  const ChromaContext({
+    this.lowest = MusicalScale.C1,
+    this.perOctave = 7,
+  });
+
+  final MusicalScale lowest;
+  final int perOctave;
+
+  Bin toEqualTemperamentBin() =>
+      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
+}
+
+///再割り当て法を元にクロマを算出する
+///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
+class ReassignmentChromaCalculator extends ReassignmentCalculator
+    implements ChromaCalculable {
+  ReassignmentChromaCalculator({
+    super.chunkSize,
+    super.chunkStride,
+    this.chromaContext = const ChromaContext(),
+    super.scalar,
+  }) : super.hanning();
+
+  final ChromaContext chromaContext;
+
+  late WeightedHistogram2d histogram2d;
+  Bin binX = [];
+  late final Bin binY = chromaContext.toEqualTemperamentBin();
+
+  @override
+  List<Chroma> call(AudioData data, [bool flush = true]) {
+    final (points, magnitudes) = reassign(data, flush);
+    binX = List.generate(
+        magnitudes.length + 1, (i) => i * deltaTime(data.sampleRate));
+    histogram2d = WeightedHistogram2d.from(
+      points,
+      binX: binX,
+      binY: binY,
+    );
+    return histogram2d.values.map(_fold).toList();
+  }
+
+  Chroma _fold(List<double> value) {
+    return PCP(List.generate(12, (i) {
+      double sum = 0;
+
+      //折りたたむ
+      for (var j = 0; j < chromaContext.perOctave; j++) {
+        final index = i + 12 * j;
+        sum += value[index];
+      }
+      return sum;
+    })).shift(-chromaContext.lowest.note.degreeTo(Note.C));
   }
 }

@@ -48,14 +48,40 @@ final class EstimatorFactory {
   EstimatorFactory(this.context);
 
   final EstimatorFactoryContext context;
+
   late final filter = FilterFactory(context);
+  late final magnitude = MagnitudesFactory(context);
+  late final selector = ChordSelectorFactory();
+
   late final guitarRange = ChromaCalculatorFactory(
     context,
     chromaContext: const ChromaContext(lowest: MusicalScale.E2, perOctave: 6),
   );
   late final bigRange = ChromaCalculatorFactory(context);
+}
 
-  late final selector = ChordSelectorFactory();
+final class MagnitudesFactory {
+  MagnitudesFactory(this.context);
+
+  final EstimatorFactoryContext context;
+
+  MagnitudesCalculable stft({
+    MagnitudeScalar scalar = MagnitudeScalar.none,
+  }) =>
+      MagnitudesCalculator(
+        chunkSize: context.chunkSize,
+        chunkStride: context.chunkStride,
+        scalar: scalar,
+      );
+
+  MagnitudesCalculable reassignment({
+    MagnitudeScalar scalar = MagnitudeScalar.none,
+  }) =>
+      ReassignmentMagnitudesCalculator(
+        chunkSize: context.chunkSize,
+        chunkStride: context.chunkStride,
+        scalar: scalar,
+      );
 }
 
 final class ChromaCalculatorFactory {
@@ -73,14 +99,18 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable get combFilter => combFilterWith();
 
-  ChromaCalculable combFilterWith(
-          {CombFilterContext? context, MagnitudeScalar? scalar}) =>
+  ChromaCalculable combFilterWith({
+    CombFilterContext? combFilterContext,
+    MagnitudesCalculable? magnitudesCalculable,
+  }) =>
       CombFilterChromaCalculator(
-        chunkSize: _chunkSize,
-        chunkStride: _chunkStride,
+        magnitudesCalculable: magnitudesCalculable ??
+            MagnitudesCalculator(
+              chunkSize: _chunkSize,
+              chunkStride: _chunkSize,
+            ),
         chromaContext: chromaContext,
-        context: context ?? const CombFilterContext(),
-        scalar: scalar ?? MagnitudeScalar.none,
+        context: combFilterContext ?? const CombFilterContext(),
       );
 
   ChromaCalculable get reassignment => reassignmentWith();

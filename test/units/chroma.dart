@@ -79,7 +79,9 @@ void main() {
     test('one note', () async {
       const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
       final data = await loader.load();
-      final chroma = CombFilterChromaCalculator()(data).first;
+      final chroma = CombFilterChromaCalculator(
+              magnitudesCalculable: MagnitudesCalculator())(data)
+          .first;
 
       debugPrint(chroma.toString());
       expect(chroma.maxIndex, 0);
@@ -90,21 +92,16 @@ void main() {
           SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
       final data =
           await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = CombFilterChromaCalculator()(data);
+      final chromas = CombFilterChromaCalculator(
+          magnitudesCalculable: MagnitudesCalculator())(data);
 
       expect(chromas[0], isNotNull);
     });
 
     test('std dev coef', () async {
-      final factory = EstimatorFactory(const EstimatorFactoryContext(
-        chunkSize: 8192,
-        chunkStride: 0,
-        sampleRate: 22050,
-      ));
-
       final data = await AudioLoader.sample.load(
         duration: 4,
-        sampleRate: factory.context.sampleRate,
+        sampleRate: factory8192_0.context.sampleRate,
       );
 
       const contexts = [
@@ -116,10 +113,9 @@ void main() {
       ];
 
       final chromas = contexts.map(
-        (e) => factory.filter
+        (e) => factory8192_0.filter
             .interval(4.seconds)(CombFilterChromaCalculator(
-              chunkSize: factory.context.chunkSize,
-              chunkStride: factory.context.chunkStride,
+              magnitudesCalculable: factory8192_0.magnitude.stft(),
               context: e,
             )(data))
             .first,
@@ -143,7 +139,10 @@ void main() {
       ).first.normalized.toString());
 
       debugPrint(filter(
-        factory8192_0.bigRange.combFilterWith(scalar: MagnitudeScalar.ln)(data),
+        factory8192_0.bigRange.combFilterWith(
+            magnitudesCalculable: factory8192_0.magnitude.stft(
+          scalar: MagnitudeScalar.ln,
+        ))(data),
       ).first.normalized.toString());
     });
 
@@ -173,9 +172,12 @@ void main() {
     final calculator = [
       factory8192_0.guitarRange.combFilter,
       factory8192_0.guitarRange.combFilterWith(
-        context: const CombFilterContext(stdDevCoefficient: 1 / 96),
+        combFilterContext: const CombFilterContext(stdDevCoefficient: 1 / 96),
       ),
-      factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.ln),
+      factory8192_0.guitarRange.combFilterWith(
+        magnitudesCalculable:
+            factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln),
+      ),
       // factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
       factory8192_0.guitarRange.reassignment,
       factory8192_0.guitarRange.reassignmentWith(scalar: MagnitudeScalar.ln),
