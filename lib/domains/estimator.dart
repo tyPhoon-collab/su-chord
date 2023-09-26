@@ -2,12 +2,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../config.dart';
-import '../utils/loader/audio.dart';
+import '../utils/loaders/audio.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
 import 'chord_progression.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
+import 'chroma_calculators/chroma_calculator.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 

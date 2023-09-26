@@ -1,9 +1,13 @@
 import 'package:get/get.dart';
 
 import '../config.dart';
-import '../utils/loader/csv.dart';
+import '../utils/loaders/csv.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
+import 'chroma_calculators/chroma_calculator.dart';
+import 'chroma_calculators/comb_filter.dart';
+import 'chroma_calculators/magnitudes_calculator.dart';
+import 'chroma_calculators/reassignment.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 

@@ -1,9 +1,12 @@
 import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/chroma_calculators/comb_filter.dart';
+import 'package:chord/domains/chroma_calculators/magnitudes_calculator.dart';
+import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
-import 'package:chord/utils/loader/audio.dart';
+import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -105,11 +108,11 @@ void main() {
       );
 
       const contexts = [
-        CombFilterContext(stdDevCoefficient: 1 / 24),
-        CombFilterContext(stdDevCoefficient: 1 / 48),
+        CombFilterContext(hzStdDevCoefficient: 1 / 24),
+        CombFilterContext(hzStdDevCoefficient: 1 / 48),
         // ignore: avoid_redundant_argument_values
-        CombFilterContext(stdDevCoefficient: 1 / 72),
-        CombFilterContext(stdDevCoefficient: 1 / 96),
+        CombFilterContext(hzStdDevCoefficient: 1 / 72),
+        CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ];
 
       final chromas = contexts.map(
@@ -172,7 +175,7 @@ void main() {
     final calculator = [
       factory8192_0.guitarRange.combFilter,
       factory8192_0.guitarRange.combFilterWith(
-        combFilterContext: const CombFilterContext(stdDevCoefficient: 1 / 96),
+        combFilterContext: const CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ),
       factory8192_0.guitarRange.combFilterWith(
         magnitudesCalculable:

@@ -1,6 +1,6 @@
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
-import 'package:chord/utils/loader/audio.dart';
+import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 

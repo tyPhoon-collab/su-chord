@@ -1,4 +1,4 @@
-import 'package:chord/utils/loader/audio.dart';
+import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

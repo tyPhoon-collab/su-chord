@@ -7,7 +7,7 @@ import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 import 'package:js/js.dart';
 
-import 'utils/loader/audio.dart';
+import 'utils/loaders/audio.dart';
 
 //現状、bufferSizeはバイトの長さを指す。
 //ある程度大きくとらないと、処理が追いつかなくなる

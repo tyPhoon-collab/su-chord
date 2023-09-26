@@ -5,7 +5,7 @@ import 'config.dart';
 import 'domains/chord_selector.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
-import 'utils/loader/csv.dart';
+import 'utils/loaders/csv.dart';
 
 part 'service.g.dart';
 
