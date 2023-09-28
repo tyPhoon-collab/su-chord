@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../utils/table.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 
@@ -51,8 +52,23 @@ class ChordProgression extends ProgressionBase<Chord> {
 
   ChordProgression.empty() : super([]);
 
-  factory ChordProgression.fromCSVRow(List<String> row) {
-    return ChordProgression(row.map((e) => Chord.parse(e)).toList());
+  factory ChordProgression.fromCSVRow(
+    Row row, {
+    bool ignoreNotParsable = false,
+  }) {
+    final chords = <Chord?>[];
+    for (final value in row) {
+      Chord? chord;
+      try {
+        chord = Chord.parse(value);
+      } catch (e) {
+        if (!ignoreNotParsable) {
+          rethrow;
+        }
+      }
+      chords.add(chord);
+    }
+    return ChordProgression(chords);
   }
 
   double consistencyRate(ChordProgression other) {

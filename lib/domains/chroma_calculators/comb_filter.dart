@@ -18,7 +18,8 @@ class CombFilterContext {
 }
 
 ///コムフィルタを使用してクロマを求める
-class CombFilterChromaCalculator implements ChromaCalculable {
+class CombFilterChromaCalculator
+    implements ChromaCalculable, HasMagnitudeScalar {
   CombFilterChromaCalculator({
     required this.magnitudesCalculable,
     this.chromaContext = const ChromaContext(),
@@ -28,6 +29,13 @@ class CombFilterChromaCalculator implements ChromaCalculable {
   final CombFilterContext context;
   final ChromaContext chromaContext;
   final MagnitudesCalculable magnitudesCalculable;
+
+  @override
+  String toString() =>
+      'normal distribution comb filter, $magnitudesCalculable, $chromaContext';
+
+  @override
+  MagnitudeScalar get magnitudeScalar => magnitudesCalculable.magnitudeScalar;
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {

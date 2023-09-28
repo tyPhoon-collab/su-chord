@@ -128,6 +128,10 @@ class ChromaContext {
   final MusicalScale lowest;
   final int perOctave;
 
-  Bin toEqualTemperamentBin() =>
-      equalTemperamentBin(lowest, lowest.transpose(12 * perOctave));
+  MusicalScale get highest => lowest.transpose(12 * perOctave);
+
+  @override
+  String toString() => '$lowest-$highest';
+
+  Bin toEqualTemperamentBin() => equalTemperamentBin(lowest, highest);
 }

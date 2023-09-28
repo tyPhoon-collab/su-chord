@@ -38,6 +38,9 @@ abstract class ChromaChordEstimator
   List<Chroma> filteredChromas = [];
 
   @override
+  String toString() => '$chromaCalculable';
+
+  @override
   ChordProgression estimate(AudioData data, [bool flush = true]) {
     final chroma = measure(
       'chroma calc',
@@ -87,6 +90,9 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   final ChordSelectable chordSelectable;
 
   @override
+  String toString() => '${super.toString()}, $chordSelectable';
+
+  @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     final progression = ChordProgression.empty();
     measure('estimate', () {
@@ -127,6 +133,9 @@ class TemplateChromaScalar {
   final TemplateChromaScalarType type;
   final double factor;
 
+  @override
+  String toString() => '${type.name}-$factor';
+
   Chroma call(Chroma c) {
     switch (type) {
       case TemplateChromaScalarType.thirdHarmonic:
@@ -153,6 +162,9 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
   late final templateChromas = groupBy(templates, (p0) => scalar(p0.pcp));
 
   @override
+  String toString() => 'matching $scalar template scaled, ${super.toString()}';
+
+  @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
     return maxBy(templateChromas.entries,
             (entry) => chroma.cosineSimilarity(entry.key))!
@@ -169,11 +181,17 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     super.chordSelectable,
     super.filters,
     this.thresholdRatio = 0.65,
+    this.maxNotesCount = 4,
     Set<Chord>? detectableChords,
   }) : detectableChords = detectableChords ?? Config.detectableChords;
 
   final double thresholdRatio;
   final Set<Chord> detectableChords;
+  final int maxNotesCount;
+
+  @override
+  String toString() =>
+      'search tree $thresholdRatio threshold $maxNotesCount notes, ${super.toString()}';
 
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
@@ -187,7 +205,7 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     final threshold = max * thresholdRatio;
     final notes = indexes
         .toList()
-        .sublist(0, 4)
+        .sublist(0, maxNotesCount)
         .where((e) => chroma[e] >= threshold)
         .map((e) => Note.fromIndex(e));
 

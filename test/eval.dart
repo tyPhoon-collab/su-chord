@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
+import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
+import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/chroma_calculators/magnitudes_calculator.dart';
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
@@ -21,38 +23,92 @@ typedef _SongID = String;
 typedef _SoundSource = String;
 
 Future<void> main() async {
-  final contexts = await _getEvaluatorContexts(
+  final contexts = await _EvaluatorContext.fromFolder(
     [
       'assets/evals/Halion_CleanGuitarVX',
       // 'assets/evals/Halion_CleanStratGuitar',
       // 'assets/evals/HojoGuitar',
       // 'assets/evals/RealStrat',
     ],
-    // songIds: ['13'],
+    // songIdsFilter: ['13'],
   );
 
-  _Evaluator.bypassCsvWriting = true;
+  Table.bypass = true;
   Measure.logger = null;
 
   test('cross validation', () {
-    //TODO impl this
+    //TODO 見やすく書けるようにする
+
     //以下の場合をすべて確かめて、csvに出力する
 
+    //* ChordEstimator
     //パターンマッチング
     //探索木
 
+    //* ChromaCalculator
     //スパース + 平均律ビン
     //スパース + コムフィルタ
     //コムフィルタ
 
+    //* MagnitudeScalar
     //L2ノルム
     //自然対数
     //(dB)
 
-    //DB
-    //DBなし
+    final f = factory8192_0;
 
-    // final f = factory8192_0;
+    for (final estimator in [
+      for (final chromaCalculable in [
+        for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
+          f.guitarRange.reassignmentWith(scalar: scalar),
+          f.guitarRange.combFilterWith(
+            combFilterContext: const CombFilterContext(),
+            magnitudesCalculable: f.magnitude.stft(scalar: scalar),
+          ),
+          f.guitarRange.combFilterWith(
+            combFilterContext: const CombFilterContext(),
+            magnitudesCalculable: f.magnitude.reassignment(scalar: scalar),
+          ),
+        ]
+      ]) ...[
+        PatternMatchingChordEstimator(
+          chromaCalculable: chromaCalculable,
+          filters: f.filter.eval,
+        ),
+        SearchTreeChordEstimator(
+            chromaCalculable: chromaCalculable,
+            filters: f.filter.eval,
+            thresholdRatio: switch (chromaCalculable) {
+              final HasMagnitudeScalar value => switch (value.magnitudeScalar) {
+                  MagnitudeScalar.none => 0.3,
+                  MagnitudeScalar.ln => 0.5,
+                  MagnitudeScalar.dB => 0.5,
+                },
+              _ => 0.65,
+            }),
+      ]
+    ]) {
+      final fileName = estimator
+          .toString()
+          .replaceAll(RegExp(r'\s+'), '_')
+          .replaceAll(',', '__');
+
+      debugPrint(estimator.toString());
+
+      final table = _Evaluator(
+        header: [estimator.toString()],
+        estimator: estimator,
+      ).evaluate(contexts);
+
+      table.toCSV('test/outputs/cross_validations/$fileName.csv');
+
+      for (final row in table.headlessValues) {
+        debugPrint(ChordProgression.fromCSVRow(
+          row.sublist(1),
+          ignoreNotParsable: true,
+        ).toString());
+      }
+    }
   });
 
   group('prop', () {
@@ -64,8 +120,9 @@ Future<void> main() async {
           filters: factory2048_1024.filter.eval,
           chordSelectable: await factory2048_1024.selector.db,
         ),
-      ).evaluate(contexts,
-          path: 'test/outputs/pattern_matching_reassignment_db.csv');
+      )
+          .evaluate(contexts)
+          .toCSV('test/outputs/pattern_matching_reassignment_db.csv');
     });
 
     test('sub', () async {
@@ -75,8 +132,9 @@ Future<void> main() async {
           chromaCalculable: factory2048_1024.guitarRange.reassignment,
           filters: factory2048_1024.filter.eval,
         ),
-      ).evaluate(contexts,
-          path: 'test/outputs/pattern_matching_reassignment.csv');
+      )
+          .evaluate(contexts)
+          .toCSV('test/outputs/pattern_matching_reassignment.csv');
     });
 
     group('template scalar', () {
@@ -93,8 +151,9 @@ Future<void> main() async {
             chordSelectable: await factory2048_1024.selector.db,
             scalar: TemplateChromaScalar.thirdHarmonic(factor),
           ),
-        ).evaluate(contexts,
-            path: 'test/outputs/pattern_matching_reassignment_db_scalar.csv');
+        )
+            .evaluate(contexts)
+            .toCSV('test/outputs/pattern_matching_reassignment_db_scalar.csv');
       });
     });
   });
@@ -110,7 +169,7 @@ Future<void> main() async {
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
-      ).evaluate(contexts, path: 'test/outputs/search_tree_comb.csv');
+      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb.csv');
     });
 
     test('search + log comb', () async {
@@ -125,7 +184,7 @@ Future<void> main() async {
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
-      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log.csv');
+      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
     });
 
     test('search + comb + db', () async {
@@ -139,7 +198,7 @@ Future<void> main() async {
           thresholdRatio: ratio,
           chordSelectable: await factory8192_0.selector.db,
         ),
-      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_db.csv');
+      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_db.csv');
     });
 
     test('search + log comb + db', () async {
@@ -157,7 +216,7 @@ Future<void> main() async {
           thresholdRatio: ratio,
           chordSelectable: await factory8192_0.selector.db,
         ),
-      ).evaluate(contexts, path: 'test/outputs/search_tree_comb_log_db.csv');
+      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log_db.csv');
     });
   });
 
@@ -169,7 +228,7 @@ Future<void> main() async {
           chromaCalculable: factory8192_0.guitarRange.combFilter,
           filters: factory8192_0.filter.eval,
         ),
-      ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb.csv');
+      ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb.csv');
     });
 
     test('matching + comb filter + scalar', () async {
@@ -181,8 +240,9 @@ Future<void> main() async {
           chordSelectable: await factory8192_0.selector.db,
           scalar: TemplateChromaScalar.thirdHarmonic(0.1),
         ),
-      ).evaluate(contexts,
-          path: 'test/outputs/pattern_matching_comb_scalar.csv');
+      )
+          .evaluate(contexts)
+          .toCSV('test/outputs/pattern_matching_comb_scalar.csv');
     });
 
     test('matching + log comb filter', () {
@@ -194,7 +254,7 @@ Future<void> main() async {
                   factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: factory8192_0.filter.eval,
         ),
-      ).evaluate(contexts, path: 'test/outputs/pattern_matching_comb_log.csv');
+      ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb_log.csv');
     });
 
     test('search + reassignment', () {
@@ -208,7 +268,7 @@ Future<void> main() async {
           filters: factory8192_0.filter.eval,
           thresholdRatio: ratio,
         ),
-      ).evaluate(contexts, path: 'test/outputs/search_tree_reassignment.csv');
+      ).evaluate(contexts).toCSV('test/outputs/search_tree_reassignment.csv');
     });
   });
 
@@ -223,7 +283,7 @@ Future<void> main() async {
         _Evaluator(
           header: [key],
           estimator: estimator,
-        ).evaluate(contexts, path: 'test/outputs/front_ends/$key.csv');
+        ).evaluate(contexts).toCSV('test/outputs/front_ends/$key.csv');
       }
     });
 
@@ -234,22 +294,35 @@ Future<void> main() async {
       _Evaluator(
         header: [id],
         estimator: estimator,
-      ).evaluate(contexts, path: 'test/outputs/front_ends/$id.csv');
+      ).evaluate(contexts).toCSV('test/outputs/front_ends/$id.csv');
     });
   });
 }
 
 class _LoaderContext {
-  _LoaderContext({required this.path}) {
+  const _LoaderContext({
+    required this.path,
+    required this.loader,
+    required this.songId,
+    required this.soundSource,
+  });
+
+  factory _LoaderContext.fromFile(String path) {
     final parts = path.split(Platform.pathSeparator); //パスを分解
-    soundSource = parts[parts.length - 2];
-    songId = parts.last.split('_').first;
-    loader = SimpleAudioLoader(path: path);
+    final soundSource = parts[parts.length - 2];
+    final songId = parts.last.split('_').first;
+    final loader = SimpleAudioLoader(path: path);
+
+    return _LoaderContext(
+      path: path,
+      loader: loader,
+      songId: songId,
+      soundSource: soundSource,
+    );
   }
 
-  static Iterable<_LoaderContext> fromFolder(String folderPath) {
-    return _getFiles(folderPath).map((path) => _LoaderContext(path: path));
-  }
+  static Iterable<_LoaderContext> fromFolder(String folderPath) =>
+      _getFiles(folderPath).map((path) => _LoaderContext.fromFile(path));
 
   static Iterable<String> _getFiles(String path) {
     final directory = Directory(path);
@@ -264,9 +337,9 @@ class _LoaderContext {
   }
 
   final String path;
-  late final AudioLoader loader;
-  late final _SongID songId;
-  late final _SoundSource soundSource;
+  final AudioLoader loader;
+  final _SongID songId;
+  final _SoundSource soundSource;
 }
 
 ///評価する際の必要な情報を詰め込んだクラス
@@ -279,6 +352,50 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
     required this.data,
     required this.corrects,
   });
+
+  static Future<Iterable<_EvaluatorContext>> fromFolder(
+    Iterable<String> folderPaths, {
+    Iterable<_SongID>? songIdsFilter,
+  }) async {
+    final contexts = <_EvaluatorContext>[];
+    final corrects = await _getCorrectChords();
+    final loaders =
+        folderPaths.map((e) => _LoaderContext.fromFolder(e)).flattened;
+
+    final loadersMap = loaders
+        .where((e) => songIdsFilter?.contains(e.songId) ?? true)
+        .groupListsBy((e) => e.songId);
+    for (final MapEntry(key: songId, :value) in loadersMap.entries) {
+      contexts.add(
+        _EvaluatorContext(
+          key: int.parse(songId),
+          songId: songId,
+          data: Map.fromIterables(
+            value.map((e) => e.soundSource),
+            await Future.wait(value.map(
+              (e) => e.loader.load(duration: 83, sampleRate: Config.sampleRate),
+            )),
+          ),
+          corrects: corrects[songId]!,
+        ),
+      );
+    }
+
+    contexts.sort((a, b) => a.compareTo(b));
+    return contexts;
+  }
+
+  static Future<_CorrectChords> _getCorrectChords() async {
+    final fields = await CSVLoader.corrects.load();
+
+    //ignore header
+    return Map.fromEntries(
+      fields.sublist(1).map((e) => MapEntry(
+            e.first.toString(),
+            ChordProgression(e.sublist(1).map((e) => Chord.parse(e)).toList()),
+          )),
+    );
+  }
 
   ///ソート用の変数
   final int key;
@@ -297,32 +414,16 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 class _Evaluator {
   _Evaluator({
     required this.estimator,
-    this.header,
-  });
+    Row? header,
+  }) : _table = Table.empty(header);
 
-  static bool bypassCsvWriting = false;
-
-  final List<String>? header;
   final ChordEstimable estimator;
-  Table? table;
+  final Table _table;
 
-  void evaluate(Iterable<_EvaluatorContext> contexts, {String? path}) {
-    assert(path == null || path.endsWith('.csv'));
-
-    _initTable(path);
+  Table evaluate(Iterable<_EvaluatorContext> contexts) {
+    _table.clear();
     _evaluate(contexts);
-
-    if (path != null) table?.toCSV(path);
-  }
-
-  void _initTable(String? path) {
-    if (path == null) return;
-
-    if (!bypassCsvWriting) {
-      table = Table.empty(header);
-    } else {
-      debugPrint('CSV writing is bypassing');
-    }
+    return _table;
   }
 
   void _evaluate(Iterable<_EvaluatorContext> contexts) {
@@ -347,50 +448,6 @@ class _Evaluator {
   }
 
   void _add(ChordProgression progression, String indexLabel) {
-    debugPrint(progression.toString());
-    table?.add(progression.toCSVRow()..insert(0, indexLabel));
+    _table.add(progression.toCSVRow()..insert(0, indexLabel));
   }
-}
-
-Future<_CorrectChords> _getCorrectChords() async {
-  final fields = await CSVLoader.corrects.load();
-
-  //ignore header
-  return Map.fromEntries(
-    fields.sublist(1).map((e) => MapEntry(
-          e.first.toString(),
-          ChordProgression(e.sublist(1).map((e) => Chord.parse(e)).toList()),
-        )),
-  );
-}
-
-Future<Iterable<_EvaluatorContext>> _getEvaluatorContexts(
-    Iterable<String> folderPaths,
-    {Iterable<_SongID>? songIds}) async {
-  final contexts = <_EvaluatorContext>[];
-  final corrects = await _getCorrectChords();
-  final loaders =
-      folderPaths.map((e) => _LoaderContext.fromFolder(e)).flattened;
-
-  final loadersMap = loaders
-      .where((e) => songIds?.contains(e.songId) ?? true)
-      .groupListsBy((e) => e.songId);
-  for (final MapEntry(key: songId, :value) in loadersMap.entries) {
-    contexts.add(
-      _EvaluatorContext(
-        key: int.parse(songId),
-        songId: songId,
-        data: Map.fromIterables(
-          value.map((e) => e.soundSource),
-          await Future.wait(value.map(
-            (e) => e.loader.load(duration: 83, sampleRate: Config.sampleRate),
-          )),
-        ),
-        corrects: corrects[songId]!,
-      ),
-    );
-  }
-
-  contexts.sort((a, b) => a.compareTo(b));
-  return contexts;
 }

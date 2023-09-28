@@ -2,10 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'config.dart';
-import 'domains/chord_selector.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
-import 'utils/loaders/csv.dart';
 
 part 'service.g.dart';
 
@@ -46,16 +44,12 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           filters: filters,
           thresholdRatio: 0.3,
         ),
-    'comb + search tree + db': () async {
-      final csv = await CSVLoader.db.load();
-
-      return SearchTreeChordEstimator(
-        chromaCalculable: factory.guitarRange.combFilter,
-        filters: filters,
-        thresholdRatio: 0.3,
-        chordSelectable: ChordProgressionDBChordSelector.fromCSV(csv),
-      );
-    },
+    'comb + search tree + db': () async => SearchTreeChordEstimator(
+          chromaCalculable: factory.guitarRange.combFilter,
+          filters: filters,
+          thresholdRatio: 0.3,
+          chordSelectable: await factory.selector.db,
+        ),
   };
 }
 

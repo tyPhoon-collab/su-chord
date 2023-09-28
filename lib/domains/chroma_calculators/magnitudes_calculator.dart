@@ -8,7 +8,7 @@ import '../../utils/loaders/audio.dart';
 import '../chroma.dart';
 import 'chroma_calculator.dart';
 
-abstract interface class MagnitudesCalculable {
+abstract interface class MagnitudesCalculable implements HasMagnitudeScalar {
   Magnitudes call(AudioData data, [bool flush = true]);
 
   double indexOfFrequency(double freq, int sampleRate);
@@ -53,6 +53,12 @@ class MagnitudesCalculator extends STFTCalculator
   final MagnitudeScalar scalar;
 
   @override
+  String toString() => 'stft mags ${scalar.name} scaled';
+
+  @override
+  MagnitudeScalar get magnitudeScalar => scalar;
+
+  @override
   Magnitudes call(AudioData data, [bool flush = true]) {
     final magnitudes = <Float64List>[];
     void callback(Float64x2List freq) =>
@@ -79,6 +85,12 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
     super.chunkStride,
     super.scalar,
   }) : super.hanning();
+
+  @override
+  String toString() => 'sparse mags ${scalar.name} scaled';
+
+  @override
+  MagnitudeScalar get magnitudeScalar => scalar;
 
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
