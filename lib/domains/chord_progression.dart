@@ -4,8 +4,8 @@ import '../utils/table.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 
-abstract class ProgressionBase<T extends ChordBase> extends Iterable<T?> {
-  ProgressionBase(this._values);
+abstract class ChordProgressionBase<T extends ChordBase> extends Iterable<T?> {
+  ChordProgressionBase(this._values);
 
   static const noChordLabel = '***';
   static const chordSeparator = '->';
@@ -28,7 +28,7 @@ abstract class ProgressionBase<T extends ChordBase> extends Iterable<T?> {
   }
 }
 
-class DegreeChordProgression extends ProgressionBase<DegreeChord>
+class DegreeChordProgression extends ChordProgressionBase<DegreeChord>
     implements Transposable<DegreeChordProgression> {
   DegreeChordProgression(super.values);
 
@@ -47,7 +47,7 @@ class DegreeChordProgression extends ProgressionBase<DegreeChord>
       ChordProgression(_values.map((e) => e?.toChordFromKey(key)).toList());
 }
 
-class ChordProgression extends ProgressionBase<Chord> {
+class ChordProgression extends ChordProgressionBase<Chord> {
   ChordProgression(super._values);
 
   ChordProgression.empty() : super([]);

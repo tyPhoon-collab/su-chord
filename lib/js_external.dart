@@ -7,6 +7,7 @@ import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 import 'package:js/js.dart';
 
+import 'recorder.dart';
 import 'utils/loaders/audio.dart';
 
 //現状、bufferSizeはバイトの長さを指す。
@@ -21,26 +22,23 @@ external void stopRec();
 external set _processSetter(
     void Function(JSFloat32Array array, int sampleRate) f);
 
-enum RecorderState {
-  stopped,
-  recording,
-}
-
-class WebRecorder {
+class WebRecorder extends Recorder {
   WebRecorder(this.timeSlice) {
     _processSetter = allowInterop(_process);
   }
 
   final controller = StreamController<AudioData>();
   final Duration timeSlice;
+
+  @override
   ValueNotifier<RecorderState> state = ValueNotifier(RecorderState.stopped);
+
   Timer? _timer;
   AudioData? _audioData;
   Float32List? _buffer;
   late int _sampleRate;
 
-  bool get isRecording => state.value == RecorderState.recording;
-
+  @override
   Stream<AudioData> get stream => controller.stream;
 
   AudioData? get audioData => _audioData;
@@ -55,6 +53,7 @@ class WebRecorder {
     _sampleRate = sampleRate;
   }
 
+  @override
   Future<void> start() async {
     if (isRecording) return;
     await startRec();
@@ -77,6 +76,7 @@ class WebRecorder {
     });
   }
 
+  @override
   void stop() {
     if (state.value == RecorderState.stopped) return;
     stopRec();
@@ -85,6 +85,7 @@ class WebRecorder {
     state.value = RecorderState.stopped;
   }
 
+  @override
   void dispose() {
     stop();
     controller.close();

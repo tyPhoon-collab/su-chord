@@ -1,3 +1,4 @@
+import 'package:chord/widgets/pages/plot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
@@ -7,9 +8,9 @@ import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
 import '../../js_external.dart';
+import '../../recorder.dart';
 import '../../service.dart';
 import 'loading.dart';
-import 'plot.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -50,7 +51,7 @@ class EstimatorPage extends StatefulWidget {
 
 class _EstimatorPageState extends State<EstimatorPage> {
   late final _estimator = widget.estimator;
-  final _recorder = WebRecorder(1.seconds);
+  final Recorder _recorder = WebRecorder(1.seconds);
   int _count = 0;
   ChordProgression _progression = ChordProgression.empty();
 
@@ -92,9 +93,9 @@ class _EstimatorPageState extends State<EstimatorPage> {
 
                         return ListView(
                           children: [
-                            Text(value.toString()),
+                            Text(value.name),
                             Text(_count.toString()),
-                            Text(data.buffer.length.toString()),
+                            Text('buffer size: ${data.buffer.length}'),
                             ChordProgressionView(progression: progression),
                             if (_estimator is ChromaChordEstimator)
                               Chromagram(
@@ -130,7 +131,7 @@ class RecFloatingActionButton extends StatefulWidget {
   const RecFloatingActionButton(
       {super.key, required this.recorder, this.onStop});
 
-  final WebRecorder recorder;
+  final Recorder recorder;
   final VoidCallback? onStop;
 
   @override
@@ -139,7 +140,7 @@ class RecFloatingActionButton extends StatefulWidget {
 }
 
 class _RecFloatingActionButtonState extends State<RecFloatingActionButton> {
-  WebRecorder get _recorder => widget.recorder;
+  Recorder get _recorder => widget.recorder;
 
   @override
   Widget build(BuildContext context) => FloatingActionButton(

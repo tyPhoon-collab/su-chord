@@ -75,7 +75,7 @@ abstract class ChromaChordEstimator
   Iterable<String> debugText() {
     return [
       ...filteredChromas.map((e) => e.toString()),
-      ...calculateTimes.entries.map((entry) => '${entry.key}: ${entry.value}')
+      ...calculateTimes.entries.map((e) => '${e.key}: ${e.value} ms')
     ];
   }
 }

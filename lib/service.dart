@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'config.dart';
+import 'domains/chroma_calculators/magnitudes_calculator.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
 
@@ -31,24 +32,30 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final filters = factory.filter.eval; //TODO deal as provider or hardcoding.
 
   return {
-    'main': () async => PatternMatchingChordEstimator(
+    'matching + reassignment': () async => PatternMatchingChordEstimator(
           chromaCalculable: factory.guitarRange.reassignment,
           filters: filters,
         ),
-    'comb + pattern matching': () async => PatternMatchingChordEstimator(
+    'matching + reassignment comb': () async => PatternMatchingChordEstimator(
+          chromaCalculable: factory.guitarRange.reassignCombFilter,
+          filters: filters,
+        ),
+    'matching + comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: factory.guitarRange.combFilter,
           filters: filters,
         ),
-    'comb + search tree': () async => SearchTreeChordEstimator(
+    'search tree + comb': () async => SearchTreeChordEstimator(
           chromaCalculable: factory.guitarRange.combFilter,
           filters: filters,
           thresholdRatio: 0.3,
         ),
-    'comb + search tree + db': () async => SearchTreeChordEstimator(
-          chromaCalculable: factory.guitarRange.combFilter,
+    'search tree + comb + ln scale': () async => SearchTreeChordEstimator(
+          chromaCalculable: factory.guitarRange.combFilterWith(
+            magnitudesCalculable:
+                factory.magnitude.stft(scalar: MagnitudeScalar.ln),
+          ),
           filters: filters,
           thresholdRatio: 0.3,
-          chordSelectable: await factory.selector.db,
         ),
   };
 }
@@ -56,7 +63,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => 'main';
+  String build() => ref.watch(estimatorsProvider).keys.first;
 
   void change(String newValue) {
     final estimators = ref.watch(estimatorsProvider);

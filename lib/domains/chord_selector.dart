@@ -12,7 +12,7 @@ abstract interface class ChordSelectable {
 
 class FirstChordSelector implements ChordSelectable {
   @override
-  String toString() => 'first';
+  String toString() => 'select first';
 
   @override
   Chord? call(Iterable<Chord> chords, ChordProgression progression) {
@@ -45,7 +45,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       progressions.fold(0, (len, e) => len < e.length ? e.length : len);
 
   @override
-  String toString() => 'db';
+  String toString() => 'select by db';
 
   @override
   Chord? call(Iterable<Chord> chords, ChordProgression progression) {

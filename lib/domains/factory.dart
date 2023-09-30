@@ -59,9 +59,16 @@ final class EstimatorFactory {
 
   late final guitarRange = ChromaCalculatorFactory(
     context,
-    chromaContext: const ChromaContext(lowest: MusicalScale.E2, perOctave: 6),
+    magnitude: magnitude,
+    chromaContext: const ChromaContext(
+      lowest: MusicalScale.E2,
+      perOctave: 6,
+    ),
   );
-  late final bigRange = ChromaCalculatorFactory(context);
+  late final bigRange = ChromaCalculatorFactory(
+    context,
+    magnitude: magnitude,
+  );
 }
 
 final class MagnitudesFactory {
@@ -92,10 +99,12 @@ final class ChromaCalculatorFactory {
   const ChromaCalculatorFactory(
     this.context, {
     this.chromaContext = const ChromaContext(),
+    required this.magnitude,
   });
 
   final EstimatorFactoryContext context;
   final ChromaContext chromaContext;
+  final MagnitudesFactory magnitude;
 
   int get _chunkStride => context.chunkStride;
 
@@ -103,16 +112,15 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable get combFilter => combFilterWith();
 
+  ChromaCalculable get reassignCombFilter =>
+      combFilterWith(magnitudesCalculable: magnitude.reassignment());
+
   ChromaCalculable combFilterWith({
     CombFilterContext? combFilterContext,
     MagnitudesCalculable? magnitudesCalculable,
   }) =>
       CombFilterChromaCalculator(
-        magnitudesCalculable: magnitudesCalculable ??
-            MagnitudesCalculator(
-              chunkSize: _chunkSize,
-              chunkStride: _chunkSize,
-            ),
+        magnitudesCalculable: magnitudesCalculable ?? magnitude.stft(),
         chromaContext: chromaContext,
         context: combFilterContext ?? const CombFilterContext(),
       );
