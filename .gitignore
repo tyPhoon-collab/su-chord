@@ -47,3 +47,5 @@ app.*.map.json
 ~$*.xlsx
 
 .vscode
+
+/test/outputs/plots/*.png

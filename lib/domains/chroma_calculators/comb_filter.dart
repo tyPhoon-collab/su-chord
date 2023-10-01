@@ -13,6 +13,10 @@ class CombFilterContext {
     this.calculationRangeStdDevCoefficient = 4,
   });
 
+  @override
+  String toString() =>
+      '$hzStdDevCoefficient, $calculationRangeStdDevCoefficient';
+
   final double hzStdDevCoefficient;
   final double calculationRangeStdDevCoefficient;
 }

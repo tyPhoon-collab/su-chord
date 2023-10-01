@@ -12,29 +12,41 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
+import '../writer.dart';
+
 void main() {
-  test('norm', () async {
-    final c1 = Chroma(const [1, 1, 1, 1]);
-    expect(c1.l2norm, 2);
+  late final AudioData sampleData;
+  late final Writer writer;
 
-    final c2 = Chroma(const [-1, -1, -1, -1]);
-    expect(c2.l2norm, 2);
+  setUpAll(() async {
+    sampleData = await AudioLoader.sample.load(sampleRate: Config.sampleRate);
+    writer = BarChartWriter();
   });
 
-  test('normalized', () async {
-    final c1 = Chroma(const [1, 1, 1, 1]);
-    expect(c1.normalized, [0.5, 0.5, 0.5, 0.5]);
+  group('base', () {
+    test('norm', () async {
+      final c1 = Chroma(const [1, 1, 1, 1]);
+      expect(c1.l2norm, 2);
 
-    final c2 = Chroma(const [-1, -1, -1, -1]);
-    expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
-  });
+      final c2 = Chroma(const [-1, -1, -1, -1]);
+      expect(c2.l2norm, 2);
+    });
 
-  test('cosine similarity', () async {
-    final c1 = Chroma(const [1, 1, 1, 1]);
-    expect(c1.cosineSimilarity(c1), 1);
+    test('normalized', () async {
+      final c1 = Chroma(const [1, 1, 1, 1]);
+      expect(c1.normalized, [0.5, 0.5, 0.5, 0.5]);
 
-    final c2 = Chroma(const [-1, -1, -1, -1]);
-    expect(c1.cosineSimilarity(c2), -1);
+      final c2 = Chroma(const [-1, -1, -1, -1]);
+      expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
+    });
+
+    test('cosine similarity', () async {
+      final c1 = Chroma(const [1, 1, 1, 1]);
+      expect(c1.cosineSimilarity(c1), 1);
+
+      final c2 = Chroma(const [-1, -1, -1, -1]);
+      expect(c1.cosineSimilarity(c2), -1);
+    });
   });
 
   group('reassignment', () {
@@ -102,10 +114,8 @@ void main() {
     });
 
     test('std dev coef', () async {
-      final data = await AudioLoader.sample.load(
-        duration: 4,
-        sampleRate: factory8192_0.context.sampleRate,
-      );
+      final f = factory8192_0;
+      final data = sampleData.cut(duration: 4);
 
       const contexts = [
         CombFilterContext(hzStdDevCoefficient: 1 / 24),
@@ -115,17 +125,18 @@ void main() {
         CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ];
 
-      final chromas = contexts.map(
-        (e) => factory8192_0.filter
-            .interval(4.seconds)(CombFilterChromaCalculator(
-              magnitudesCalculable: factory8192_0.magnitude.stft(),
-              context: e,
-            )(data))
-            .first,
-      );
+      for (final c in contexts) {
+        final chroma = f.filter
+            .interval(4.seconds)(
+              CombFilterChromaCalculator(
+                magnitudesCalculable: f.magnitude.stft(),
+                context: c,
+              ).call(data),
+            )
+            .first
+            .normalized;
 
-      for (final e in chromas) {
-        debugPrint(e.normalized.toString());
+        writer(chroma, title: c.toString());
       }
     });
 
@@ -163,7 +174,7 @@ void main() {
     });
   });
 
-  test('compare chromas', () async {
+  test('compare cosine similarity', () async {
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
     // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
     final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
@@ -203,6 +214,26 @@ void main() {
             'cosine similarity: ${chroma.cosineSimilarity(value.pcp).toStringAsFixed(3)} of $value');
       }
       debugPrint('');
+    }
+  });
+
+  test('compare chroma', () async {
+    final data = sampleData.cut(duration: 4);
+    final f = factory8192_0;
+    final cs = [
+      for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
+        f.guitarRange.combFilterWith(
+            magnitudesCalculable: f.magnitude.stft(scalar: scalar)),
+        f.guitarRange.combFilterWith(
+            magnitudesCalculable: f.magnitude.reassignment(scalar: scalar)),
+        f.guitarRange.reassignmentWith(scalar: scalar),
+      ]
+    ];
+    final filter = f.filter.interval(4.seconds);
+
+    for (final c in cs) {
+      final chroma = filter(c(data)).first.normalized;
+      writer(chroma, title: c.toString());
     }
   });
 }

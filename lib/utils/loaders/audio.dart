@@ -75,6 +75,10 @@ abstract interface class AudioLoader {
 
   static const sample =
       SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+
+  static const sample2 = SimpleAudioLoader(
+      path:
+          'assets/evals/Halion_CleanStratGuitar/1_Halion_CleanStratGuitar.wav');
 }
 
 final class SimpleAudioLoader implements AudioLoader {

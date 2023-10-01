@@ -12,7 +12,7 @@ class Table extends Iterable<Row> {
 
   static bool bypass = false;
 
-  final List<List<String>> _values;
+  final List<Row> _values;
 
   void clear([remainingHeader = true]) {
     final header = _values.first;
@@ -25,13 +25,15 @@ class Table extends Iterable<Row> {
     _values.add(row);
   }
 
-  void toCSV(String path) {
+  File toCSV(String path) {
     assert(path.endsWith('.csv'));
-    if (bypass) return;
+    if (bypass) return File(path);
 
     final file = File(path);
     final contents = const ListToCsvConverter().convert(_values);
     file.writeAsString(contents);
+
+    return file;
   }
 
   @override

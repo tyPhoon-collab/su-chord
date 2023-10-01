@@ -23,7 +23,7 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
   late final Bin binY = chromaContext.toEqualTemperamentBin();
 
   @override
-  String toString() => 'sparse, ${scalar.name}, $chromaContext';
+  String toString() => 'sparse ${scalar.name} scaled, $chromaContext';
 
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
