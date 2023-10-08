@@ -1,16 +1,17 @@
-import 'package:chord/widgets/pages/plot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
-import '../../domains/chord.dart';
 import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
 import '../../js_external.dart';
 import '../../recorder.dart';
 import '../../service.dart';
+import '../chord_view.dart';
+import '../recorder_fab.dart';
 import 'loading.dart';
+import 'plot.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -64,6 +65,7 @@ class _EstimatorPageState extends State<EstimatorPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Chord')),
+        drawer: const _HomeDrawer(),
         body: ValueListenableBuilder(
           valueListenable: _recorder.state,
           builder: (_, value, __) {
@@ -71,45 +73,51 @@ class _EstimatorPageState extends State<EstimatorPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ChordEstimatorSelector(
-                      enable: value == RecorderState.stopped),
+                  _ConfigView(recorderState: value),
                   Expanded(
-                    child: StreamBuilder(
-                      stream: _recorder.stream,
-                      builder: (_, snapshot) {
-                        if (!snapshot.hasData) return const SizedBox();
-                        //for debug
-                        if (value == RecorderState.recording) {
-                          _count++;
-                        } else {
-                          _count = 0;
-                          return ChordProgressionView(
-                              progression: _progression);
-                        }
+                    child: _progression.isEmpty &&
+                            value == RecorderState.stopped
+                        ? const _WelcomeView()
+                        : StreamBuilder(
+                            stream: _recorder.stream,
+                            builder: (_, snapshot) {
+                              if (!snapshot.hasData) return const SizedBox();
+                              //for debug
+                              if (value == RecorderState.recording) {
+                                _count++;
+                              } else {
+                                _count = 0;
+                                return ChordProgressionView(
+                                    progression: _progression);
+                              }
 
-                        final data = snapshot.data!
-                            .downSample(widget.context.sampleRate);
-                        final progression = _estimator.estimate(data, false);
+                              final data = snapshot.data!
+                                  .downSample(widget.context.sampleRate);
+                              final progression =
+                                  _estimator.estimate(data, false);
 
-                        return ListView(
-                          children: [
-                            Text(value.name),
-                            Text(_count.toString()),
-                            Text('buffer size: ${data.buffer.length}'),
-                            ChordProgressionView(progression: progression),
-                            if (_estimator is ChromaChordEstimator)
-                              Chromagram(
-                                chromas: (_estimator as ChromaChordEstimator)
-                                    .filteredChromas,
-                              ),
-                            if (_estimator is Debuggable)
-                              for (final text
-                                  in (_estimator as Debuggable).debugText())
-                                Text(text),
-                          ],
-                        );
-                      },
-                    ),
+                              return ListView(
+                                children: [
+                                  Text(value.name),
+                                  Text(_count.toString()),
+                                  Text('buffer size: ${data.buffer.length}'),
+                                  ChordProgressionView(
+                                      progression: progression),
+                                  if (_estimator is ChromaChordEstimator)
+                                    Chromagram(
+                                      chromas:
+                                          (_estimator as ChromaChordEstimator)
+                                              .filteredChromas,
+                                    ),
+                                  if (_estimator is Debuggable)
+                                    for (final text
+                                        in (_estimator as Debuggable)
+                                            .debugText())
+                                      Text(text),
+                                ],
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -127,55 +135,69 @@ class _EstimatorPageState extends State<EstimatorPage> {
       );
 }
 
-class RecFloatingActionButton extends StatefulWidget {
-  const RecFloatingActionButton(
-      {super.key, required this.recorder, this.onStop});
-
-  final Recorder recorder;
-  final VoidCallback? onStop;
+class _HomeDrawer extends StatelessWidget {
+  const _HomeDrawer();
 
   @override
-  State<RecFloatingActionButton> createState() =>
-      _RecFloatingActionButtonState();
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: const [
+          DrawerHeader(child: Text('Chord')),
+          AboutListTile(
+            icon: Icon(Icons.library_books_outlined),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _RecFloatingActionButtonState extends State<RecFloatingActionButton> {
-  Recorder get _recorder => widget.recorder;
+class _WelcomeView extends StatelessWidget {
+  const _WelcomeView();
 
   @override
-  Widget build(BuildContext context) => FloatingActionButton(
-        onPressed: () {
-          if (!_recorder.isRecording) {
-            _recorder.start();
-          } else {
-            _recorder.stop();
-            widget.onStop?.call();
-          }
-        },
-        child: ValueListenableBuilder(
-          valueListenable: widget.recorder.state,
-          builder: (_, value, __) => value == RecorderState.recording
-              ? const Icon(Icons.stop)
-              : const Icon(Icons.mic),
+  Widget build(BuildContext context) => const Center(
+        child: Text(
+          'Press the record button on the bottom right '
+          'to start estimation',
         ),
       );
 }
 
-class ChordEstimatorSelector extends ConsumerStatefulWidget {
-  const ChordEstimatorSelector({
-    super.key,
-    this.enable = true,
-  });
+class _ConfigView extends StatelessWidget {
+  const _ConfigView({required this.recorderState});
+
+  final RecorderState recorderState;
+
+  @override
+  Widget build(BuildContext context) => ExpansionTile(
+        title: const Text('Config'),
+        leading: const Icon(Icons.settings),
+        children: [
+          ListTile(
+            leading: const Icon(Icons.functions_outlined),
+            title: const Text('Estimator'),
+            trailing: _ChordEstimatorSelector(
+              enable: recorderState == RecorderState.stopped,
+            ),
+          ),
+        ],
+      );
+}
+
+class _ChordEstimatorSelector extends ConsumerStatefulWidget {
+  const _ChordEstimatorSelector({this.enable = true});
 
   final bool enable;
 
   @override
-  ConsumerState<ChordEstimatorSelector> createState() =>
+  ConsumerState<_ChordEstimatorSelector> createState() =>
       _ChordEstimatorSelectorState();
 }
 
 class _ChordEstimatorSelectorState
-    extends ConsumerState<ChordEstimatorSelector> {
+    extends ConsumerState<_ChordEstimatorSelector> {
   @override
   Widget build(BuildContext context) {
     final selectingEstimatorLabel = ref.watch(selectingEstimatorLabelProvider);
@@ -197,38 +219,4 @@ class _ChordEstimatorSelectorState
           : null,
     );
   }
-}
-
-class ChordProgressionView extends StatelessWidget {
-  const ChordProgressionView({super.key, required this.progression});
-
-  final ChordProgression progression;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(progression.toString()),
-          ChordView(chord: progression.lastOrNull),
-        ],
-      );
-}
-
-class ChordView extends StatelessWidget {
-  const ChordView({super.key, required this.chord});
-
-  final Chord? chord;
-
-  TextStyle? get style => Get.textTheme.headlineLarge;
-
-  @override
-  Widget build(BuildContext context) => chord == null
-      ? Text('No Chord', style: style)
-      : Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(chord.toString(), style: style),
-            Text(chord!.notes.join(', ')),
-          ],
-        );
 }
