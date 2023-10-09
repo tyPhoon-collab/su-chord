@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'config.dart';
 import 'domains/chroma_calculators/magnitudes_calculator.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
@@ -16,7 +15,7 @@ EstimatorFactoryContext factoryContext(FactoryContextRef ref) =>
     const EstimatorFactoryContext(
       chunkSize: 8192,
       chunkStride: 0,
-      sampleRate: Config.sampleRate,
+      sampleRate: 22050,
     );
 
 @riverpod

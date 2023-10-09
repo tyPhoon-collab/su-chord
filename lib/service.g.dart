@@ -8,7 +8,11 @@ part of 'service.dart';
 
 String _$factoryContextHash() => r'bddc873a0816601c74179444e6e7b6459209c1e8';
 
-/// See also [factoryContext].
+///サンプルレートやSTFT時のwindowサイズやhop_lengthのサイズを保持する
+///推定器に必要なデータを全て保持し、EstimatorFactoryに提供する
+///Providerとして扱うことで、変更時にfactoryも更新できる
+///
+/// Copied from [factoryContext].
 @ProviderFor(factoryContext)
 final factoryContextProvider =
     AutoDisposeProvider<EstimatorFactoryContext>.internal(
@@ -36,9 +40,13 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'd28cbb8b10aaf91fcb218a437955ef24c931f2a8';
+String _$estimatorsHash() => r'782f20f3bc876e2a8de6e0080fd637440b530ffb';
 
-/// See also [estimators].
+///推定器の一覧
+///フロントエンドでどの推定器を使うか選ぶことができる
+///
+///
+/// Copied from [estimators].
 @ProviderFor(estimators)
 final estimatorsProvider = AutoDisposeProvider<
     Map<String, Future<ChordEstimable> Function()>>.internal(
@@ -67,7 +75,7 @@ final estimatorProvider = AutoDisposeFutureProvider<ChordEstimable>.internal(
 
 typedef EstimatorRef = AutoDisposeFutureProviderRef<ChordEstimable>;
 String _$selectingEstimatorLabelHash() =>
-    r'ee53aea4e0c83c2dc5b8447ea470c5137273981b';
+    r'442b23297aa4a7fefdd4593d83dff9c664e4284a';
 
 /// See also [SelectingEstimatorLabel].
 @ProviderFor(SelectingEstimatorLabel)

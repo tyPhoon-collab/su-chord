@@ -1,11 +1,10 @@
 import 'dart:io';
 
-import 'package:chord/config.dart';
 import 'package:chord/utils/loaders/audio.dart';
 
 class AudioStreamEmulator {
   const AudioStreamEmulator({
-    this.bufferChunkSize = Config.sampleRate,
+    this.bufferChunkSize = 22050,
     this.sleepDuration = const Duration(seconds: 1),
   });
 

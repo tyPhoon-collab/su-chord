@@ -1,4 +1,3 @@
-import 'package:chord/config.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/estimator.dart';
@@ -29,7 +28,7 @@ void main() {
   });
 
   test('triad', () async {
-    final data = await AudioLoader.sample.load(sampleRate: Config.sampleRate);
+    final data = await AudioLoader.sample.load(sampleRate: 22050);
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: ReassignmentChromaCalculator(),
       filters: [

@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:wav/wav.dart';
 
-import '../../config.dart';
-
 @immutable
 class AudioData {
   const AudioData({required this.buffer, required this.sampleRate});
@@ -106,7 +104,7 @@ final class SimpleAudioLoader implements AudioLoader {
 final class DeltaFunctionAudioLoader implements AudioLoader {
   @override
   Future<AudioData> load({double? duration, int? sampleRate}) {
-    sampleRate ??= Config.sampleRate;
+    sampleRate ??= 22050;
     final buffer = List.filled(sampleRate * 2, 0.0);
     buffer[sampleRate ~/ 2] = 1;
     return Future.value(AudioData(

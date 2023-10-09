@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
@@ -373,7 +372,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
           data: Map.fromIterables(
             value.map((e) => e.soundSource),
             await Future.wait(value.map(
-              (e) => e.loader.load(duration: 83, sampleRate: Config.sampleRate),
+              (e) => e.loader.load(duration: 83, sampleRate: 22050),
             )),
           ),
           corrects: corrects[songId]!,

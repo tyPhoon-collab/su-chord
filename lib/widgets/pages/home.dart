@@ -73,7 +73,7 @@ class _EstimatorPageState extends State<EstimatorPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _ConfigView(recorder: _recorder),
+                  _EstimatorConfigView(recorder: _recorder),
                   Expanded(
                     child:
                         _progression.isEmpty && value == RecorderState.stopped
@@ -221,8 +221,8 @@ class _WelcomeView extends StatelessWidget {
       );
 }
 
-class _ConfigView extends StatelessWidget {
-  const _ConfigView({required this.recorder});
+class _EstimatorConfigView extends StatelessWidget {
+  const _EstimatorConfigView({required this.recorder});
 
   final Recorder recorder;
 

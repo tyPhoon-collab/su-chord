@@ -2,8 +2,6 @@ import 'domains/chord.dart';
 import 'domains/equal_temperament.dart';
 
 class Config {
-  static const sampleRate = 22050;
-
   // static final detectableChords = Set.unmodifiable([
   //   for (final root in Note.values)
   //     for (final type in ChordType.values.where((ct) => ct != ChordType.sus2))

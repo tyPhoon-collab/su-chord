@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 
-import '../config.dart';
 import '../utils/loaders/csv.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
@@ -17,7 +16,7 @@ final factory2048_1024 = EstimatorFactory(
   const EstimatorFactoryContext(
     chunkSize: 2048,
     chunkStride: 1024,
-    sampleRate: Config.sampleRate,
+    sampleRate: 22050,
   ),
 );
 
@@ -25,7 +24,7 @@ final factory8192_0 = EstimatorFactory(
   const EstimatorFactoryContext(
     chunkSize: 8192,
     chunkStride: 0,
-    sampleRate: Config.sampleRate,
+    sampleRate: 22050,
   ),
 );
 

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:chord/config.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:fftea/fftea.dart';
 import 'package:flutter/cupertino.dart';
@@ -51,7 +50,7 @@ void main() {
 
   test('stft comb filter', () async {
     const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    final data = await loader.load(sampleRate: Config.sampleRate);
+    final data = await loader.load();
 
     const chunkSize = 2048;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));

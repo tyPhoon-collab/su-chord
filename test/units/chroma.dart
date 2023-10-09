@@ -1,4 +1,3 @@
-import 'package:chord/config.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
@@ -16,10 +15,18 @@ import '../writer.dart';
 
 void main() {
   late final AudioData sampleData;
+  late final AudioData noteC3Data;
+  late final AudioData chordCData;
   late final Writer writer;
 
   setUpAll(() async {
-    sampleData = await AudioLoader.sample.load(sampleRate: Config.sampleRate);
+    sampleData = await AudioLoader.sample.load(sampleRate: 22050);
+    noteC3Data =
+        await const SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav')
+            .load(sampleRate: 22050);
+    chordCData =
+        await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
+            .load(sampleRate: 22050);
     writer = BarChartWriter();
   });
 
@@ -51,39 +58,27 @@ void main() {
 
   group('reassignment', () {
     test('one note', () async {
-      const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
-      final data = await loader.load();
-      final chroma = ReassignmentChromaCalculator()(data).first;
+      final chroma = ReassignmentChromaCalculator()(noteC3Data).first;
 
       debugPrint(chroma.toString());
       expect(chroma.maxIndex, 0);
     });
 
     test('chord', () async {
-      const loader =
-          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-      final data =
-          await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = ReassignmentChromaCalculator()(data);
+      final chroma = ReassignmentChromaCalculator()(chordCData).first;
 
-      expect(chromas[0].maxIndex, 0);
+      expect(chroma.maxIndex, 0);
     });
 
     test('long duration', () async {
-      const loader = SimpleAudioLoader(
-          path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
-      final data = await loader.load(sampleRate: Config.sampleRate);
-      final chromas = ReassignmentChromaCalculator()(data);
+      final chromas = ReassignmentChromaCalculator()(sampleData);
 
       expect(chromas, isNotEmpty);
     });
 
     test('normalized', () async {
-      const loader = SimpleAudioLoader(
-          path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
-      final data =
-          await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = ReassignmentChromaCalculator()(data);
+      final chromas =
+          ReassignmentChromaCalculator()(sampleData.cut(duration: 4));
       final chroma = chromas[0].normalized;
 
       expect(chroma, isNotNull);
@@ -92,10 +87,8 @@ void main() {
 
   group('comb filter', () {
     test('one note', () async {
-      const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
-      final data = await loader.load();
       final chroma = CombFilterChromaCalculator(
-              magnitudesCalculable: MagnitudesCalculator())(data)
+              magnitudesCalculable: MagnitudesCalculator())(noteC3Data)
           .first;
 
       debugPrint(chroma.toString());
@@ -103,14 +96,11 @@ void main() {
     });
 
     test('chord', () async {
-      const loader =
-          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-      final data =
-          await loader.load(duration: 4, sampleRate: Config.sampleRate);
-      final chromas = CombFilterChromaCalculator(
-          magnitudesCalculable: MagnitudesCalculator())(data);
+      final chroma = CombFilterChromaCalculator(
+              magnitudesCalculable: MagnitudesCalculator())(chordCData)
+          .first;
 
-      expect(chromas[0], isNotNull);
+      expect(chroma, isNotNull);
     });
 
     test('std dev coef', () async {
@@ -141,10 +131,7 @@ void main() {
     });
 
     test('log vs normal', () async {
-      final data = await AudioLoader.sample.load(
-        duration: 4,
-        sampleRate: Config.sampleRate,
-      );
+      final data = sampleData.cut(duration: 4);
 
       final filter = factory8192_0.filter.interval(4.seconds);
 
@@ -161,24 +148,15 @@ void main() {
     });
 
     test('guitar tuning', () async {
-      const loader =
-          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-      // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
-      final data =
-          await loader.load(duration: 4, sampleRate: Config.sampleRate);
-
       final ccd = factory8192_0.filter.interval(3.seconds);
-      final chromas = ccd(factory8192_0.guitarRange.combFilter(data));
+      final chromas = ccd(
+          factory8192_0.guitarRange.combFilter(sampleData.cut(duration: 4)));
 
       expect(chromas[0], isNotNull);
     });
   });
 
   test('compare cosine similarity', () async {
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    // const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_g3.wav');
-    final data = await loader.load(duration: 4, sampleRate: Config.sampleRate);
-
     final ccd = factory8192_0.filter.interval(3.seconds);
 
     Measure.logger = null;
@@ -207,7 +185,7 @@ void main() {
     ];
 
     for (final c in calculator) {
-      final chroma = ccd(c(data)).first;
+      final chroma = ccd(c(chordCData)).first;
       debugPrint('chroma: ${chroma.normalized}');
       for (final value in templates) {
         debugPrint(

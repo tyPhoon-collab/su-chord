@@ -1,4 +1,3 @@
-import 'package:chord/config.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +12,7 @@ void main() {
   setUpAll(() async {
     data = await AudioLoader.sample.load(
       duration: 4,
-      sampleRate: Config.sampleRate,
+      sampleRate: 22050,
     );
     factory = factory8192_0;
     writer = SpecChartWriter(
