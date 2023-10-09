@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:fftea/stft.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import '../../domains/chroma.dart';
+import '../domains/chroma.dart';
 
 class Chromagram extends StatelessWidget {
   const Chromagram({
@@ -41,6 +44,73 @@ class Chromagram extends StatelessWidget {
             }),
           );
   }
+}
+
+class AmplitudeChart extends StatelessWidget {
+  const AmplitudeChart({
+    super.key,
+    required this.data,
+  });
+
+  final List<double> data;
+
+  @override
+  Widget build(BuildContext context) {
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: data.length - 1,
+        minY: -1,
+        maxY: 1,
+        backgroundColor: Get.theme.colorScheme.background,
+        lineBarsData: [
+          LineChartBarData(
+            spots:
+                data.indexed.map((e) => FlSpot(e.$1.toDouble(), e.$2)).toList(),
+            color: Get.theme.colorScheme.primary,
+            isCurved: true,
+            dotData: const FlDotData(show: false),
+          ),
+        ],
+        lineTouchData: const LineTouchData(enabled: false),
+        titlesData: const FlTitlesData(
+          topTitles: AxisTitles(),
+          bottomTitles: AxisTitles(),
+        ),
+      ),
+      duration: 10.milliseconds,
+    );
+  }
+}
+
+class LogScatterChart extends StatelessWidget {
+  const LogScatterChart({super.key, required this.spots});
+
+  final List<ScatterSpot> spots;
+
+  List<T> _logY<T extends FlSpot>(List<T> spots) => spots
+      .map((e) => e.y == 0 ? e : e.copyWith(y: log(e.y)))
+      .cast<T>()
+      .toList();
+
+  @override
+  Widget build(BuildContext context) => ScatterChart(
+        ScatterChartData(
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                reservedSize: 55,
+                showTitles: true,
+                getTitlesWidget: (value, meta) => SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(pow(e, value).round().toString()),
+                ),
+              ),
+            ),
+          ),
+          scatterSpots: _logY(spots),
+        ),
+      );
 }
 
 ///再割り当て時のウィンドウを可視化するためのデバッグ用ページ

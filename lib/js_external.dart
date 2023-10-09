@@ -10,10 +10,9 @@ import 'package:js/js.dart';
 import 'recorder.dart';
 import 'utils/loaders/audio.dart';
 
-//現状、bufferSizeはバイトの長さを指す。
 //ある程度大きくとらないと、処理が追いつかなくなる
 @JS('start')
-external Future<void> startRec([int bufferSize = 8192 * 8]);
+external Future<void> startRec([int bufferSize = 2048 * 64]);
 
 @JS('stop')
 external void stopRec();
@@ -27,7 +26,8 @@ class WebRecorder extends Recorder {
     _processSetter = allowInterop(_process);
   }
 
-  final controller = StreamController<AudioData>();
+  final _controller = StreamController<AudioData>.broadcast();
+  final _bufferController = StreamController<List<double>>.broadcast();
   final Duration timeSlice;
 
   @override
@@ -39,17 +39,22 @@ class WebRecorder extends Recorder {
   late int _sampleRate;
 
   @override
-  Stream<AudioData> get stream => controller.stream;
+  Stream<AudioData> get stream => _controller.stream;
+
+  @override
+  Stream<List<double>> get bufferStream => _bufferController.stream;
 
   AudioData? get audioData => _audioData;
 
   void _process(JSFloat32Array array, int sampleRate) {
-    _buffer = Float32List.fromList([...?_buffer, ...array.toDart]);
+    final buffer = array.toDart;
+    _buffer = Float32List.fromList([...?_buffer, ...buffer]);
     // final maxSize = sampleRate * 2;
     // final size = _buffer!.length;
     // if (size > maxSize) {
     //   _buffer = _buffer!.sublist(size - maxSize, maxSize);
     // }
+    _bufferController.sink.add(buffer);
     _sampleRate = sampleRate;
   }
 
@@ -68,7 +73,7 @@ class WebRecorder extends Recorder {
         buffer: Float64List.fromList(_buffer!),
         sampleRate: _sampleRate,
       );
-      controller.sink.add(_audioData!);
+      _controller.sink.add(_audioData!);
       _buffer = null;
       // controller.sink.add(AudioData.empty(sampleRate: Config.sampleRate));
       // controller.sink.add(_audioData!.cutByIndex(startIndex: _seek));
@@ -88,6 +93,7 @@ class WebRecorder extends Recorder {
   @override
   void dispose() {
     stop();
-    controller.close();
+    _controller.close();
+    _bufferController.close();
   }
 }

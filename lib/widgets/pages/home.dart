@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
@@ -9,9 +10,9 @@ import '../../js_external.dart';
 import '../../recorder.dart';
 import '../../service.dart';
 import '../chord_view.dart';
+import '../plot.dart';
 import '../recorder_fab.dart';
 import 'loading.dart';
-import 'plot.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -53,7 +54,6 @@ class EstimatorPage extends StatefulWidget {
 class _EstimatorPageState extends State<EstimatorPage> {
   late final _estimator = widget.estimator;
   final Recorder _recorder = WebRecorder(1.seconds);
-  int _count = 0;
   ChordProgression _progression = ChordProgression.empty();
 
   @override
@@ -75,49 +75,19 @@ class _EstimatorPageState extends State<EstimatorPage> {
                 children: [
                   _ConfigView(recorderState: value),
                   Expanded(
-                    child: _progression.isEmpty &&
-                            value == RecorderState.stopped
-                        ? const _WelcomeView()
-                        : StreamBuilder(
-                            stream: _recorder.stream,
-                            builder: (_, snapshot) {
-                              if (!snapshot.hasData) return const SizedBox();
-                              //for debug
-                              if (value == RecorderState.recording) {
-                                _count++;
-                              } else {
-                                _count = 0;
-                                return ChordProgressionView(
-                                    progression: _progression);
-                              }
-
-                              final data = snapshot.data!
-                                  .downSample(widget.context.sampleRate);
-                              final progression =
-                                  _estimator.estimate(data, false);
-
-                              return ListView(
-                                children: [
-                                  Text(value.name),
-                                  Text(_count.toString()),
-                                  Text('buffer size: ${data.buffer.length}'),
-                                  ChordProgressionView(
-                                      progression: progression),
-                                  if (_estimator is ChromaChordEstimator)
-                                    Chromagram(
-                                      chromas:
-                                          (_estimator as ChromaChordEstimator)
-                                              .filteredChromas,
-                                    ),
-                                  if (_estimator is Debuggable)
-                                    for (final text
-                                        in (_estimator as Debuggable)
-                                            .debugText())
-                                      Text(text),
-                                ],
-                              );
-                            },
-                          ),
+                    child:
+                        _progression.isEmpty && value == RecorderState.stopped
+                            ? const _WelcomeView()
+                            : value == RecorderState.stopped
+                                ? _EstimatedView(
+                                    progression: _progression,
+                                    estimator: _estimator,
+                                  )
+                                : _EstimatingStreamView(
+                                    recorder: _recorder,
+                                    estimator: _estimator,
+                                    factoryContext: widget.context,
+                                  ),
                   ),
                 ],
               ),
@@ -135,6 +105,94 @@ class _EstimatorPageState extends State<EstimatorPage> {
       );
 }
 
+class _EstimatingStreamView extends StatelessWidget {
+  const _EstimatingStreamView({
+    required this.recorder,
+    required this.estimator,
+    required this.factoryContext,
+  });
+
+  final Recorder recorder;
+  final ChordEstimable estimator;
+  final EstimatorFactoryContext factoryContext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: StreamBuilder(
+              stream: recorder.bufferStream,
+              builder: (_, snapshot) {
+                if (!snapshot.hasData) return const SizedBox();
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AmplitudeChart(data: snapshot.data!),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            flex: 6,
+            child: Builder(builder: (context) {
+              var progression = ChordProgression.empty();
+              return StreamBuilder(
+                stream: recorder.stream,
+                builder: (_, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox();
+
+                  final data =
+                      snapshot.data!.downSample(factoryContext.sampleRate);
+
+                  return FutureBuilder(
+                    future: compute(
+                        (data) => estimator.estimate(data, false), data),
+                    builder: (_, snapshot) {
+                      if (snapshot.hasData) {
+                        progression = snapshot.data!;
+                      }
+                      return _EstimatedView(
+                        progression: progression,
+                        estimator: estimator,
+                      );
+                    },
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EstimatedView extends StatelessWidget {
+  const _EstimatedView({
+    required this.progression,
+    required this.estimator,
+  });
+
+  final ChordProgression progression;
+  final ChordEstimable estimator;
+
+  @override
+  Widget build(BuildContext context) {
+    final e = estimator;
+    return ListView(
+      children: [
+        ChordProgressionView(progression: progression),
+        if (e is ChromaChordEstimator) Chromagram(chromas: e.filteredChromas),
+        if (e is Debuggable)
+          for (final text in (e as Debuggable).debugText()) Text(text),
+      ],
+    );
+  }
+}
+
 class _HomeDrawer extends StatelessWidget {
   const _HomeDrawer();
 
@@ -144,9 +202,7 @@ class _HomeDrawer extends StatelessWidget {
       child: ListView(
         children: const [
           DrawerHeader(child: Text('Chord')),
-          AboutListTile(
-            icon: Icon(Icons.library_books_outlined),
-          ),
+          AboutListTile(icon: Icon(Icons.library_books_outlined)),
         ],
       ),
     );
