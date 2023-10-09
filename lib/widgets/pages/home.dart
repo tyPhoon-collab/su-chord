@@ -73,7 +73,7 @@ class _EstimatorPageState extends State<EstimatorPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _ConfigView(recorderState: value),
+                  _ConfigView(recorder: _recorder),
                   Expanded(
                     child:
                         _progression.isEmpty && value == RecorderState.stopped
@@ -222,9 +222,11 @@ class _WelcomeView extends StatelessWidget {
 }
 
 class _ConfigView extends StatelessWidget {
-  const _ConfigView({required this.recorderState});
+  const _ConfigView({required this.recorder});
 
-  final RecorderState recorderState;
+  final Recorder recorder;
+
+  bool get enable => !recorder.isRecording;
 
   @override
   Widget build(BuildContext context) => ExpansionTile(
@@ -234,40 +236,70 @@ class _ConfigView extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.functions_outlined),
             title: const Text('Estimator'),
-            trailing: _ChordEstimatorSelector(
-              enable: recorderState == RecorderState.stopped,
-            ),
+            trailing: _ChordEstimatorSelector(enable: enable),
           ),
+          ListTile(
+            leading: const Icon(Icons.mic_none_outlined),
+            title: const Text('Microphone Device'),
+            trailing: _MicrophoneDeviceSelector(
+              enable: enable,
+              recorder: recorder,
+            ),
+          )
         ],
       );
 }
 
-class _ChordEstimatorSelector extends ConsumerStatefulWidget {
+class _MicrophoneDeviceSelector extends StatelessWidget {
+  const _MicrophoneDeviceSelector({
+    this.enable = true,
+    required this.recorder,
+  });
+
+  final bool enable;
+  final Recorder recorder;
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder(
+      stream: recorder.deviceStream,
+      builder: (_, snapshot) {
+        if (!snapshot.hasData) {
+          return const Text('Please grant mic permission');
+        }
+
+        final devices = snapshot.data!;
+
+        return DropdownButton(
+          items: devices
+              .map((d) => DropdownMenuItem(value: d, child: Text(d.label)))
+              .toList(),
+          value: devices.current,
+          onChanged: enable
+              ? (DeviceInfo? value) async {
+                  if (value == null) return;
+                  await recorder.setDevice(value.id);
+                }
+              : null,
+        );
+      });
+}
+
+class _ChordEstimatorSelector extends ConsumerWidget {
   const _ChordEstimatorSelector({this.enable = true});
 
   final bool enable;
 
   @override
-  ConsumerState<_ChordEstimatorSelector> createState() =>
-      _ChordEstimatorSelectorState();
-}
-
-class _ChordEstimatorSelectorState
-    extends ConsumerState<_ChordEstimatorSelector> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final selectingEstimatorLabel = ref.watch(selectingEstimatorLabelProvider);
     final estimators = ref.watch(estimatorsProvider);
 
     return DropdownButton(
       items: estimators.keys
-          .map((label) => DropdownMenuItem(
-                value: label,
-                child: Text(label),
-              ))
+          .map((label) => DropdownMenuItem(value: label, child: Text(label)))
           .toList(),
       value: selectingEstimatorLabel,
-      onChanged: widget.enable
+      onChanged: enable
           ? (String? value) {
               if (value == null) return;
               ref.read(selectingEstimatorLabelProvider.notifier).change(value);

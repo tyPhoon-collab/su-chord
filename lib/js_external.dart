@@ -4,33 +4,57 @@ library audio_input;
 import 'dart:async';
 import 'dart:js_interop';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:js/js.dart';
+import 'package:js/js_util.dart';
 
 import 'recorder.dart';
 import 'utils/loaders/audio.dart';
 
-//ある程度大きくとらないと、処理が追いつかなくなる
+//戻り値はPromise。これをpromiseToFuture関数により変換して使用する
 @JS('start')
-external Future<void> startRec([int bufferSize = 2048 * 64]);
+external JSPromise startRec([int bufferSize = 2048 * 64]);
 
 @JS('stop')
 external void stopRec();
+
+@JS('getDeviceInfo')
+external JSPromise getDeviceInfo();
+
+@JS('setDeviceId')
+external JSPromise setDeviceId(String id);
 
 @JS('process')
 external set _processSetter(
     void Function(JSFloat32Array array, int sampleRate) f);
 
-class WebRecorder extends Recorder {
+@JS('onDeviceChanged')
+external set _onDeviceChangedSetter(
+    void Function(List<dynamic> list, String? curretnId) f);
+
+@JS()
+@staticInterop
+class MediaDeviceInfo {}
+
+extension on MediaDeviceInfo {
+  external String deviceId;
+  external String groupId;
+  external String kind;
+  external String label;
+}
+
+class WebRecorder {
   WebRecorder(this.timeSlice) {
     _processSetter = allowInterop(_process);
+    _onDeviceChangedSetter = allowInterop(_onDeviceChanged);
   }
 
   final _controller = StreamController<AudioData>.broadcast();
   final _bufferController = StreamController<List<double>>.broadcast();
+  final _deviceController = StreamController<Devices>.broadcast();
   final Duration timeSlice;
 
-  @override
   ValueNotifier<RecorderState> state = ValueNotifier(RecorderState.stopped);
 
   Timer? _timer;
@@ -38,13 +62,15 @@ class WebRecorder extends Recorder {
   Float32List? _buffer;
   late int _sampleRate;
 
-  @override
   Stream<AudioData> get stream => _controller.stream;
 
-  @override
   Stream<List<double>> get bufferStream => _bufferController.stream;
 
+  Stream<Devices> get deviceStream => _deviceController.stream;
+
   AudioData? get audioData => _audioData;
+
+  bool get isRecording => state.value == RecorderState.recording;
 
   void _process(JSFloat32Array array, int sampleRate) {
     final buffer = array.toDart;
@@ -58,10 +84,22 @@ class WebRecorder extends Recorder {
     _sampleRate = sampleRate;
   }
 
-  @override
+  void _onDeviceChanged(List<dynamic> list, String? currentId) {
+    final devices = list
+        .cast<MediaDeviceInfo>()
+        .map((e) => DeviceInfo(id: e.deviceId, label: e.label))
+        .toList();
+
+    final current =
+        devices.firstWhereOrNull((e) => e.id == currentId) ?? devices.first;
+
+    _deviceController.sink.add(Devices(current: current, values: devices));
+  }
+
+  //TODO 開始できなかった時の処理
   Future<void> start() async {
     if (isRecording) return;
-    await startRec();
+    await promiseToFuture(startRec());
     _startTimer();
     state.value = RecorderState.recording;
   }
@@ -81,7 +119,6 @@ class WebRecorder extends Recorder {
     });
   }
 
-  @override
   void stop() {
     if (state.value == RecorderState.stopped) return;
     stopRec();
@@ -90,10 +127,14 @@ class WebRecorder extends Recorder {
     state.value = RecorderState.stopped;
   }
 
-  @override
   void dispose() {
     stop();
     _controller.close();
     _bufferController.close();
+    _deviceController.close();
+  }
+
+  Future<void> setDevice(String id) async {
+    await promiseToFuture(setDeviceId(id));
   }
 }
