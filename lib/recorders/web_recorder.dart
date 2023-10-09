@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
+import '../utils/loaders/audio.dart';
 import 'recorder.dart';
-import 'utils/loaders/audio.dart';
 
 //戻り値はPromise。これをpromiseToFuture関数により変換して使用する
 @JS('start')
@@ -70,8 +70,6 @@ class WebRecorder {
 
   AudioData? get audioData => _audioData;
 
-  bool get isRecording => state.value == RecorderState.recording;
-
   void _process(JSFloat32Array array, int sampleRate) {
     final buffer = array.toDart;
     _buffer = Float32List.fromList([...?_buffer, ...buffer]);
@@ -98,7 +96,7 @@ class WebRecorder {
 
   //TODO 開始できなかった時の処理
   Future<void> start() async {
-    if (isRecording) return;
+    if (state.value == RecorderState.recording) return;
     await promiseToFuture(startRec());
     _startTimer();
     state.value = RecorderState.recording;

@@ -1,4 +1,4 @@
-import 'js_external.dart';
+import 'web_recorder.dart';
 
 enum RecorderState {
   stopped,

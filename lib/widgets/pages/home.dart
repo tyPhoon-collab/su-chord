@@ -6,8 +6,8 @@ import 'package:get/get.dart';
 import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
-import '../../js_external.dart';
-import '../../recorder.dart';
+import '../../recorders/recorder.dart';
+import '../../recorders/web_recorder.dart';
 import '../../service.dart';
 import '../chord_view.dart';
 import '../plot.dart';
@@ -226,7 +226,7 @@ class _ConfigView extends StatelessWidget {
 
   final Recorder recorder;
 
-  bool get enable => !recorder.isRecording;
+  bool get enable => recorder.state.value == RecorderState.stopped;
 
   @override
   Widget build(BuildContext context) => ExpansionTile(

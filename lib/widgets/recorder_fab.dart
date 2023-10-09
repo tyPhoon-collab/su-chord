@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../recorder.dart';
+import '../recorders/recorder.dart';
 
 class RecFloatingActionButton extends StatefulWidget {
   const RecFloatingActionButton(
@@ -20,7 +20,7 @@ class _RecFloatingActionButtonState extends State<RecFloatingActionButton> {
   @override
   Widget build(BuildContext context) => FloatingActionButton(
         onPressed: () {
-          if (!_recorder.isRecording) {
+          if (_recorder.state.value == RecorderState.stopped) {
             _recorder.start();
           } else {
             _recorder.stop();
