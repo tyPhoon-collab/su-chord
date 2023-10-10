@@ -255,26 +255,29 @@ class _ChordSettingsDialog extends ConsumerWidget {
   const _ChordSettingsDialog();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) =>
-      Builder(builder: (context) {
-        final key = GlobalKey<_SelectableDetectableChordsState>();
-        return AlertDialog(
-          icon: const Icon(Icons.music_note_outlined),
-          title: const Text('Chord Settings'),
-          content: _SelectableDetectableChords(key: key),
-          actions: [
-            ElevatedButton(
-                onPressed: () {
-                  final qualities = key.currentState!.selectingQualities;
-                  ref
-                      .read(detectableChordsProvider.notifier)
-                      .setFromQualities(qualities.toSet());
-                  Get.back();
-                },
-                child: const Text('Apply'))
-          ],
-        );
-      });
+  Widget build(BuildContext context, WidgetRef ref) => Builder(
+        builder: (_) {
+          final key = GlobalKey<_SelectableDetectableChordsState>();
+
+          return AlertDialog(
+            icon: const Icon(Icons.music_note_outlined),
+            title: const Text('Chord Settings'),
+            content: _SelectableDetectableChords(key: key),
+            actions: [
+              TextButton(onPressed: Get.back, child: const Text('Back')),
+              ElevatedButton(
+                  onPressed: () {
+                    final qualities = key.currentState!.selectingQualities;
+                    ref
+                        .read(detectableChordsProvider.notifier)
+                        .setFromQualities(qualities.toSet());
+                    Get.back();
+                  },
+                  child: const Text('Apply'))
+            ],
+          );
+        },
+      );
 }
 
 class _SelectableDetectableChords extends StatefulWidget {
@@ -288,25 +291,73 @@ class _SelectableDetectableChords extends StatefulWidget {
 class _SelectableDetectableChordsState
     extends State<_SelectableDetectableChords> {
   static final _qualities = DetectableChords.qualities.toList();
-  static final _isSelected = List.filled(_qualities.length, true);
+  static List<bool> _isSelected = _filledIsSelected(true);
+
+  static final _notSelectableIndexes = [0, 1];
+
+  static List<bool> _filledIsSelected(bool value) {
+    final list = List.filled(_qualities.length, value);
+    for (final i in _notSelectableIndexes) {
+      list[i] = true;
+    }
+    return list;
+  }
 
   Iterable<String> get selectingQualities =>
       _qualities.whereIndexed((i, _) => _isSelected[i]);
 
   @override
-  Widget build(BuildContext context) => Wrap(
-        children: List.generate(
-          _qualities.length,
-          (i) => ToggleButtons(
-            isSelected: [_isSelected[i]],
-            onPressed: (_) {
-              setState(() {
-                _isSelected[i] = !_isSelected[i];
-              });
-            },
-            children: [Text(_qualities[i])],
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Divider(),
+          Wrap(
+            children: List.generate(
+              _qualities.length,
+              (i) => ToggleButtons(
+                isSelected: [_isSelected[i]],
+                onPressed: !_notSelectableIndexes.contains(i)
+                    ? (_) {
+                        setState(() {
+                          _isSelected[i] = !_isSelected[i];
+                        });
+                      }
+                    : null,
+                children: [Text(_qualities[i])],
+              ),
+            ),
           ),
-        ),
+          Row(
+            children: [
+              const Spacer(),
+              Text(
+                'Cannot deselected Major and Minor chord types.',
+                style: TextStyle(color: Get.theme.colorScheme.outline),
+              ),
+            ],
+          ),
+          ButtonBar(
+            children: [
+              OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _isSelected = _filledIsSelected(true);
+                  });
+                },
+                child: const Text('Select All'),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _isSelected = _filledIsSelected(false);
+                  });
+                },
+                child: const Text('Deselect All'),
+              ),
+            ],
+          ),
+          const Divider(),
+        ],
       );
 }
 
