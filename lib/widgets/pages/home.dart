@@ -375,7 +375,12 @@ class _MicrophoneDeviceSelector extends StatelessWidget {
       stream: recorder.deviceStream,
       builder: (_, snapshot) {
         if (!snapshot.hasData) {
-          return const Text('Please grant mic permission');
+          return TextButton(
+            onPressed: () {
+              recorder.request();
+            },
+            child: const Text('Please grant mic permission'),
+          );
         }
 
         final devices = snapshot.data!;

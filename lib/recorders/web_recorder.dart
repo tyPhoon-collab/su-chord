@@ -8,6 +8,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../utils/loaders/audio.dart';
 import 'recorder.dart';
@@ -18,6 +19,10 @@ external JSPromise startRec([int bufferSize = 2048 * 64]);
 
 @JS('stop')
 external void stopRec();
+
+//TODO 許可を得たかどうかを戻り値で取得できるようにする
+@JS('request')
+external void requestRec();
 
 @JS('getDeviceInfo')
 external JSPromise getDeviceInfo();
@@ -50,9 +55,9 @@ class WebRecorder {
     _onDeviceChangedSetter = allowInterop(_onDeviceChanged);
   }
 
-  final _controller = StreamController<AudioData>.broadcast();
-  final _bufferController = StreamController<List<double>>.broadcast();
-  final _deviceController = StreamController<Devices>.broadcast();
+  final _controller = BehaviorSubject<AudioData>();
+  final _bufferController = BehaviorSubject<List<double>>();
+  final _deviceController = BehaviorSubject<Devices>();
   final Duration timeSlice;
 
   ValueNotifier<RecorderState> state = ValueNotifier(RecorderState.stopped);
@@ -130,6 +135,10 @@ class WebRecorder {
     _controller.close();
     _bufferController.close();
     _deviceController.close();
+  }
+
+  void request() {
+    requestRec();
   }
 
   Future<void> setDevice(String id) async {
