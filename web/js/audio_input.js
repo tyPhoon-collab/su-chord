@@ -12,7 +12,10 @@ function _onAudioProcess(event) {
 }
 
 function _onDeviceChanged(event) {
-    getDeviceInfo().then(list => window.onDeviceChanged(list, deviceId));
+    getDeviceInfo().then(list => {
+        console.log(`device changed: ${list}`);
+        return window.onDeviceChanged(list, deviceId);
+    });
 }
 
 async function setUpStream() {
