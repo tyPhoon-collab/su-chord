@@ -27,7 +27,7 @@ void main() {
     chordCData =
         await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
             .load(sampleRate: 22050);
-    writer = BarChartWriter();
+    writer = PCPChartWriter();
   });
 
   group('base', () {
@@ -154,6 +154,16 @@ void main() {
 
       expect(chromas[0], isNotNull);
     });
+  });
+
+  test('cosine similarity', () {
+    final f = factory8192_0;
+    final chromas =
+        f.guitarRange.reassignCombFilter(sampleData.cut(duration: 4));
+
+    final pcp = f.filter.interval(4.seconds).call(chromas).first;
+    final template = PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized;
+    writer(pcp.cosineSimilarity(template));
   });
 
   test('compare cosine similarity', () async {

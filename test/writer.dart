@@ -21,8 +21,10 @@ class DebugPrintWriter implements Writer {
 class BarChartWriter implements Writer {
   @override
   Future<void> call(e, {String? title}) async {
-    if (e is! Iterable) Writer.debugPrint(e, title: title);
-
+    if (e is! Iterable) {
+      Writer.debugPrint(e, title: title);
+      return;
+    }
     final result = await Process.run(
       'python3',
       [
@@ -37,7 +39,36 @@ class BarChartWriter implements Writer {
         '--ymax',
         '1',
         '--ymin',
-        '0'
+        '0',
+      ],
+    );
+    debugPrint(result.stderr);
+  }
+}
+
+class PCPChartWriter implements Writer {
+  @override
+  Future<void> call(e, {String? title}) async {
+    if (e is! Iterable) {
+      Writer.debugPrint(e, title: title);
+      return;
+    }
+    final result = await Process.run(
+      'python3',
+      [
+        'python/plots/bar.py',
+        ...e.map((e) => e.toString()),
+        if (title != null) ...[
+          '--title',
+          title,
+          '--output',
+          'test/outputs/plots/$title.png',
+        ],
+        '--ymax',
+        '1',
+        '--ymin',
+        '0',
+        '--pcp',
       ],
     );
     debugPrint(result.stderr);
@@ -55,8 +86,10 @@ abstract class UsingTempCSVFileChartWriter implements Writer {
 
   @override
   Future<void> call(e, {String? title}) async {
-    if (e is! Iterable<Iterable>) Writer.debugPrint(e, title: title);
-
+    if (e is! Iterable<Iterable>) {
+      Writer.debugPrint(e, title: title);
+      return;
+    }
     final data = (e as List<List>)
         .map((e) => e.map((e) => e.toString()).toList())
         .toList();
