@@ -105,13 +105,10 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => ref.watch(estimatorsProvider).keys.first;
+  String build() => 'matching + reassignment comb';
 
-  void change(String newValue) {
-    final estimators = ref.watch(estimatorsProvider);
-    assert(estimators.keys.contains(newValue));
-    state = newValue;
-  }
+  //ignore: use_setters_to_change_properties
+  void change(String newValue) => state = newValue;
 }
 
 @riverpod

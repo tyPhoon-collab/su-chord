@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../recorders/recorder.dart';
 
 class RecFloatingActionButton extends StatefulWidget {
-  const RecFloatingActionButton(
-      {super.key, required this.recorder, this.onStop});
+  const RecFloatingActionButton({
+    super.key,
+    required this.recorder,
+  });
 
   final Recorder recorder;
-  final VoidCallback? onStop;
 
   @override
   State<RecFloatingActionButton> createState() =>
@@ -24,7 +25,6 @@ class _RecFloatingActionButtonState extends State<RecFloatingActionButton> {
             _recorder.start();
           } else {
             _recorder.stop();
-            widget.onStop?.call();
           }
         },
         child: ValueListenableBuilder(

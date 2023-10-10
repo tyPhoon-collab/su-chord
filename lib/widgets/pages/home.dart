@@ -13,7 +13,6 @@ import '../../service.dart';
 import '../chord_view.dart';
 import '../plot_view.dart';
 import '../recorder_fab.dart';
-import 'loading.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -24,37 +23,21 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   @override
-  Widget build(BuildContext context) {
-    final estimator = ref.watch(estimatorProvider);
-    final context = ref.watch(factoryContextProvider);
-    return switch (estimator) {
-      AsyncData(:final value) => EstimatorPage(
-          estimator: value,
-          context: context,
-        ),
-      AsyncError(:final error) => Text(error.toString()),
-      _ => const LoadingPage(),
-    };
-  }
+  Widget build(BuildContext context) => const EstimatorPage();
 }
 
 class EstimatorPage extends StatefulWidget {
   const EstimatorPage({
     super.key,
-    required this.estimator,
-    required this.context,
   });
-
-  final ChordEstimable estimator;
-  final EstimatorFactoryContext context;
 
   @override
   State<EstimatorPage> createState() => _EstimatorPageState();
 }
 
 class _EstimatorPageState extends State<EstimatorPage> {
-  late final _estimator = widget.estimator;
   final Recorder _recorder = WebRecorder(1.seconds);
+  RecorderState? _preState;
   ChordProgression _progression = ChordProgression.empty();
 
   @override
@@ -75,34 +58,44 @@ class _EstimatorPageState extends State<EstimatorPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _EstimatorConfigView(recorder: _recorder),
-                  Expanded(
-                    child:
-                        _progression.isEmpty && value == RecorderState.stopped
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final estimator = ref.watch(estimatorProvider);
+                      final context = ref.watch(factoryContextProvider);
+
+                      if (!estimator.hasValue) return const SizedBox();
+
+                      if (_preState == RecorderState.recording &&
+                          value == RecorderState.stopped) {
+                        _progression = estimator.value!.flush();
+                      }
+
+                      final widget = Expanded(
+                        child: _preState == null
                             ? const _WelcomeView()
                             : value == RecorderState.stopped
                                 ? _EstimatedView(
                                     progression: _progression,
-                                    estimator: _estimator,
+                                    estimator: estimator.value!,
                                   )
                                 : _EstimatingStreamView(
                                     recorder: _recorder,
-                                    estimator: _estimator,
-                                    factoryContext: widget.context,
+                                    estimator: estimator.value!,
+                                    factoryContext: context,
                                   ),
+                      );
+
+                      _preState = value;
+
+                      return widget;
+                    },
                   ),
                 ],
               ),
             );
           },
         ),
-        floatingActionButton: RecFloatingActionButton(
-          recorder: _recorder,
-          onStop: () {
-            setState(() {
-              _progression = _estimator.flush();
-            });
-          },
-        ),
+        floatingActionButton: RecFloatingActionButton(recorder: _recorder),
       );
 }
 
@@ -251,9 +244,8 @@ class _EstimatorConfigView extends StatelessWidget {
             leading: const Icon(Icons.music_note_outlined),
             title: const Text('Detectable Chords'),
             trailing: const Icon(Icons.open_in_new_outlined),
-            onTap: () {
-              Get.dialog(const _ChordSettingsDialog());
-            },
+            onTap:
+                enable ? () => Get.dialog(const _ChordSettingsDialog()) : null,
           ),
         ],
       );
