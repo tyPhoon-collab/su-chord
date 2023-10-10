@@ -1,7 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../config.dart';
+import '../service.dart';
 import '../utils/loaders/audio.dart';
 import '../utils/measure.dart';
 import 'chord.dart';
@@ -30,6 +31,9 @@ abstract class ChromaChordEstimator
     required this.chromaCalculable,
     this.filters = const [],
   });
+
+  static final defaultDetectableChords =
+      ProviderContainer().read(detectableChordsProvider);
 
   final ChromaCalculable chromaCalculable;
   final Iterable<ChromaListFilter> filters;
@@ -154,7 +158,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     this.scalar = TemplateChromaScalar.none,
     Set<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
-        templates = templates ?? Config.detectableChords;
+        templates = templates ?? ChromaChordEstimator.defaultDetectableChords;
 
   final Set<Chord> templates;
   final TemplateChromaScalar scalar;
@@ -183,7 +187,8 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     this.thresholdRatio = 0.65,
     this.maxNotesCount = 4,
     Set<Chord>? detectableChords,
-  }) : detectableChords = detectableChords ?? Config.detectableChords;
+  }) : detectableChords =
+            detectableChords ?? ChromaChordEstimator.defaultDetectableChords;
 
   final double thresholdRatio;
   final Set<Chord> detectableChords;

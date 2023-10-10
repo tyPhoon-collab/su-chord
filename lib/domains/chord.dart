@@ -380,7 +380,7 @@ class Chord extends ChordBase {
         .where((type) => type.degrees.every((e) => degrees.contains(e)))
         .map((type) => (
               type: type,
-              qualities: ChordQualities.fromTypeAndNotes(
+              selectingQualities: ChordQualities.fromTypeAndNotes(
                   type: type, root: root, notes: notes)
             ))
         .whereType<({ChordType type, ChordQualities qualities})>()

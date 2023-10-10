@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,7 @@ import '../../recorders/recorder.dart';
 import '../../recorders/web_recorder.dart';
 import '../../service.dart';
 import '../chord_view.dart';
-import '../plot.dart';
+import '../plot_view.dart';
 import '../recorder_fab.dart';
 import 'loading.dart';
 
@@ -245,8 +246,75 @@ class _EstimatorConfigView extends StatelessWidget {
               enable: enable,
               recorder: recorder,
             ),
-          )
+          ),
+          ListTile(
+            leading: const Icon(Icons.music_note_outlined),
+            title: const Text('Detectable Chords'),
+            trailing: const Icon(Icons.open_in_new_outlined),
+            onTap: () {
+              Get.dialog(const _ChordSettingsDialog());
+            },
+          ),
         ],
+      );
+}
+
+class _ChordSettingsDialog extends ConsumerWidget {
+  const _ChordSettingsDialog();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      Builder(builder: (context) {
+        final key = GlobalKey<_SelectableDetectableChordsState>();
+        return AlertDialog(
+          icon: const Icon(Icons.music_note_outlined),
+          title: const Text('Chord Settings'),
+          content: _SelectableDetectableChords(key: key),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  final qualities = key.currentState!.selectingQualities;
+                  ref
+                      .read(detectableChordsProvider.notifier)
+                      .setFromQualities(qualities.toSet());
+                  Get.back();
+                },
+                child: const Text('Apply'))
+          ],
+        );
+      });
+}
+
+class _SelectableDetectableChords extends StatefulWidget {
+  const _SelectableDetectableChords({super.key});
+
+  @override
+  State<_SelectableDetectableChords> createState() =>
+      _SelectableDetectableChordsState();
+}
+
+class _SelectableDetectableChordsState
+    extends State<_SelectableDetectableChords> {
+  static final _qualities = DetectableChords.qualities.toList();
+  static final _isSelected = List.filled(_qualities.length, true);
+
+  Iterable<String> get selectingQualities =>
+      _qualities.whereIndexed((i, _) => _isSelected[i]);
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+        children: List.generate(
+          _qualities.length,
+          (i) => ToggleButtons(
+            isSelected: [_isSelected[i]],
+            onPressed: (_) {
+              setState(() {
+                _isSelected[i] = !_isSelected[i];
+              });
+            },
+            children: [Text(_qualities[i])],
+          ),
+        ),
       );
 }
 
