@@ -82,6 +82,7 @@ class _ChordSettingsDialog extends ConsumerWidget {
                   },
                   child: const Text('Apply'))
             ],
+            scrollable: true,
           );
         },
       );
