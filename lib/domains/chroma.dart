@@ -128,7 +128,7 @@ class ChromaContext {
   final MusicalScale lowest;
   final int perOctave;
 
-  MusicalScale get highest => lowest.transpose(12 * perOctave);
+  MusicalScale get highest => lowest.transpose(12 * perOctave - 1);
 
   @override
   String toString() => '$lowest-$highest';

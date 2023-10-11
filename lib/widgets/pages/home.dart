@@ -27,9 +27,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 }
 
 class EstimatorPage extends StatefulWidget {
-  const EstimatorPage({
-    super.key,
-  });
+  const EstimatorPage({super.key});
 
   @override
   State<EstimatorPage> createState() => _EstimatorPageState();
@@ -180,6 +178,7 @@ class _EstimatedView extends ConsumerWidget {
       children: [
         ChordProgressionView(progression: progression),
         if (ref.watch(isVisibleDebugProvider)) ...[
+          Text(e.toString()),
           if (e is ChromaChordEstimator) Chromagram(chromas: e.filteredChromas),
           if (e is Debuggable)
             for (final text in (e as Debuggable).debugText()) Text(text),

@@ -21,6 +21,14 @@ class MusicalScale implements Transposable<MusicalScale> {
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;
 
+  static List<double> hzList(MusicalScale lowest, MusicalScale highest) {
+    final hz = lowest.toHz();
+    return List.generate(
+      lowest.degreeTo(highest) + 1,
+      (i) => hz * pow(ratio, i),
+    );
+  }
+
   final Note note;
   final int pitch;
 
@@ -31,8 +39,11 @@ class MusicalScale implements Transposable<MusicalScale> {
 
     final newNote = note.transpose(degree);
     var newPitch = pitch + degree ~/ 12;
-    if (note.degreeTo(newNote).isNegative) {
+    final noteDegreeTo = note.degreeTo(newNote);
+    if (degree > 0 && noteDegreeTo.isNegative) {
       newPitch += 1;
+    } else if (degree.isNegative && noteDegreeTo > 0) {
+      newPitch -= 1;
     }
     return MusicalScale(newNote, newPitch);
   }
@@ -177,16 +188,14 @@ enum Note implements Transposable<Note> {
   }
 }
 
-/// 範囲は[lowest.hz, highest.hz)
+/// 範囲は lowest.hz <= x <= highest.hz
+/// highestを含む
 Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
   // 音域の参考サイト: https://tomari.org/main/java/oto.html
   // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
-  final hz = lowest.toHz();
-  final hzList = List.generate(
-    lowest.degreeTo(highest) + 2,
-    (i) => hz * pow(MusicalScale.ratio, i - 1),
-  );
+  final hzList =
+      MusicalScale.hzList(lowest.transpose(-1), highest.transpose(1));
 
   final bins = <double>[];
   for (var i = 0; i < hzList.length - 1; i++) {

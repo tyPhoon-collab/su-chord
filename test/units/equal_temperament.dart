@@ -41,6 +41,11 @@ void main() {
       expect(scale.transpose(1), equals(const MusicalScale(Note.C, 4)));
     });
 
+    test('C3 to -1 is B2', () {
+      const scale = MusicalScale(Note.C, 3);
+      expect(scale.transpose(-1), equals(const MusicalScale(Note.B, 2)));
+    });
+
     test('E2 to 12 * 6 is E8', () {
       const scale = MusicalScale.E2;
       expect(scale.transpose(12 * 6), equals(const MusicalScale(Note.E, 8)));
@@ -64,6 +69,24 @@ void main() {
         final int degree = scale.degreeTo(const MusicalScale(Note.C, 2));
         expect(degree, -12);
       });
+    });
+
+    test('equal temperament bin', () {
+      const lowest = MusicalScale.E2;
+      const highest = MusicalScale(Note.Ds, 8);
+      final bin = equalTemperamentBin(lowest, highest);
+      expect(bin.first, lessThan(lowest.toHz()));
+      expect(lowest.transpose(1).toHz(), greaterThan(bin.first));
+      expect(bin.last, greaterThan(highest.toHz()));
+      expect(highest.transpose(-1).toHz(), lessThan(bin.last));
+    });
+
+    test('hz list', () {
+      const lowest = MusicalScale.E2;
+      const highest = MusicalScale(Note.E, 3);
+      final l = MusicalScale.hzList(lowest, highest);
+      expect(l.first, lowest.toHz());
+      expect(l.last, highest.toHz());
     });
   });
 }

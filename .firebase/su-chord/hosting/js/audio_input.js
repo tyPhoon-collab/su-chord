@@ -1,6 +1,6 @@
 let scriptProcessor;
 let source;
-
+let audioContext = null;
 let deviceId = null;
 let stream = null;
 
@@ -11,8 +11,11 @@ function _onAudioProcess(event) {
     // console.log(array);
 }
 
-function _onDeviceChanged(event) {
-    getDeviceInfo().then(list => window.onDeviceChanged(list, deviceId));
+function _onDeviceChanged(_) {
+    getDeviceInfo().then(list => {
+        console.log(`device changed: ${list}`);
+        return window.onDeviceChanged(list, deviceId);
+    });
 }
 
 async function setUpStream() {
@@ -23,10 +26,10 @@ async function setUpStream() {
 async function start(bufferSize) {
     try {
         if (stream == null) {
-            await setUpStream();
+            await request();
         }
 
-        const audioContext = new AudioContext();
+        audioContext = new AudioContext();
         source = audioContext.createMediaStreamSource(stream);
 
         scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
@@ -38,10 +41,6 @@ async function start(bufferSize) {
         source.connect(scriptProcessor);
         scriptProcessor.connect(audioContext.destination);
 
-        //device change listener
-        navigator.mediaDevices.addEventListener("devicechange", _onDeviceChanged)
-        //call once
-        _onDeviceChanged(null)
 
     } catch (error) {
         console.error("Error accessing the microphone:", error);
@@ -50,16 +49,25 @@ async function start(bufferSize) {
 
 function stop() {
     stream = null;
+    audioContext?.close().then(() => audioContext = null);
     source?.disconnect();
     scriptProcessor?.disconnect();
     scriptProcessor?.removeEventListener("audioprocess", _onAudioProcess);
     navigator.mediaDevices.removeEventListener("devicechange", _onDeviceChanged);
 }
 
-async function setDeviceId(id) {
-    deviceId = id;
-    stop();
+async function request() {
     await setUpStream();
+    navigator.mediaDevices.removeEventListener("devicechange", _onDeviceChanged);
+    //device change listener
+    navigator.mediaDevices.addEventListener("devicechange", _onDeviceChanged)
+    //call once
+    _onDeviceChanged(null)
+}
+
+async function setDeviceId(id) {
+    stop();
+    deviceId = id;
     _onDeviceChanged(null);
 }
 
