@@ -89,8 +89,24 @@ final detectableChordsProvider =
 );
 
 typedef _$DetectableChords = AutoDisposeNotifier<Set<Chord>>;
+String _$isVisibleDebugHash() => r'26698fcb57e9c4ad065783e8477404eaee88a583';
+
+/// See also [IsVisibleDebug].
+@ProviderFor(IsVisibleDebug)
+final isVisibleDebugProvider =
+    AutoDisposeNotifierProvider<IsVisibleDebug, bool>.internal(
+  IsVisibleDebug.new,
+  name: r'isVisibleDebugProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isVisibleDebugHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$IsVisibleDebug = AutoDisposeNotifier<bool>;
 String _$selectingEstimatorLabelHash() =>
-    r'442b23297aa4a7fefdd4593d83dff9c664e4284a';
+    r'111796f7a1c6128575aff2231cab2d4ae501a888';
 
 /// See also [SelectingEstimatorLabel].
 @ProviderFor(SelectingEstimatorLabel)

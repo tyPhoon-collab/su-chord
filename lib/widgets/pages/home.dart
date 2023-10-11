@@ -164,7 +164,7 @@ class _EstimatingStreamView extends StatelessWidget {
   }
 }
 
-class _EstimatedView extends StatelessWidget {
+class _EstimatedView extends ConsumerWidget {
   const _EstimatedView({
     required this.progression,
     required this.estimator,
@@ -174,14 +174,16 @@ class _EstimatedView extends StatelessWidget {
   final ChordEstimable estimator;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final e = estimator;
     return ListView(
       children: [
         ChordProgressionView(progression: progression),
-        if (e is ChromaChordEstimator) Chromagram(chromas: e.filteredChromas),
-        if (e is Debuggable)
-          for (final text in (e as Debuggable).debugText()) Text(text),
+        if (ref.watch(isVisibleDebugProvider)) ...[
+          if (e is ChromaChordEstimator) Chromagram(chromas: e.filteredChromas),
+          if (e is Debuggable)
+            for (final text in (e as Debuggable).debugText()) Text(text),
+        ]
       ],
     );
   }

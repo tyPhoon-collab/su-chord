@@ -60,6 +60,14 @@ class DetectableChords extends _$DetectableChords {
   }
 }
 
+@riverpod
+class IsVisibleDebug extends _$IsVisibleDebug {
+  @override
+  bool build() => true;
+
+  void toggle() => state = !state;
+}
+
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
 @riverpod

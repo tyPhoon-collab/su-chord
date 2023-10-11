@@ -19,11 +19,13 @@ class EstimatorConfigView extends StatelessWidget {
         leading: const Icon(Icons.settings),
         children: [
           ListTile(
+            enabled: enable,
             leading: const Icon(Icons.functions_outlined),
             title: const Text('Estimator'),
             trailing: _ChordEstimatorSelector(enable: enable),
           ),
           ListTile(
+            enabled: enable,
             leading: const Icon(Icons.mic_none_outlined),
             title: const Text('Microphone Device'),
             trailing: _MicrophoneDeviceSelector(
@@ -32,12 +34,26 @@ class EstimatorConfigView extends StatelessWidget {
             ),
           ),
           ListTile(
+            enabled: enable,
             leading: const Icon(Icons.music_note_outlined),
             title: const Text('Chord Settings'),
             trailing: const Icon(Icons.open_in_new_outlined),
-            onTap:
-                enable ? () => Get.dialog(const _ChordSettingsDialog()) : null,
+            onTap: () => Get.dialog(const _ChordSettingsDialog()),
           ),
+          Consumer(
+            builder: (context, ref, child) {
+              return CheckboxListTile(
+                enabled: enable,
+                value: ref.watch(isVisibleDebugProvider),
+                onChanged: (value) {
+                  if (value == null) return;
+                  ref.read(isVisibleDebugProvider.notifier).toggle();
+                },
+                title: const Text('Show Debug View'),
+                secondary: const Icon(Icons.auto_graph_sharp),
+              );
+            },
+          )
         ],
       );
 }
