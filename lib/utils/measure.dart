@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
+typedef CalculateTimeTable = Map<String, int>;
+
 mixin class Measure {
   static Function? logger = debugPrint;
 
   final _stopwatch = Stopwatch();
-  final Map<String, int> calculateTimes = {};
+  final CalculateTimeTable calculateTimes = {};
 
   T measure<T>(String key, T Function() f) {
     final stopwatch = Stopwatch()..start();
@@ -29,4 +31,23 @@ mixin class Measure {
     _stopwatch.stop();
     logger?.call('$key: ${_stopwatch.elapsedMilliseconds} ms');
   }
+}
+
+class CalculateTimeTableView extends StatelessWidget {
+  const CalculateTimeTableView({
+    super.key,
+    required this.table,
+  });
+
+  final CalculateTimeTable table;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: table.entries
+            .map((e) => Text(
+                  '${e.key}: ${e.value} ms',
+                ))
+            .toList(),
+      );
 }

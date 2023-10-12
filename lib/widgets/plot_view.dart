@@ -83,6 +83,75 @@ class AmplitudeChart extends StatelessWidget {
   }
 }
 
+class SpectrogramChart extends StatelessWidget {
+  const SpectrogramChart({
+    super.key,
+    required this.magnitudes,
+  });
+
+  final Magnitudes magnitudes;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 300,
+        height: 300,
+        child: CustomPaint(
+          painter: _HeatmapPainter(
+            data: magnitudes,
+            maxValue: magnitudes.map((e) => e.max).max,
+          ),
+        ),
+      );
+}
+
+class _HeatmapPainter extends CustomPainter {
+  _HeatmapPainter({
+    required this.data,
+    required this.maxValue,
+    // this.minValue = 0,
+    Color? color,
+  }) : color = color ?? Get.theme.colorScheme.primary;
+
+  final List<List<double>> data;
+  final double maxValue;
+  final double minValue = 0;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final width = size.width;
+    final height = size.height;
+    final cellSize = min(width / data.length, height / data[0].length);
+
+    for (int i = 0; i < data.length; i++) {
+      for (int j = 0; j < data[0].length; j++) {
+        final value = data[i][j];
+
+        // 色を計算する
+        final pointColor = Color.lerp(
+          color.withAlpha(0),
+          color,
+          (value - minValue) / (maxValue - minValue),
+        )!;
+
+        // ピクセルを描画する
+        canvas.drawRect(
+          Offset(i * cellSize, j * cellSize) & Size(cellSize, cellSize),
+          Paint()..color = pointColor,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_HeatmapPainter oldDelegate) {
+    return oldDelegate.data != data ||
+        oldDelegate.maxValue != maxValue ||
+        oldDelegate.minValue != minValue ||
+        oldDelegate.color != color;
+  }
+}
+
 class LogScatterChart extends StatelessWidget {
   const LogScatterChart({super.key, required this.spots});
 

@@ -173,15 +173,13 @@ class _EstimatedView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final e = estimator;
     return ListView(
       children: [
         ChordProgressionView(progression: progression),
         if (ref.watch(isVisibleDebugProvider)) ...[
-          Text(e.toString()),
-          if (e is ChromaChordEstimator) Chromagram(chromas: e.filteredChromas),
-          if (e is Debuggable)
-            for (final text in (e as Debuggable).debugText()) Text(text),
+          Text(estimator.toString()),
+          if (estimator is HasDebugViews)
+            Wrap(children: (estimator as HasDebugViews).build())
         ]
       ],
     );

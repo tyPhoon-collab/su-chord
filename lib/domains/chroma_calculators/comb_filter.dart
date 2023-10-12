@@ -46,9 +46,13 @@ class CombFilterChromaCalculator
     return magnitudesCalculable(data, flush)
         .map((e) => Chroma(
               List.generate(
-                  12,
-                  (i) => _getCombFilterPower(
-                      e, data.sampleRate, chromaContext.lowest.transpose(i))),
+                12,
+                (i) => _getCombFilterPower(
+                  e,
+                  data.sampleRate,
+                  chromaContext.lowest.transpose(i),
+                ),
+              ),
             ).shift(-chromaContext.lowest.note.degreeTo(Note.C)))
         .toList();
   }

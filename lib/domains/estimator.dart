@@ -1,10 +1,11 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../service.dart';
 import '../utils/loaders/audio.dart';
 import '../utils/measure.dart';
+import '../widgets/plot_view.dart';
 import 'chord.dart';
 import 'chord_progression.dart';
 import 'chord_selector.dart';
@@ -19,14 +20,14 @@ abstract interface class ChordEstimable {
   ChordProgression flush();
 }
 
-abstract interface class Debuggable {
-  Iterable<String> debugText();
+abstract interface class HasDebugViews {
+  List<Widget> build();
 }
 
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
 abstract class ChromaChordEstimator
     with Measure
-    implements ChordEstimable, Debuggable {
+    implements ChordEstimable, HasDebugViews {
   ChromaChordEstimator({
     required this.chromaCalculable,
     this.filters = const [],
@@ -76,10 +77,10 @@ abstract class ChromaChordEstimator
   ChordProgression estimateFromChroma(List<Chroma> chroma);
 
   @override
-  Iterable<String> debugText() {
+  List<Widget> build() {
     return [
-      ...filteredChromas.map((e) => e.toString()),
-      ...calculateTimes.entries.map((e) => '${e.key}: ${e.value} ms')
+      Chromagram(chromas: filteredChromas),
+      CalculateTimeTableView(table: calculateTimes),
     ];
   }
 }
