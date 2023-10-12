@@ -22,8 +22,7 @@ class CombFilterContext {
 }
 
 ///コムフィルタを使用してクロマを求める
-class CombFilterChromaCalculator
-    implements ChromaCalculable, HasMagnitudeScalar {
+class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
   CombFilterChromaCalculator({
     required this.magnitudesCalculable,
     this.chromaContext = const ChromaContext(),
@@ -83,4 +82,15 @@ class CombFilterChromaCalculator
 
     return sum;
   }
+
+  @override
+  Magnitudes get cachedMagnitudes => magnitudesCalculable.cachedMagnitudes;
+
+  @override
+  double frequency(int index, int sampleRate) =>
+      magnitudesCalculable.frequency(index, sampleRate);
+
+  @override
+  double indexOfFrequency(double freq, int sampleRate) =>
+      magnitudesCalculable.indexOfFrequency(freq, sampleRate);
 }

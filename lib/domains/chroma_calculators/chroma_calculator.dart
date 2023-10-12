@@ -14,10 +14,6 @@ abstract interface class ChromaCalculable {
   List<Chroma> call(AudioData data, [bool flush = true]);
 }
 
-abstract interface class HasMagnitudeScalar {
-  MagnitudeScalar get magnitudeScalar;
-}
-
 ///STFTに必要な変数群を定義したクラス
 ///継承して使用する
 ///実際にSTFTの計算をする際は、パッケージの実装の都合上、stft変数から行うので

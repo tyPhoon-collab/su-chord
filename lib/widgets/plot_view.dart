@@ -13,35 +13,39 @@ class Chromagram extends StatelessWidget {
     super.key,
     required this.chromas,
     this.height = 120,
-    this.color = Colors.deepOrange,
+    this.color,
   });
 
   final Iterable<Chroma> chromas;
   final double height;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final values = chromas.map((e) => e.normalized).flattened.toList();
+    final color = this.color ?? Get.theme.colorScheme.primary;
+
     return values.isEmpty
         ? SizedBox(height: height)
         : SizedBox(
             height: height,
-            child: Builder(builder: (context) {
-              final crossAxisCount = chromas.first.length;
-              final size = height / crossAxisCount;
-              return GridView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: values.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount),
-                itemBuilder: (_, i) => Container(
-                  width: size,
-                  height: size,
-                  color: color.withOpacity(values[i]),
-                ),
-              );
-            }),
+            child: Builder(
+              builder: (context) {
+                final crossAxisCount = chromas.first.length;
+                final size = height / crossAxisCount;
+                return GridView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: values.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount),
+                  itemBuilder: (_, i) => Container(
+                    width: size,
+                    height: size,
+                    color: color.withOpacity(values[i]),
+                  ),
+                );
+              },
+            ),
           );
   }
 }
@@ -92,16 +96,18 @@ class SpectrogramChart extends StatelessWidget {
   final Magnitudes magnitudes;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 300,
-        height: 300,
-        child: CustomPaint(
-          painter: _HeatmapPainter(
-            data: magnitudes,
-            maxValue: magnitudes.map((e) => e.max).max,
+  Widget build(BuildContext context) => magnitudes.isNotEmpty
+      ? SizedBox(
+          width: 400,
+          height: 200,
+          child: CustomPaint(
+            painter: _HeatmapPainter(
+              data: magnitudes,
+              maxValue: magnitudes.map((e) => e.max).max,
+            ),
           ),
-        ),
-      );
+        )
+      : const SizedBox();
 }
 
 class _HeatmapPainter extends CustomPainter {
@@ -126,18 +132,12 @@ class _HeatmapPainter extends CustomPainter {
     for (int i = 0; i < data.length; i++) {
       for (int j = 0; j < data[0].length; j++) {
         final value = data[i][j];
-
-        // 色を計算する
-        final pointColor = Color.lerp(
-          color.withAlpha(0),
-          color,
-          (value - minValue) / (maxValue - minValue),
-        )!;
+        final opacity = (value - minValue) / (maxValue - minValue);
 
         // ピクセルを描画する
         canvas.drawRect(
           Offset(i * cellSize, j * cellSize) & Size(cellSize, cellSize),
-          Paint()..color = pointColor,
+          Paint()..color = color.withOpacity(opacity),
         );
       }
     }

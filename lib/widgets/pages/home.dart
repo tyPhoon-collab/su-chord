@@ -178,8 +178,8 @@ class _EstimatedView extends ConsumerWidget {
         ChordProgressionView(progression: progression),
         if (ref.watch(isVisibleDebugProvider)) ...[
           Text(estimator.toString()),
-          if (estimator is HasDebugViews)
-            Wrap(children: (estimator as HasDebugViews).build())
+          if (estimator case final HasDebugViews views)
+            Wrap(children: views.build())
         ]
       ],
     );

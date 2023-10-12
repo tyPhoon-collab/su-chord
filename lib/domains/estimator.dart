@@ -39,8 +39,8 @@ abstract class ChromaChordEstimator
   final ChromaCalculable chromaCalculable;
   final Iterable<ChromaListFilter> filters;
 
-  List<Chroma> chromas = [];
-  List<Chroma> filteredChromas = [];
+  List<Chroma> _chromas = [];
+  List<Chroma> _filteredChromas = [];
 
   @override
   String toString() => '$chromaCalculable';
@@ -51,14 +51,14 @@ abstract class ChromaChordEstimator
       'chroma calc',
       () => chromaCalculable(data, flush),
     );
-    chromas.addAll(chroma);
+    _chromas.addAll(chroma);
 
-    filteredChromas = measure(
+    _filteredChromas = measure(
       'filter calc',
-      () => filters.fold(chromas, (pre, filter) => filter(pre)),
+      () => filters.fold(_chromas, (pre, filter) => filter(pre)),
     );
 
-    final progression = estimateFromChroma(filteredChromas);
+    final progression = estimateFromChroma(_filteredChromas);
 
     if (flush) _flush();
     return progression;
@@ -70,19 +70,19 @@ abstract class ChromaChordEstimator
   }
 
   void _flush() {
-    chromas = [];
-    // reducedChromas = [];
+    _chromas = [];
   }
 
   ChordProgression estimateFromChroma(List<Chroma> chroma);
 
   @override
-  List<Widget> build() {
-    return [
-      Chromagram(chromas: filteredChromas),
-      CalculateTimeTableView(table: calculateTimes),
-    ];
-  }
+  List<Widget> build() => [
+        Chromagram(chromas: _filteredChromas),
+        // if (chromaCalculable case final HasMagnitudes hasMagnitudes)
+        //   if (hasMagnitudes.cachedMagnitudes case final Magnitudes mag)
+        //     SpectrogramChart(magnitudes: mag),
+        CalculateTimeTableView(table: calculateTimes),
+      ];
 }
 
 abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
@@ -101,7 +101,7 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     final progression = ChordProgression.empty();
     measure('estimate', () {
-      for (final c in filteredChromas) {
+      for (final c in _filteredChromas) {
         final chord = chordSelectable(estimateOneFromChroma(c), progression);
         progression.add(chord);
       }

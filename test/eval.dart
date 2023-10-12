@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
-import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/chroma_calculators/magnitudes_calculator.dart';
 import 'package:chord/domains/estimator.dart';
@@ -78,7 +77,7 @@ Future<void> main() async {
             chromaCalculable: chromaCalculable,
             filters: f.filter.eval,
             thresholdRatio: switch (chromaCalculable) {
-              final HasMagnitudeScalar value => switch (value.magnitudeScalar) {
+              final HasMagnitudes value => switch (value.magnitudeScalar) {
                   MagnitudeScalar.none => 0.3,
                   MagnitudeScalar.ln => 0.5,
                   MagnitudeScalar.dB => 0.5,

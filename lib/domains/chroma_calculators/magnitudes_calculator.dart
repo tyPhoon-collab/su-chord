@@ -8,8 +8,14 @@ import '../../utils/loaders/audio.dart';
 import '../chroma.dart';
 import 'chroma_calculator.dart';
 
-abstract interface class MagnitudesCalculable implements HasMagnitudeScalar {
+abstract interface class MagnitudesCalculable implements HasMagnitudes {
   Magnitudes call(AudioData data, [bool flush = true]);
+}
+
+abstract interface class HasMagnitudes {
+  MagnitudeScalar get magnitudeScalar;
+
+  Magnitudes get cachedMagnitudes; // for debug view
 
   double indexOfFrequency(double freq, int sampleRate);
 
@@ -58,6 +64,8 @@ class MagnitudesCalculator extends STFTCalculator
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
+  final Magnitudes _cachedMagnitudes = [];
+
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
     final magnitudes = <Float64List>[];
@@ -65,6 +73,12 @@ class MagnitudesCalculator extends STFTCalculator
         magnitudes.add(scalar(freq.discardConjugates().magnitudes()));
     stft.stream(data.buffer, callback, chunkStride);
     if (flush) stft.flush(callback);
+
+    if (flush) {
+      _cachedMagnitudes.clear();
+    } else {
+      _cachedMagnitudes.addAll(magnitudes);
+    }
 
     return magnitudes;
   }
@@ -76,6 +90,9 @@ class MagnitudesCalculator extends STFTCalculator
   @override
   double frequency(int index, int sampleRate) =>
       stft.frequency(index, sampleRate.toDouble());
+
+  @override
+  Magnitudes get cachedMagnitudes => _cachedMagnitudes;
 }
 
 class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
@@ -92,6 +109,8 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
+  final Magnitudes _cachedMagnitudes = [];
+
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) = reassign(data, flush);
@@ -104,11 +123,19 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
     final binX = List.generate(magnitudes.length + 1, (i) => i * dt);
     final binY = List.generate(chunkSize ~/ 2 + 2, (i) => i * df);
 
-    return WeightedHistogram2d.from(
+    final reassignedMagnitudes = WeightedHistogram2d.from(
       points,
       binX: binX,
       binY: binY,
     ).values;
+
+    if (flush) {
+      _cachedMagnitudes.clear();
+    } else {
+      _cachedMagnitudes.addAll(reassignedMagnitudes);
+    }
+
+    return reassignedMagnitudes;
   }
 
   @override
@@ -118,4 +145,7 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   @override
   double frequency(int index, int sampleRate) =>
       stft.frequency(index, sampleRate.toDouble());
+
+  @override
+  Magnitudes get cachedMagnitudes => _cachedMagnitudes;
 }

@@ -41,7 +41,9 @@ class Chroma extends Iterable<double> {
   late final Iterable<int> maxSortedIndexes =
       _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
-  late final normalized = Chroma(_values.map((e) => e / l2norm).toList());
+  late final normalized = l2norm == 0
+      ? Chroma.zero(12)
+      : Chroma(_values.map((e) => e / l2norm).toList());
   late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
@@ -134,4 +136,6 @@ class ChromaContext {
   String toString() => '$lowest-$highest';
 
   Bin toEqualTemperamentBin() => equalTemperamentBin(lowest, highest);
+
+  List<double> toHzList() => MusicalScale.hzList(lowest, highest);
 }
