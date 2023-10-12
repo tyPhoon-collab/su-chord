@@ -87,6 +87,10 @@ class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
   Magnitudes get cachedMagnitudes => magnitudesCalculable.cachedMagnitudes;
 
   @override
+  double time(int index, int sampleRate) =>
+      magnitudesCalculable.time(index, sampleRate);
+
+  @override
   double frequency(int index, int sampleRate) =>
       magnitudesCalculable.frequency(index, sampleRate);
 

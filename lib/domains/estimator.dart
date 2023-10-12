@@ -6,6 +6,7 @@ import '../service.dart';
 import '../utils/loaders/audio.dart';
 import '../utils/measure.dart';
 import '../widgets/plot_view.dart';
+import 'cache_manager.dart';
 import 'chord.dart';
 import 'chord_progression.dart';
 import 'chord_selector.dart';
@@ -26,7 +27,7 @@ abstract interface class HasDebugViews {
 
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
 abstract class ChromaChordEstimator
-    with Measure
+    with Measure, SampleRateCacheManager
     implements ChordEstimable, HasDebugViews {
   ChromaChordEstimator({
     required this.chromaCalculable,
@@ -43,10 +44,11 @@ abstract class ChromaChordEstimator
   List<Chroma> _filteredChromas = [];
 
   @override
-  String toString() => '$chromaCalculable';
+  String toString() => chromaCalculable.toString();
 
   @override
   ChordProgression estimate(AudioData data, [bool flush = true]) {
+    updateCacheSampleRate(data.sampleRate, flush);
     final chroma = measure(
       'chroma calc',
       () => chromaCalculable(data, flush),

@@ -354,7 +354,6 @@ class Chord extends ChordBase {
     }
   }
 
-  //TODO impl this
   //コードは一意に定まらなかったり、該当するものがなかったりするため、factoryにはできない
   //探索木に代わるもの
   static Iterable<Chord> fromNotes(Notes notes) {

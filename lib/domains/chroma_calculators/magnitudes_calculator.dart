@@ -5,6 +5,7 @@ import 'package:fftea/fftea.dart';
 
 import '../../utils/histogram.dart';
 import '../../utils/loaders/audio.dart';
+import '../cache_manager.dart';
 import '../chroma.dart';
 import 'chroma_calculator.dart';
 
@@ -18,6 +19,8 @@ abstract interface class HasMagnitudes {
   Magnitudes get cachedMagnitudes; // for debug view
 
   double indexOfFrequency(double freq, int sampleRate);
+
+  double time(int index, int sampleRate);
 
   double frequency(int index, int sampleRate);
 }
@@ -49,6 +52,7 @@ enum MagnitudeScalar {
 }
 
 class MagnitudesCalculator extends STFTCalculator
+    with MagnitudesCacheManager
     implements MagnitudesCalculable {
   MagnitudesCalculator({
     super.chunkSize,
@@ -64,8 +68,6 @@ class MagnitudesCalculator extends STFTCalculator
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
-  final Magnitudes _cachedMagnitudes = [];
-
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
     final magnitudes = <Float64List>[];
@@ -74,28 +76,25 @@ class MagnitudesCalculator extends STFTCalculator
     stft.stream(data.buffer, callback, chunkStride);
     if (flush) stft.flush(callback);
 
-    if (flush) {
-      _cachedMagnitudes.clear();
-    } else {
-      _cachedMagnitudes.addAll(magnitudes);
-    }
+    updateCacheMagnitudes(magnitudes, flush);
 
     return magnitudes;
   }
 
   @override
-  double indexOfFrequency(double freq, int sampleRate) =>
-      stft.indexOfFrequency(freq, sampleRate.toDouble());
+  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
 
   @override
   double frequency(int index, int sampleRate) =>
       stft.frequency(index, sampleRate.toDouble());
 
   @override
-  Magnitudes get cachedMagnitudes => _cachedMagnitudes;
+  double indexOfFrequency(double freq, int sampleRate) =>
+      stft.indexOfFrequency(freq, sampleRate.toDouble());
 }
 
 class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
+    with MagnitudesCacheManager, SampleRateCacheManager
     implements MagnitudesCalculable {
   ReassignmentMagnitudesCalculator({
     super.chunkSize,
@@ -103,49 +102,48 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
     super.scalar,
   }) : super.hanning();
 
+  late Bin _binY;
+
   @override
   String toString() => 'sparse mags ${scalar.name} scaled';
 
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
-  final Magnitudes _cachedMagnitudes = [];
+  @override
+  void onSampleRateChanged(int newSampleRate) {
+    final df = deltaFrequency(newSampleRate);
+    _binY = List.generate(chunkSize ~/ 2 + 2, (i) => i * df);
+  }
 
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) = reassign(data, flush);
 
-    //TODO improve
-    //毎回の計算時にListを再生成するので、メモリ効率が悪い
-    //キャッシュ機構などをとることで精度を改善するべき
+    updateCacheSampleRate(data.sampleRate, flush);
+
     final dt = deltaTime(data.sampleRate);
-    final df = deltaFrequency(data.sampleRate);
     final binX = List.generate(magnitudes.length + 1, (i) => i * dt);
-    final binY = List.generate(chunkSize ~/ 2 + 2, (i) => i * df);
 
     final reassignedMagnitudes = WeightedHistogram2d.from(
       points,
       binX: binX,
-      binY: binY,
+      binY: _binY,
     ).values;
 
-    if (flush) {
-      _cachedMagnitudes.clear();
-    } else {
-      _cachedMagnitudes.addAll(reassignedMagnitudes);
-    }
+    updateCacheMagnitudes(reassignedMagnitudes, flush);
 
     return reassignedMagnitudes;
   }
 
   @override
-  double indexOfFrequency(double freq, int sampleRate) =>
-      stft.indexOfFrequency(freq, sampleRate.toDouble());
+  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
 
   @override
   double frequency(int index, int sampleRate) =>
       stft.frequency(index, sampleRate.toDouble());
 
   @override
-  Magnitudes get cachedMagnitudes => _cachedMagnitudes;
+  double indexOfFrequency(double freq, int sampleRate) =>
+      stft.indexOfFrequency(freq, sampleRate.toDouble());
 }

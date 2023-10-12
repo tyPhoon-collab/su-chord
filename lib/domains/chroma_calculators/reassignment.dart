@@ -1,5 +1,8 @@
+import 'package:collection/collection.dart';
+
 import '../../utils/histogram.dart';
 import '../../utils/loaders/audio.dart';
+import '../cache_manager.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
 import 'chroma_calculator.dart';
@@ -8,6 +11,7 @@ import 'magnitudes_calculator.dart';
 ///再割り当て法を元にクロマを算出する
 ///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
 class ReassignmentChromaCalculator extends ReassignmentCalculator
+    with MagnitudesCacheManager
     implements ChromaCalculable, HasMagnitudes {
   ReassignmentChromaCalculator({
     super.chunkSize,
@@ -19,11 +23,8 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
   final ChromaContext chromaContext;
 
   WeightedHistogram2d? histogram2d;
-  Bin _binX = [];
   late final _binY = chromaContext.toEqualTemperamentBin();
   late final _hzList = chromaContext.toHzList();
-
-  final Magnitudes _cachedMagnitudes = [];
 
   @override
   String toString() => 'sparse ${scalar.name} scaled, $chromaContext';
@@ -32,24 +33,17 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
   MagnitudeScalar get magnitudeScalar => scalar;
 
   @override
-  Magnitudes get cachedMagnitudes => _cachedMagnitudes;
-
-  @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) = reassign(data, flush);
-    _binX = List.generate(
+    final binX = List.generate(
         magnitudes.length + 1, (i) => i * deltaTime(data.sampleRate));
     histogram2d = WeightedHistogram2d.from(
       points,
-      binX: _binX,
+      binX: binX,
       binY: _binY,
     );
 
-    if (flush) {
-      _cachedMagnitudes.clear();
-    } else {
-      _cachedMagnitudes.addAll(histogram2d!.values);
-    }
+    updateCacheMagnitudes(histogram2d!.values, flush);
 
     return histogram2d!.values.map(_fold).toList();
   }
@@ -68,9 +62,14 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
   }
 
   @override
+  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
+
+  @override
   double frequency(int index, int sampleRate) => _hzList[index];
 
   @override
-  double indexOfFrequency(double freq, int sampleRate) =>
-      stft.indexOfFrequency(freq, sampleRate.toDouble());
+  double indexOfFrequency(double freq, int sampleRate) {
+    final deltaList = _hzList.map((e) => (e - freq).abs()).toList();
+    return deltaList.indexOf(deltaList.min).toDouble();
+  }
 }
