@@ -3,11 +3,11 @@ import 'dart:typed_data';
 
 import 'package:fftea/fftea.dart';
 
-import '../../utils/histogram.dart';
-import '../../utils/loaders/audio.dart';
-import '../cache_manager.dart';
-import '../chroma.dart';
-import 'chroma_calculator.dart';
+import '../utils/histogram.dart';
+import '../utils/loaders/audio.dart';
+import 'cache_manager.dart';
+import 'chroma.dart';
+import 'chroma_calculators/chroma_calculator.dart';
 
 abstract interface class MagnitudesCalculable implements HasMagnitudes {
   Magnitudes call(AudioData data, [bool flush = true]);
@@ -40,7 +40,8 @@ enum MagnitudeScalar {
       case dB:
         const referenceMagnitude = 1;
         for (int i = 0; i < list.length; ++i) {
-          list[i] = 20 * _log10(list[i] / referenceMagnitude);
+          final value = 20 * _log10(list[i] / referenceMagnitude);
+          list[i] = max(value, -80);
         }
         return list;
       case none:
@@ -120,7 +121,7 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   Magnitudes call(AudioData data, [bool flush = true]) {
     final (points, magnitudes) = reassign(data, flush);
 
-    updateCacheSampleRate(data.sampleRate, flush);
+    updateCacheSampleRate(data.sampleRate);
 
     final dt = deltaTime(data.sampleRate);
     final binX = List.generate(magnitudes.length + 1, (i) => i * dt);

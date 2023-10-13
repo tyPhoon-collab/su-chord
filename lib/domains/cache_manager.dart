@@ -20,10 +20,8 @@ mixin SampleRateCacheManager {
 
   int? get cachedSampleRate => _cachedSampleRate;
 
-  void updateCacheSampleRate(int sampleRate, bool flush) {
-    if (flush) {
-      _cachedSampleRate = null;
-    } else if (sampleRate != _cachedSampleRate) {
+  void updateCacheSampleRate(int sampleRate) {
+    if (sampleRate != _cachedSampleRate) {
       _cachedSampleRate = sampleRate;
       onSampleRateChanged(sampleRate);
     }

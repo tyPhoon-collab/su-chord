@@ -1,10 +1,10 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
-import 'package:chord/domains/chroma_calculators/magnitudes_calculator.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter/cupertino.dart';

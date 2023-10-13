@@ -48,7 +48,7 @@ abstract class ChromaChordEstimator
 
   @override
   ChordProgression estimate(AudioData data, [bool flush = true]) {
-    updateCacheSampleRate(data.sampleRate, flush);
+    updateCacheSampleRate(data.sampleRate);
     final chroma = measure(
       'chroma calc',
       () => chromaCalculable(data, flush),

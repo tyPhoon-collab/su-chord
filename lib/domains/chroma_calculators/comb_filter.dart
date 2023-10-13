@@ -4,8 +4,8 @@ import '../../utils/formula.dart';
 import '../../utils/loaders/audio.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
+import '../magnitudes_calculator.dart';
 import 'chroma_calculator.dart';
-import 'magnitudes_calculator.dart';
 
 class CombFilterContext {
   const CombFilterContext({

@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'domains/chord.dart';
-import 'domains/chroma_calculators/magnitudes_calculator.dart';
 import 'domains/equal_temperament.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
+import 'domains/magnitudes_calculator.dart';
 
 part 'service.g.dart';
 

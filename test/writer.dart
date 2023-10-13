@@ -115,11 +115,13 @@ class SpecChartWriter extends UsingTempCSVFileChartWriter {
     required this.sampleRate,
     required this.chunkSize,
     required this.chunkStride,
+    this.yAxis,
   });
 
   final int sampleRate;
   final int chunkSize;
   final int chunkStride;
+  final String? yAxis;
 
   @override
   Future<ProcessResult> run(e, String? title, File file) => Process.run(
@@ -136,6 +138,10 @@ class SpecChartWriter extends UsingTempCSVFileChartWriter {
             '--output',
             'test/outputs/plots/$title.png',
           ],
+          if (yAxis case final String yAxis) ...[
+            '--y_axis',
+            yAxis,
+          ]
         ],
       );
 }

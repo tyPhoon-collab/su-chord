@@ -5,8 +5,8 @@ import '../../utils/loaders/audio.dart';
 import '../cache_manager.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
+import '../magnitudes_calculator.dart';
 import 'chroma_calculator.dart';
-import 'magnitudes_calculator.dart';
 
 ///再割り当て法を元にクロマを算出する
 ///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
@@ -48,7 +48,7 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
     return histogram2d!.values.map(_fold).toList();
   }
 
-  Chroma _fold(List<double> value) {
+  Chroma _fold(Magnitude value) {
     return PCP(List.generate(12, (i) {
       double sum = 0;
 

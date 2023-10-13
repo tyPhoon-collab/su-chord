@@ -1,5 +1,6 @@
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -37,6 +38,31 @@ void main() {
         PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized,
         title: 'Template of G',
       );
+    });
+  });
+
+  group('spec', () {
+    final f = factory2048_1024;
+    final writer = SpecChartWriter(
+      sampleRate: f.context.sampleRate,
+      chunkSize: f.context.chunkSize,
+      chunkStride: f.context.chunkStride,
+    );
+
+    test('compare stft vs reassignment', () async {
+      final data =
+          await const SimpleAudioLoader(path: 'assets/evals/nutctracker.wav')
+              .load(duration: 30, sampleRate: f.context.sampleRate);
+
+      const scalar = MagnitudeScalar.dB;
+
+      final mags1 = f.magnitude.stft(scalar: scalar).call(data);
+      final mags2 = f.magnitude.reassignment(scalar: scalar).call(data);
+
+      await Future.wait([
+        writer(mags1, title: '${scalar.name} mags ${f.context}'),
+        writer(mags2, title: '${scalar.name} reassignment ${f.context}'),
+      ]);
     });
   });
 }

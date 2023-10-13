@@ -27,9 +27,9 @@ librosa.display.specshow(
     sr=args.sample_rate,
     win_length=args.win_length,
     hop_length=args.hop_length if args.hop_length != 0 else args.win_length,
+    cmap="magma",
 )
 
-# plt.colorbar(format="%+2.0f dB")
 if args.title:
     plt.title(args.title)
 

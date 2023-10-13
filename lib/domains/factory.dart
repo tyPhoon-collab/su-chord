@@ -5,10 +5,10 @@ import 'chord_selector.dart';
 import 'chroma.dart';
 import 'chroma_calculators/chroma_calculator.dart';
 import 'chroma_calculators/comb_filter.dart';
-import 'chroma_calculators/magnitudes_calculator.dart';
 import 'chroma_calculators/reassignment.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
+import 'magnitudes_calculator.dart';
 
 typedef Filters = List<ChromaListFilter>;
 
