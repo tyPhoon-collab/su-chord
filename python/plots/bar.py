@@ -7,7 +7,7 @@ x_labels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 
 # Function to get the appropriate x labels based on the --chroma option
-def __get_x_labels(is_pcp):
+def __get_x_labels(is_pcp: bool) -> list[str]:
     if is_pcp:
         return x_labels
     else:

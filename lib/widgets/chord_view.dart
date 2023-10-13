@@ -24,7 +24,10 @@ class ChordView extends StatelessWidget {
 
   final Chord? chord;
 
-  TextStyle? get style => Get.textTheme.headlineLarge;
+  TextStyle? get style => TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: Get.width * .1,
+      );
 
   @override
   Widget build(BuildContext context) => chord == null
@@ -33,7 +36,10 @@ class ChordView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(chord.toString(), style: style),
-            Text(chord!.notes.join(', ')),
+            Text(
+              chord!.notes.join(', '),
+              style: Get.textTheme.headlineSmall,
+            ),
           ],
         );
 }
