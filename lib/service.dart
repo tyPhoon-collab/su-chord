@@ -1,4 +1,6 @@
+import 'package:chord/recorders/recorder.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'domains/chord.dart';
@@ -6,6 +8,7 @@ import 'domains/equal_temperament.dart';
 import 'domains/estimator.dart';
 import 'domains/factory.dart';
 import 'domains/magnitudes_calculator.dart';
+import 'recorders/web_recorder.dart';
 
 part 'service.g.dart';
 
@@ -124,4 +127,20 @@ Future<ChordEstimable> estimator(EstimatorRef ref) {
   final estimators = ref.watch(estimatorsProvider);
   final label = ref.watch(selectingEstimatorLabelProvider);
   return estimators[label]!.call();
+}
+
+@riverpod
+class GlobalRecorder extends _$GlobalRecorder {
+  @override
+  Recorder build() {
+    ref.onDispose(() {
+      state.dispose();
+    });
+    return WebRecorder(1.seconds);
+  }
+
+  void set(Recorder newValue) {
+    state.dispose();
+    state = newValue;
+  }
 }

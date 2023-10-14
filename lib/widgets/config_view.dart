@@ -6,55 +6,69 @@ import 'package:get/get.dart';
 import '../recorders/recorder.dart';
 import '../service.dart';
 
-class EstimatorConfigView extends StatelessWidget {
-  const EstimatorConfigView({super.key, required this.recorder});
-
-  final Recorder recorder;
-
-  bool get enable => recorder.state.value == RecorderState.stopped;
+class ConfigView extends StatelessWidget {
+  const ConfigView({super.key});
 
   @override
-  Widget build(BuildContext context) => ExpansionTile(
-        title: const Text('Config'),
-        leading: const Icon(Icons.settings),
-        children: [
-          ListTile(
-            enabled: enable,
-            leading: const Icon(Icons.functions_outlined),
-            title: const Text('Estimator'),
-            trailing: _ChordEstimatorSelector(enable: enable),
-          ),
-          ListTile(
-            enabled: enable,
-            leading: const Icon(Icons.mic_none_outlined),
-            title: const Text('Microphone Device'),
-            trailing: _MicrophoneDeviceSelector(
-              enable: enable,
-              recorder: recorder,
-            ),
-          ),
-          ListTile(
-            enabled: enable,
-            leading: const Icon(Icons.music_note_outlined),
-            title: const Text('Chord Settings'),
-            trailing: const Icon(Icons.open_in_new_outlined),
-            onTap: () => Get.dialog(const _ChordSettingsDialog()),
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              return CheckboxListTile(
-                enabled: enable,
-                value: ref.watch(isVisibleDebugProvider),
-                onChanged: (value) {
-                  if (value == null) return;
-                  ref.read(isVisibleDebugProvider.notifier).toggle();
+  Widget build(BuildContext context) => Consumer(
+        builder: (context, ref, child) {
+          final recorder = ref.watch(globalRecorderProvider);
+
+          return ExpansionTile(
+            title: const Text('Config'),
+            leading: const Icon(Icons.settings),
+            shape: Border.all(color: Colors.transparent),
+            children: [
+              Consumer(
+                builder: (context, ref, child) {
+                  return CheckboxListTile(
+                    value: ref.watch(isVisibleDebugProvider),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      ref.read(isVisibleDebugProvider.notifier).toggle();
+                    },
+                    title: const Text('Show Debug View'),
+                    secondary: const Icon(Icons.auto_graph_sharp),
+                  );
                 },
-                title: const Text('Show Debug View'),
-                secondary: const Icon(Icons.auto_graph_sharp),
-              );
-            },
-          )
-        ],
+              ),
+              ValueListenableBuilder(
+                valueListenable: recorder.state,
+                builder: (_, value, __) {
+                  final enable = value == RecorderState.stopped;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        enabled: enable,
+                        leading: const Icon(Icons.functions_outlined),
+                        title: const Text('Estimator'),
+                        trailing: _ChordEstimatorSelector(enable: enable),
+                      ),
+                      ListTile(
+                        enabled: enable,
+                        leading: const Icon(Icons.mic_none_outlined),
+                        title: const Text('Microphone Device'),
+                        trailing: _MicrophoneDeviceSelector(
+                          enable: enable,
+                          recorder: recorder,
+                        ),
+                      ),
+                      ListTile(
+                        enabled: enable,
+                        leading: const Icon(Icons.music_note_outlined),
+                        title: const Text('Chord Settings'),
+                        trailing: const Icon(Icons.open_in_new_outlined),
+                        onTap: () => Get.dialog(const _ChordSettingsDialog()),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          );
+        },
       );
 }
 

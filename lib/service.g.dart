@@ -122,5 +122,21 @@ final selectingEstimatorLabelProvider =
 );
 
 typedef _$SelectingEstimatorLabel = AutoDisposeNotifier<String>;
+String _$globalRecorderHash() => r'f2f69b48ee5cac3eb740321abf5bea71ccf1856a';
+
+/// See also [GlobalRecorder].
+@ProviderFor(GlobalRecorder)
+final globalRecorderProvider =
+    AutoDisposeNotifierProvider<GlobalRecorder, WebRecorder>.internal(
+  GlobalRecorder.new,
+  name: r'globalRecorderProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$globalRecorderHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$GlobalRecorder = AutoDisposeNotifier<WebRecorder>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member

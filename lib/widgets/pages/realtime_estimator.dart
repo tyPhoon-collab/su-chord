@@ -7,93 +7,100 @@ import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
 import '../../recorders/recorder.dart';
-import '../../recorders/web_recorder.dart';
 import '../../service.dart';
 import '../chord_view.dart';
-import '../estimator_config_view.dart';
 import '../plot_view.dart';
-import '../recorder_fab.dart';
 
-class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  @override
-  Widget build(BuildContext context) => const EstimatorPage();
-}
-
-class EstimatorPage extends StatefulWidget {
+class EstimatorPage extends ConsumerStatefulWidget {
   const EstimatorPage({super.key});
 
   @override
-  State<EstimatorPage> createState() => _EstimatorPageState();
+  ConsumerState<EstimatorPage> createState() => _EstimatorPageState();
 }
 
-class _EstimatorPageState extends State<EstimatorPage> {
-  final Recorder _recorder = WebRecorder(1.seconds);
-  RecorderState? _preState;
+class _EstimatorPageState extends ConsumerState<EstimatorPage> {
   ChordProgression _progression = ChordProgression.empty();
 
   @override
-  Future<void> dispose() async {
-    _recorder.dispose();
-    super.dispose();
-  }
+  Widget build(BuildContext context) => Builder(
+        builder: (_) {
+          final recorder = ref.watch(globalRecorderProvider);
+          final estimator = ref.watch(estimatorProvider);
+          final context = ref.watch(factoryContextProvider);
+
+          if (!estimator.hasValue) return const SizedBox();
+
+          return ValueListenableBuilder(
+            valueListenable: recorder.state,
+            builder: (_, value, __) {
+              return Center(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child:
+                          value == RecorderState.stopped && _progression.isEmpty
+                              ? const _WelcomeView()
+                              : value == RecorderState.stopped
+                                  ? _EstimatedView(
+                                      progression: _progression,
+                                      estimator: estimator.value!,
+                                    )
+                                  : _EstimatingStreamView(
+                                      recorder: recorder,
+                                      estimator: estimator.value!,
+                                      factoryContext: context,
+                                    ),
+                    ),
+                    _EstimatorActionBar(
+                      recorder: recorder,
+                      onStop: () {
+                        setState(() {
+                          _progression = estimator.value!.flush();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+}
+
+class _EstimatorActionBar extends StatelessWidget {
+  const _EstimatorActionBar({required this.recorder, this.onStop});
+
+  final Recorder recorder;
+  final VoidCallback? onStop;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Chord')),
-        drawer: const _HomeDrawer(),
-        body: ValueListenableBuilder(
-          valueListenable: _recorder.state,
-          builder: (_, value, __) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  EstimatorConfigView(recorder: _recorder),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final estimator = ref.watch(estimatorProvider);
-                      final context = ref.watch(factoryContextProvider);
-
-                      if (!estimator.hasValue) return const SizedBox();
-
-                      if (_preState == RecorderState.recording &&
-                          value == RecorderState.stopped) {
-                        _progression = estimator.value!.flush();
-                      }
-
-                      final widget = Expanded(
-                        child: _preState == null
-                            ? const _WelcomeView()
-                            : value == RecorderState.stopped
-                                ? _EstimatedView(
-                                    progression: _progression,
-                                    estimator: estimator.value!,
-                                  )
-                                : _EstimatingStreamView(
-                                    recorder: _recorder,
-                                    estimator: estimator.value!,
-                                    factoryContext: context,
-                                  ),
-                      );
-
-                      _preState = value;
-
-                      return widget;
-                    },
-                  ),
-                ],
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton.filledTonal(
+                onPressed: () {
+                  if (recorder.state.value == RecorderState.stopped) {
+                    recorder.start();
+                  } else {
+                    recorder.stop();
+                    onStop?.call();
+                  }
+                },
+                icon: ValueListenableBuilder(
+                  valueListenable: recorder.state,
+                  builder: (_, value, __) => value == RecorderState.recording
+                      ? const Icon(Icons.stop)
+                      : const Icon(Icons.mic),
+                ),
               ),
-            );
-          },
+            ],
+          ),
         ),
-        floatingActionButton: RecFloatingActionButton(recorder: _recorder),
       );
 }
 
@@ -186,30 +193,14 @@ class _EstimatedView extends ConsumerWidget {
   }
 }
 
-class _HomeDrawer extends StatelessWidget {
-  const _HomeDrawer();
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        children: const [
-          DrawerHeader(child: Text('Chord')),
-          AboutListTile(icon: Icon(Icons.library_books_outlined)),
-        ],
-      ),
-    );
-  }
-}
-
 class _WelcomeView extends StatelessWidget {
   const _WelcomeView();
 
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
         child: Text(
-          'Press the record button on the bottom right '
-          'to start estimation',
+          "Let's start playing chord!",
+          style: Get.textTheme.titleLarge,
         ),
       );
 }
