@@ -1,6 +1,7 @@
 import 'web_recorder.dart';
 
 enum RecorderState {
+  // paused,
   stopped,
   recording,
 }

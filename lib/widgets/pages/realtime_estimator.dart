@@ -68,42 +68,6 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
       );
 }
 
-class _EstimatorActionBar extends StatelessWidget {
-  const _EstimatorActionBar({required this.recorder, this.onStop});
-
-  final Recorder recorder;
-  final VoidCallback? onStop;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.all(16),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton.filledTonal(
-                onPressed: () {
-                  if (recorder.state.value == RecorderState.stopped) {
-                    recorder.start();
-                  } else {
-                    recorder.stop();
-                    onStop?.call();
-                  }
-                },
-                icon: ValueListenableBuilder(
-                  valueListenable: recorder.state,
-                  builder: (_, value, __) => value == RecorderState.recording
-                      ? const Icon(Icons.stop)
-                      : const Icon(Icons.mic),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-}
-
 class _EstimatingStreamView extends StatelessWidget {
   const _EstimatingStreamView({
     required this.recorder,
@@ -122,20 +86,6 @@ class _EstimatingStreamView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: StreamBuilder(
-              stream: recorder.bufferStream,
-              builder: (_, snapshot) {
-                if (!snapshot.hasData) return const SizedBox();
-
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: AmplitudeChart(data: snapshot.data!),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            flex: 6,
             child: Builder(builder: (context) {
               var progression = ChordProgression.empty();
               return StreamBuilder(
@@ -180,15 +130,19 @@ class _EstimatedView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView(
-      children: [
-        ChordProgressionView(progression: progression),
-        if (ref.watch(isVisibleDebugProvider)) ...[
-          Text(estimator.toString()),
-          if (estimator case final HasDebugViews views)
-            Wrap(children: views.build())
-        ]
-      ],
+    return Center(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        shrinkWrap: true,
+        children: [
+          ChordProgressionView(progression: progression),
+          if (ref.watch(isVisibleDebugProvider)) ...[
+            Text(estimator.toString()),
+            if (estimator case final HasDebugViews views)
+              Wrap(children: views.build())
+          ]
+        ],
+      ),
     );
   }
 }
@@ -201,6 +155,89 @@ class _WelcomeView extends StatelessWidget {
         child: Text(
           "Let's start playing chord!",
           style: Get.textTheme.titleLarge,
+        ),
+      );
+}
+
+class _EstimatorActionBar extends StatelessWidget {
+  const _EstimatorActionBar({required this.recorder, this.onStop});
+
+  final Recorder recorder;
+  final VoidCallback? onStop;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ValueListenableBuilder(
+            valueListenable: recorder.state,
+            builder: (_, value, __) {
+              final crossFadeState = value == RecorderState.stopped
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond;
+              final duration = 200.milliseconds;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (value != RecorderState.stopped)
+                    Expanded(
+                      child: StreamBuilder(
+                        stream: recorder.bufferStream,
+                        builder: (_, snapshot) {
+                          if (!snapshot.hasData) return const SizedBox();
+
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: SizedBox(
+                              height: 46,
+                              child: AmplitudeChart(
+                                data: snapshot.data!,
+                                backgroundColor: Get.theme.colorScheme.surface,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ButtonBar(
+                    children: [
+                      //   ...[
+                      //     IconButton.filledTonal(
+                      //       onPressed: recorder.pause,
+                      //       icon: const Icon(Icons.pause),
+                      //     )
+                      //   ].map(
+                      //     (e) => AnimatedCrossFade(
+                      //       firstChild: const SizedBox(),
+                      //       secondChild: e,
+                      //       crossFadeState: crossFadeState,
+                      //       duration: duration,
+                      //     ),
+                      //   ),
+                      IconButton.filledTonal(
+                        onPressed: () {
+                          if (value == RecorderState.stopped) {
+                            recorder.start();
+                          } else {
+                            recorder.stop();
+                            onStop?.call();
+                          }
+                        },
+                        icon: AnimatedCrossFade(
+                          firstChild: const Icon(Icons.mic),
+                          secondChild: const Icon(Icons.stop),
+                          crossFadeState: crossFadeState,
+                          duration: duration,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       );
 }

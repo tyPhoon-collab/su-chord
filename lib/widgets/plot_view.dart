@@ -54,9 +54,11 @@ class AmplitudeChart extends StatelessWidget {
   const AmplitudeChart({
     super.key,
     required this.data,
+    this.backgroundColor,
   });
 
   final List<double> data;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +68,7 @@ class AmplitudeChart extends StatelessWidget {
         maxX: data.length - 1,
         minY: -1,
         maxY: 1,
-        backgroundColor: Get.theme.colorScheme.background,
+        backgroundColor: backgroundColor ?? Get.theme.colorScheme.background,
         lineBarsData: [
           LineChartBarData(
             spots:
@@ -77,10 +79,8 @@ class AmplitudeChart extends StatelessWidget {
           ),
         ],
         lineTouchData: const LineTouchData(enabled: false),
-        titlesData: const FlTitlesData(
-          topTitles: AxisTitles(),
-          bottomTitles: AxisTitles(),
-        ),
+        borderData: FlBorderData(show: false),
+        titlesData: const FlTitlesData(show: false),
       ),
       duration: 10.milliseconds,
     );
