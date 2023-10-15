@@ -19,18 +19,14 @@ class ConfigView extends StatelessWidget {
             leading: const Icon(Icons.settings),
             shape: Border.all(color: Colors.transparent),
             children: [
-              Consumer(
-                builder: (context, ref, child) {
-                  return CheckboxListTile(
-                    value: ref.watch(isVisibleDebugProvider),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      ref.read(isVisibleDebugProvider.notifier).toggle();
-                    },
-                    title: const Text('Show Debug View'),
-                    secondary: const Icon(Icons.auto_graph_sharp),
-                  );
+              CheckboxListTile(
+                value: ref.watch(isVisibleDebugProvider),
+                onChanged: (value) {
+                  if (value == null) return;
+                  ref.read(isVisibleDebugProvider.notifier).toggle();
                 },
+                title: const Text('Show Debug View'),
+                secondary: const Icon(Icons.auto_graph_sharp),
               ),
               ValueListenableBuilder(
                 valueListenable: recorder.state,
