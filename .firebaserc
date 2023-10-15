@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "su-chord"
-  }
+  },
+  "targets": {
+    "su-chord": {
+      "hosting": {
+        "wasm": [
+          "su-chord-wasm"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
