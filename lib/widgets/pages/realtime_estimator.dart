@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
@@ -8,6 +12,7 @@ import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
 import '../../recorders/recorder.dart';
 import '../../service.dart';
+import '../../utils/loaders/audio.dart';
 import '../chord_view.dart';
 import '../plot_view.dart';
 
@@ -46,17 +51,26 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
                                       estimator: estimator.value!,
                                     )
                                   : _EstimatingStreamView(
-                                      recorder: recorder,
+                                      stream: recorder.stream,
                                       estimator: estimator.value!,
                                       factoryContext: context,
                                     ),
                     ),
                     _EstimatorActionBar(
                       recorder: recorder,
-                      onStop: () {
+                      onStopped: () {
                         setState(() {
                           _progression = estimator.value!.flush();
                         });
+                      },
+                      onFileLoaded: () async {
+                        EasyLoading.show(
+                            status: 'Estimating...', dismissOnTap: false);
+                        await _estimateFromFile(
+                          context.sampleRate,
+                          estimator.value!,
+                        );
+                        EasyLoading.dismiss();
                       },
                     ),
                   ],
@@ -66,16 +80,35 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
           );
         },
       );
+
+  Future<void> _estimateFromFile(
+      int sampleRate, ChordEstimable estimator) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['wav'],
+    );
+    if (result == null) return;
+
+    final data = await SimpleAudioLoader(bytes: result.files.first.bytes).load(
+      sampleRate: sampleRate,
+    );
+
+    final progression = await compute((data) => estimator.estimate(data), data);
+
+    setState(() {
+      _progression = progression;
+    });
+  }
 }
 
 class _EstimatingStreamView extends StatelessWidget {
   const _EstimatingStreamView({
-    required this.recorder,
     required this.estimator,
     required this.factoryContext,
+    required this.stream,
   });
 
-  final Recorder recorder;
+  final Stream<AudioData> stream;
   final ChordEstimable estimator;
   final EstimatorFactoryContext factoryContext;
 
@@ -89,7 +122,7 @@ class _EstimatingStreamView extends StatelessWidget {
             child: Builder(builder: (context) {
               var progression = ChordProgression.empty();
               return StreamBuilder(
-                stream: recorder.stream,
+                stream: stream,
                 builder: (_, snapshot) {
                   if (!snapshot.hasData) return const SizedBox();
 
@@ -160,10 +193,15 @@ class _WelcomeView extends StatelessWidget {
 }
 
 class _EstimatorActionBar extends StatelessWidget {
-  const _EstimatorActionBar({required this.recorder, this.onStop});
+  const _EstimatorActionBar({
+    required this.recorder,
+    this.onStopped,
+    this.onFileLoaded,
+  });
 
   final Recorder recorder;
-  final VoidCallback? onStop;
+  final VoidCallback? onStopped;
+  final VoidCallback? onFileLoaded;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -202,27 +240,21 @@ class _EstimatorActionBar extends StatelessWidget {
                       ),
                     ),
                   ButtonBar(
+                    buttonPadding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      //   ...[
-                      //     IconButton.filledTonal(
-                      //       onPressed: recorder.pause,
-                      //       icon: const Icon(Icons.pause),
-                      //     )
-                      //   ].map(
-                      //     (e) => AnimatedCrossFade(
-                      //       firstChild: const SizedBox(),
-                      //       secondChild: e,
-                      //       crossFadeState: crossFadeState,
-                      //       duration: duration,
-                      //     ),
-                      //   ),
+                      IconButton.outlined(
+                        onPressed: value == RecorderState.stopped
+                            ? onFileLoaded
+                            : null,
+                        icon: const Icon(Icons.folder),
+                      ),
                       IconButton.filledTonal(
                         onPressed: () {
                           if (value == RecorderState.stopped) {
                             recorder.start();
                           } else {
                             recorder.stop();
-                            onStop?.call();
+                            onStopped?.call();
                           }
                         },
                         icon: AnimatedCrossFade(
