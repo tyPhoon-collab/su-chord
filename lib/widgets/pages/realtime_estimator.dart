@@ -64,8 +64,19 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
                         });
                       },
                       onFileLoaded: () async {
+                        final color = Get.theme.colorScheme.onSurfaceVariant;
+                        EasyLoading.instance
+                          ..backgroundColor =
+                              Get.theme.colorScheme.surfaceVariant
+                          ..loadingStyle = EasyLoadingStyle.custom
+                          ..indicatorColor = color
+                          ..textColor = color;
                         EasyLoading.show(
-                            status: 'Estimating...', dismissOnTap: false);
+                          status: 'Estimating...',
+                          indicator: const Icon(Icons.music_note),
+                          maskType: EasyLoadingMaskType.black,
+                          dismissOnTap: false,
+                        );
                         await _estimateFromFile(
                           context.sampleRate,
                           estimator.value!,
