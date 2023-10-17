@@ -111,6 +111,12 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chordSelectable: await factory.selector.db,
           detectableChords: detectableChords,
         ),
+    'from notes + reassignment comb': () async => FromNotesChordEstimator(
+          chromaCalculable: factory.guitarRange.reassignCombFilter,
+          filters: filters,
+          noteExtractable: factory.extractor.threshold(),
+          detectableChords: detectableChords,
+        ),
   };
 }
 
