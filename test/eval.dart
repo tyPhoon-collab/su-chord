@@ -6,6 +6,7 @@ import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
@@ -76,13 +77,10 @@ Future<void> main() async {
         SearchTreeChordEstimator(
             chromaCalculable: chromaCalculable,
             filters: f.filter.eval,
-            thresholdRatio: switch (chromaCalculable) {
-              final HasMagnitudes value => switch (value.magnitudeScalar) {
-                  MagnitudeScalar.none => 0.3,
-                  MagnitudeScalar.ln => 0.5,
-                  MagnitudeScalar.dB => 0.5,
-                },
-              _ => 0.65,
+            noteExtractable: switch (chromaCalculable) {
+              final HasMagnitudes value =>
+                f.extractor.threshold(scalar: value.magnitudeScalar),
+              _ => const ThresholdByMaxRatioExtractor(),
             }),
       ]
     ]) {
@@ -157,85 +155,80 @@ Future<void> main() async {
   });
 
   group('conv', () {
+    final f = factory8192_0;
+    final extractor = f.extractor.threshold();
+    final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
     test('search + comb', () async {
-      const ratio = 0.3;
-
       _Evaluator(
-        header: ['search + comb, ratio: $ratio, ${factory8192_0.context}'],
+        header: ['search + comb, $extractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilter,
-          filters: factory8192_0.filter.eval,
-          thresholdRatio: ratio,
+          chromaCalculable: f.guitarRange.combFilter,
+          filters: f.filter.eval,
+          noteExtractable: extractor,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb.csv');
     });
 
     test('search + log comb', () async {
-      const ratio = 0.5;
-
       _Evaluator(
-        header: ['search + log comb, ratio: $ratio, ${factory8192_0.context}'],
+        header: ['search + log comb, $logExtractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+          chromaCalculable: f.guitarRange.combFilterWith(
               magnitudesCalculable:
-                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: factory8192_0.filter.eval,
-          thresholdRatio: ratio,
+                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+          filters: f.filter.eval,
+          noteExtractable: logExtractor,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
     });
 
     test('search + comb + db', () async {
-      const ratio = 0.3;
-
       _Evaluator(
-        header: ['search + comb + db, ratio: $ratio, ${factory8192_0.context}'],
+        header: ['search + comb + db, $extractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilter,
-          filters: factory8192_0.filter.eval,
-          thresholdRatio: ratio,
-          chordSelectable: await factory8192_0.selector.db,
+          chromaCalculable: f.guitarRange.combFilter,
+          filters: f.filter.eval,
+          noteExtractable: extractor,
+          chordSelectable: await f.selector.db,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_db.csv');
     });
 
     test('search + log comb + db', () async {
-      const ratio = 0.5;
-
       _Evaluator(
-        header: [
-          'search + log comb + db, ratio: $ratio, ${factory8192_0.context}'
-        ],
+        header: ['search + log comb + db, $logExtractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+          chromaCalculable: f.guitarRange.combFilterWith(
               magnitudesCalculable:
-                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: factory8192_0.filter.eval,
-          thresholdRatio: ratio,
-          chordSelectable: await factory8192_0.selector.db,
+                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+          filters: f.filter.eval,
+          noteExtractable: logExtractor,
+          chordSelectable: await f.selector.db,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log_db.csv');
     });
   });
 
   group('control experiment', () {
+    final f = factory8192_0;
+
     test('matching + comb filter', () {
       _Evaluator(
-        header: ['matching + comb filter, ${factory8192_0.context}'],
+        header: ['matching + comb filter, ${f.context}'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilter,
-          filters: factory8192_0.filter.eval,
+          chromaCalculable: f.guitarRange.combFilter,
+          filters: f.filter.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb.csv');
     });
 
     test('matching + comb filter + scalar', () async {
       _Evaluator(
-        header: ['matching + comb filter, ${factory8192_0.context}'],
+        header: ['matching + comb filter, ${f.context}'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilter,
-          filters: factory8192_0.filter.eval,
-          chordSelectable: await factory8192_0.selector.db,
+          chromaCalculable: f.guitarRange.combFilter,
+          filters: f.filter.eval,
+          chordSelectable: await f.selector.db,
           scalar: TemplateChromaScalar.thirdHarmonic(0.1),
         ),
       )
@@ -245,26 +238,25 @@ Future<void> main() async {
 
     test('matching + log comb filter', () {
       _Evaluator(
-        header: ['matching + log comb filter, ${factory8192_0.context}'],
+        header: ['matching + log comb filter, ${f.context}'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.combFilterWith(
+          chromaCalculable: f.guitarRange.combFilterWith(
               magnitudesCalculable:
-                  factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: factory8192_0.filter.eval,
+                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+          filters: f.filter.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb_log.csv');
     });
 
     test('search + reassignment', () {
-      const ratio = 0.5;
       _Evaluator(
         header: [
-          'search + reassignment, ratio: $ratio, ${factory8192_0.context}'
+          'search + reassignment, ${f.extractor.threshold()}, ${f.context}'
         ],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: factory8192_0.guitarRange.reassignment,
-          filters: factory8192_0.filter.eval,
-          thresholdRatio: ratio,
+          chromaCalculable: f.guitarRange.reassignment,
+          filters: f.filter.eval,
+          noteExtractable: f.extractor.threshold(),
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_reassignment.csv');
     });

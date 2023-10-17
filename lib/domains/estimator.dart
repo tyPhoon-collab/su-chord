@@ -12,8 +12,8 @@ import 'chord_progression.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
 import 'chroma_calculators/chroma_calculator.dart';
-import 'equal_temperament.dart';
 import 'filter.dart';
+import 'note_extractor.dart';
 
 abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data, [bool flush = true]);
@@ -187,36 +187,20 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     required super.chromaCalculable,
     super.chordSelectable,
     super.filters,
-    this.thresholdRatio = 0.65,
-    this.maxNotesCount = 4,
+    this.noteExtractable = const ThresholdByMaxRatioExtractor(),
     Set<Chord>? detectableChords,
   }) : detectableChords =
             detectableChords ?? ChromaChordEstimator.defaultDetectableChords;
 
-  final double thresholdRatio;
   final Set<Chord> detectableChords;
-  final int maxNotesCount;
+  final NoteExtractable noteExtractable;
 
   @override
-  String toString() =>
-      'search tree $thresholdRatio threshold $maxNotesCount notes, ${super.toString()}';
+  String toString() => 'search tree $noteExtractable, ${super.toString()}';
 
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
-    final chords = Chord.fromNotes(_chooseNotes(chroma)).toSet();
+    final chords = Chord.fromNotes(noteExtractable(chroma)).toSet();
     return chords.intersection(detectableChords);
-  }
-
-  Notes _chooseNotes(Chroma chroma) {
-    final indexes = chroma.maxSortedIndexes;
-    final max = chroma[indexes.first];
-    final threshold = max * thresholdRatio;
-    final notes = indexes
-        .toList()
-        .sublist(0, maxNotesCount)
-        .where((e) => chroma[e] >= threshold)
-        .map((e) => Note.fromIndex(e));
-
-    return notes;
   }
 }

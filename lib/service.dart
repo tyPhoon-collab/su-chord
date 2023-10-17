@@ -98,7 +98,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
     'search tree + comb': () async => SearchTreeChordEstimator(
           chromaCalculable: factory.guitarRange.combFilter,
           filters: filters,
-          thresholdRatio: 0.3,
+          noteExtractable: factory.extractor.threshold(),
           detectableChords: detectableChords,
         ),
     'search tree + comb + ln scale': () async => SearchTreeChordEstimator(
@@ -107,7 +107,9 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
                 factory.magnitude.stft(scalar: MagnitudeScalar.ln),
           ),
           filters: filters,
-          thresholdRatio: 0.5,
+          noteExtractable: factory.extractor.threshold(
+            scalar: MagnitudeScalar.ln,
+          ),
           detectableChords: detectableChords,
         ),
   };

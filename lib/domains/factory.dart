@@ -9,6 +9,7 @@ import 'chroma_calculators/reassignment.dart';
 import 'equal_temperament.dart';
 import 'filter.dart';
 import 'magnitudes_calculator.dart';
+import 'note_extractor.dart';
 
 typedef Filters = List<ChromaListFilter>;
 
@@ -55,6 +56,7 @@ final class EstimatorFactory {
   late final filter = FilterFactory(context);
   late final magnitude = MagnitudesFactory(context);
   late final selector = ChordSelectorFactory();
+  late final extractor = NoteExtractorFactory();
 
   late final guitarRange = ChromaCalculatorFactory(
     context,
@@ -160,4 +162,19 @@ final class ChordSelectorFactory {
     _csv ??= await CSVLoader.db.load();
     return ChordProgressionDBChordSelector.fromCSV(_csv!);
   }
+}
+
+final class NoteExtractorFactory {
+  ///スケーリングによって、閾値は変わるべき
+  ///クライアント側で考えなくて良いように、factoryで管理する
+  NoteExtractable threshold({
+    MagnitudeScalar scalar = MagnitudeScalar.none,
+  }) =>
+      ThresholdByMaxRatioExtractor(
+        ratio: switch (scalar) {
+          MagnitudeScalar.none => 0.3,
+          MagnitudeScalar.ln => 0.5,
+          MagnitudeScalar.dB => 0.5,
+        },
+      );
 }
