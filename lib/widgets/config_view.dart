@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
+import '../recorder_service.dart';
 import '../recorders/recorder.dart';
 import '../service.dart';
 

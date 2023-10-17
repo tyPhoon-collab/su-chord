@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import '../../domains/chord_progression.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
+import '../../recorder_service.dart';
 import '../../recorders/recorder.dart';
 import '../../service.dart';
 import '../../utils/loaders/audio.dart';

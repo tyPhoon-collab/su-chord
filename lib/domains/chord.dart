@@ -373,15 +373,21 @@ class Chord extends ChordBase {
   }
 
   static Iterable<({ChordType type, ChordQualities qualities})> _fromNotes(
-      Notes notes, Note root) {
+    Notes notes,
+    Note root,
+  ) {
     final degrees = notes.map((e) => root.positiveDegreeTo(e));
     return ChordType.values
         .where((type) => type.degrees.every((e) => degrees.contains(e)))
         .map((type) => (
               type: type,
-              selectingQualities: ChordQualities.fromTypeAndNotes(
-                  type: type, root: root, notes: notes)
+              qualities: ChordQualities.fromTypeAndNotes(
+                type: type,
+                root: root,
+                notes: notes,
+              )
             ))
+        .toList()
         .whereType<({ChordType type, ChordQualities qualities})>()
         .where((record) => record.type.validate(record.qualities));
   }
