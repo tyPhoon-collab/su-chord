@@ -91,8 +91,8 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   SelectableChromaChordEstimator({
     required super.chromaCalculable,
     super.filters,
-    ChordSelectable? chordSelectable,
-  }) : chordSelectable = chordSelectable ?? FirstChordSelector();
+    this.chordSelectable = const FirstChordSelector(),
+  });
 
   final ChordSelectable chordSelectable;
 
@@ -104,7 +104,8 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
     final progression = ChordProgression.empty();
     measure('estimate', () {
       for (final c in _filteredChromas) {
-        final chord = chordSelectable(estimateOneFromChroma(c), progression);
+        final chords = estimateOneFromChroma(c);
+        final chord = chordSelectable(chords, progression);
         progression.add(chord);
       }
     });
@@ -180,10 +181,40 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
 }
 
 ///此木の論文を元に実装
-///内部的には探索木を用いてはいないが、
-///クロマから音高を導き、音高からコードを導くという点では全く同じ動作をする
+///探索木に関しては、「推定された音を含むコード群を返す」計算なので、
+///計算量は増える<O(log(n)) -> O(n)>が同じ動作をする関数として実装している
 class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   SearchTreeChordEstimator({
+    required super.chromaCalculable,
+    super.chordSelectable,
+    super.filters,
+    this.noteExtractable = const ThresholdByMaxRatioExtractor(),
+    Set<Chord>? detectableChords,
+  })  : detectableChords =
+            detectableChords ?? ChromaChordEstimator.defaultDetectableChords,
+        assert(
+          chordSelectable is! FirstChordSelector,
+          'Search Tree SHOULD NOT use FirstChordSelector as chordSelectable',
+        );
+
+  final Set<Chord> detectableChords;
+  final NoteExtractable noteExtractable;
+
+  @override
+  String toString() => 'search tree $noteExtractable, ${super.toString()}';
+
+  @override
+  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
+    final notes = noteExtractable(chroma);
+    return detectableChords
+        .where((e) => notes.every((note) => e.notes.contains(note)));
+  }
+}
+
+///クロマから演奏音を抽出し、その演奏音全てを含むコードのみを返す
+///もし、複数ある場合は、[ChordSelectable]によって絞り込みを行う
+class FromNotesChordEstimator extends SelectableChromaChordEstimator {
+  FromNotesChordEstimator({
     required super.chromaCalculable,
     super.chordSelectable,
     super.filters,
@@ -196,7 +227,7 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   final NoteExtractable noteExtractable;
 
   @override
-  String toString() => 'search tree $noteExtractable, ${super.toString()}';
+  String toString() => 'from notes $noteExtractable, ${super.toString()}';
 
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {

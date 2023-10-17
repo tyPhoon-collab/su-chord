@@ -35,7 +35,7 @@ Future<void> main() async {
   Table.bypass = true;
   Measure.logger = null;
 
-  test('cross validation', () {
+  test('cross validation', () async {
     //TODO 見やすく書けるようにする
 
     //以下の場合をすべて確かめて、csvに出力する
@@ -55,6 +55,7 @@ Future<void> main() async {
     //(dB)
 
     final f = factory8192_0;
+    final db = await f.selector.db;
 
     for (final estimator in [
       for (final chromaCalculable in [
@@ -75,13 +76,15 @@ Future<void> main() async {
           filters: f.filter.eval,
         ),
         SearchTreeChordEstimator(
-            chromaCalculable: chromaCalculable,
-            filters: f.filter.eval,
-            noteExtractable: switch (chromaCalculable) {
-              final HasMagnitudes value =>
-                f.extractor.threshold(scalar: value.magnitudeScalar),
-              _ => const ThresholdByMaxRatioExtractor(),
-            }),
+          chromaCalculable: chromaCalculable,
+          filters: f.filter.eval,
+          noteExtractable: switch (chromaCalculable) {
+            final HasMagnitudes value =>
+              f.extractor.threshold(scalar: value.magnitudeScalar),
+            _ => const ThresholdByMaxRatioExtractor(),
+          },
+          chordSelectable: db,
+        ),
       ]
     ]) {
       final fileName = estimator
@@ -165,6 +168,7 @@ Future<void> main() async {
           chromaCalculable: f.guitarRange.combFilter,
           filters: f.filter.eval,
           noteExtractable: extractor,
+          chordSelectable: await f.selector.db,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb.csv');
     });
@@ -178,34 +182,9 @@ Future<void> main() async {
                   f.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: f.filter.eval,
           noteExtractable: logExtractor,
+          chordSelectable: await f.selector.db,
         ),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
-    });
-
-    test('search + comb + db', () async {
-      _Evaluator(
-        header: ['search + comb + db, $extractor, ${f.context}'],
-        estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter,
-          filters: f.filter.eval,
-          noteExtractable: extractor,
-          chordSelectable: await f.selector.db,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_db.csv');
-    });
-
-    test('search + log comb + db', () async {
-      _Evaluator(
-        header: ['search + log comb + db, $logExtractor, ${f.context}'],
-        estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilterWith(
-              magnitudesCalculable:
-                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: f.filter.eval,
-          noteExtractable: logExtractor,
-          chordSelectable: await f.selector.db,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log_db.csv');
     });
   });
 
@@ -248,16 +227,16 @@ Future<void> main() async {
       ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb_log.csv');
     });
 
-    test('search + reassignment', () {
+    test('search + reassignment', () async {
       _Evaluator(
         header: [
           'search + reassignment, ${f.extractor.threshold()}, ${f.context}'
         ],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.reassignment,
-          filters: f.filter.eval,
-          noteExtractable: f.extractor.threshold(),
-        ),
+            chromaCalculable: f.guitarRange.reassignment,
+            filters: f.filter.eval,
+            noteExtractable: f.extractor.threshold(),
+            chordSelectable: await f.selector.db),
       ).evaluate(contexts).toCSV('test/outputs/search_tree_reassignment.csv');
     });
   });

@@ -320,10 +320,11 @@ class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
 @immutable
 class Chord extends ChordBase {
   Chord({
-    required this.notes,
+    required Notes notes,
     required this.root,
     super.qualities,
   })  : assert(notes.contains(root)),
+        notes = List.unmodifiable(notes),
         super(
             type: _fromNotes(notes, root)
                 .firstWhere((record) =>
@@ -335,10 +336,10 @@ class Chord extends ChordBase {
           qualities == null || type.validate(qualities),
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
         ),
-        notes = [
+        notes = List.unmodifiable([
           ...type.degrees.map((e) => root.transpose(e)),
           ...?qualities?.map((e) => root.transpose(e.degree)),
-        ];
+        ]);
 
   factory Chord.parse(String chord) {
     final exp = RegExp(r'^([A-G][#b]?)(.*?)$');
@@ -355,7 +356,6 @@ class Chord extends ChordBase {
   }
 
   //コードは一意に定まらなかったり、該当するものがなかったりするため、factoryにはできない
-  //探索木に代わるもの
   static Iterable<Chord> fromNotes(Notes notes) {
     final chords = <Chord>[];
 

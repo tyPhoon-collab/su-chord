@@ -11,6 +11,8 @@ abstract interface class ChordSelectable {
 }
 
 class FirstChordSelector implements ChordSelectable {
+  const FirstChordSelector();
+
   @override
   String toString() => 'select first';
 

@@ -1,7 +1,8 @@
-import 'package:chord/recorders/recorder.dart';
-import 'package:chord/recorders/web_recorder.dart';
 import 'package:get/get.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'recorders/recorder.dart';
+import 'recorders/web_recorder.dart';
 
 part 'recorder_service.g.dart';
 

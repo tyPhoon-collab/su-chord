@@ -156,7 +156,7 @@ final class FilterFactory {
 final class ChordSelectorFactory {
   CSV? _csv;
 
-  ChordSelectable get first => FirstChordSelector();
+  ChordSelectable get first => const FirstChordSelector();
 
   Future<ChordSelectable> get db async {
     _csv ??= await CSVLoader.db.load();
