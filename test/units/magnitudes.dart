@@ -1,4 +1,5 @@
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,6 +25,14 @@ void main() {
     final c = factory.magnitude.reassignment();
     final mags = c(data);
     expect(mags, isNotEmpty);
+  });
+
+  group('dB', () {
+    test('reassignment', () async {
+      final c = factory.magnitude.reassignment(scalar: MagnitudeScalar.dB);
+      final mags = c(data);
+      expect(mags, isNotEmpty);
+    });
   });
 
   // test('same size for different chunkSize and chunkStride', () {
