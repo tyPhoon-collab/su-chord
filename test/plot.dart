@@ -39,6 +39,23 @@ void main() {
         title: 'Template of G',
       );
     });
+
+    test('PCP of C', () async {
+      final chromas = f.guitarRange.reassignCombFilter(sampleData.cut(
+        duration: 4,
+        offset: 12,
+      ));
+
+      final pcp = f.filter.interval(4.seconds).call(chromas).first;
+      await writer(pcp.normalized, title: 'PCP of C');
+    });
+
+    test('template of C', () async {
+      await writer(
+        PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized,
+        title: 'Template of C',
+      );
+    });
   });
 
   group('spec', () {

@@ -18,8 +18,9 @@ class AudioData {
     double offset = 0,
   }) {
     if (duration == null || duration >= this.duration) return this;
-    final newBuffer = buffer.sublist(
-        (offset * sampleRate).toInt(), (duration * sampleRate).toInt());
+    final start = (offset * sampleRate).toInt();
+    final end = start + (duration * sampleRate).toInt();
+    final newBuffer = buffer.sublist(start, end);
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
   }
 
