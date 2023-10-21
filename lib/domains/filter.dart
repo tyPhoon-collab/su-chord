@@ -28,15 +28,64 @@ class AverageFilter implements ChromaListFilter {
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
-    return chroma.mapIndexed((index, element) {
-      final start = index - halfRangeIndex;
-      final end = index + halfRangeIndex + 1;
-      final l = chroma.sublist(
-        start.isNegative ? 0 : start,
-        end > chroma.length ? null : end,
-      );
-      return l.reduce((value, element) => value + element) / l.length;
-    }).toList();
+    if (chroma.isEmpty) return const [];
+    final filteredChroma = List.generate(chroma.length, (index) {
+      Chroma sum = Chroma.zero(chroma.first.length);
+      int count = 0;
+
+      for (int i = -halfRangeIndex; i <= halfRangeIndex; i++) {
+        final neighborIndex = index + i;
+        if (neighborIndex < 0 || chroma.length <= neighborIndex) continue;
+
+        sum += chroma[neighborIndex];
+        count++;
+      }
+
+      return sum / count;
+    });
+
+    return filteredChroma;
+  }
+}
+
+class GaussianFilter implements ChromaListFilter {
+  const GaussianFilter({
+    required this.stdDev,
+    required this.kernelRadius,
+  }) : assert(stdDev > 0);
+
+  factory GaussianFilter.three({required double stdDev}) {
+    return GaussianFilter(
+      stdDev: stdDev,
+      kernelRadius: (stdDev * 3).toInt(),
+    );
+  }
+
+  final double stdDev;
+  final int kernelRadius;
+
+  @override
+  List<Chroma> call(List<Chroma> chroma) {
+    if (chroma.isEmpty) return const [];
+    final kernelSize = kernelRadius * 2 + 1;
+    final closure = normalDistributionClosure(0, stdDev);
+    final kernel = List.generate(
+      kernelSize,
+          (i) => closure((i - kernelRadius).toDouble()),
+    );
+
+    final filteredChroma = List.generate(chroma.length, (index) {
+      Chroma sum = Chroma.zero(chroma.first.length);
+      for (int i = -kernelRadius; i <= kernelRadius; i++) {
+        final neighborIndex = index + i;
+        if (neighborIndex < 0 || chroma.length <= neighborIndex) continue;
+
+        sum += chroma[neighborIndex] * kernel[i + kernelRadius];
+      }
+      return sum;
+    });
+
+    return filteredChroma;
   }
 }
 

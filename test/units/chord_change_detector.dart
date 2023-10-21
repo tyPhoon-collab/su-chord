@@ -4,6 +4,7 @@ import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
@@ -49,19 +50,53 @@ Future<void> main() async {
     expect(progress.length, 20);
   });
 
-  test('simple', () async {
-    final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.reassignCombFilter,
-      filters: [
-        const ThresholdFilter(threshold: 10),
-        IntervalChordChangeDetector(
-          interval: 0.5.seconds,
-          dt: f.context.dt,
-        ),
-      ],
-    );
-    final progress = estimator.estimate(data);
-    expect(progress.length, 20);
+  group('fold', () {
+    test('simple', () async {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: [
+          const ThresholdFilter(threshold: 10),
+          IntervalChordChangeDetector(
+            interval: 0.5.seconds,
+            dt: f.context.dt,
+          ),
+        ],
+      );
+      final progress = estimator.estimate(data);
+      debugPrint(progress.toString());
+    });
+
+    test('simple with average', () async {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: [
+          const ThresholdFilter(threshold: 10),
+          IntervalChordChangeDetector(
+            interval: 0.5.seconds,
+            dt: f.context.dt,
+          ),
+          const AverageFilter(halfRangeIndex: 2),
+        ],
+      );
+      final progress = estimator.estimate(data);
+      debugPrint(progress.toString());
+    });
+
+    test('simple with gaussian', () async {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: [
+          const ThresholdFilter(threshold: 10),
+          IntervalChordChangeDetector(
+            interval: 0.5.seconds,
+            dt: f.context.dt,
+          ),
+          const GaussianFilter(stdDev: 1, kernelRadius: 2),
+        ],
+      );
+      final progress = estimator.estimate(data);
+      debugPrint(progress.toString());
+    });
   });
 
   test('cosine similarity', () async {

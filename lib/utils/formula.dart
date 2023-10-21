@@ -16,7 +16,9 @@ double normalDistribution(double x, double mean, double stdDev) {
 }
 
 double Function(double x) normalDistributionClosure(
-    double mean, double stdDev) {
+  double mean,
+  double stdDev,
+) {
   final coefficient = 1.0 / (stdDev * sqrt(2 * pi));
   return (x) {
     final exponent = -0.5 * pow((x - mean) / stdDev, 2);
