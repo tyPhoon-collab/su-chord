@@ -20,8 +20,25 @@ class ThresholdFilter implements ChromaListFilter {
       chroma.where((e) => e.max >= threshold).toList();
 }
 
-//TODO 移動平均(平均化)フィルタ
-//TODO ガウシアンフィルタ
+class AverageFilter implements ChromaListFilter {
+  const AverageFilter({required this.halfRangeIndex})
+      : assert(halfRangeIndex > 0);
+
+  final int halfRangeIndex;
+
+  @override
+  List<Chroma> call(List<Chroma> chroma) {
+    return chroma.mapIndexed((index, element) {
+      final start = index - halfRangeIndex;
+      final end = index + halfRangeIndex + 1;
+      final l = chroma.sublist(
+        start.isNegative ? 0 : start,
+        end > chroma.length ? null : end,
+      );
+      return l.reduce((value, element) => value + element) / l.length;
+    }).toList();
+  }
+}
 
 class IntervalChordChangeDetector implements ChromaListFilter {
   IntervalChordChangeDetector({required this.interval, required this.dt}) {
