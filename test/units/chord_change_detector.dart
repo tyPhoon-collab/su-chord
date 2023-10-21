@@ -13,21 +13,27 @@ Future<void> main() async {
 
   group('interval', () {
     test('just', () {
-      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.25);
-      final chromas = List.filled(8, Chroma.empty);
-      expect(ccd(chromas).length, 2);
+      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1);
+      final chromas = List.filled(4, Chroma.empty); // 4 sec
+      expect(ccd(chromas).length, 2); // 4 sec / 2 sec -> 2
     });
 
     test('over', () {
-      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.251);
-      final chromas = List.filled(8, Chroma.empty);
-      expect(ccd(chromas).length, 2);
+      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1.1);
+      final chromas = List.filled(4, Chroma.empty); // 4.4 sec
+      expect(ccd(chromas).length, 2); // 4.4 sec / 2 sec -> 2
     });
 
     test('less', () {
-      final ccd = IntervalChordChangeDetector(interval: 1.seconds, dt: 0.251);
-      final chromas = List.filled(11, Chroma.empty);
-      expect(ccd(chromas).length, 2);
+      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 0.9);
+      final chromas = List.filled(4, Chroma.empty); // 3.6 sec
+      expect(ccd(chromas).length, 1); // 3.6 sec / 2 sec -> 1
+    });
+
+    test('less than dt', () {
+      final ccd = IntervalChordChangeDetector(interval: 0.1.seconds, dt: 1);
+      final chromas = List.filled(4, Chroma.empty);
+      expect(ccd(chromas).length, 4); // same as chromas.length
     });
   });
 

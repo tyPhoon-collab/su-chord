@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import '../utils/formula.dart';
 import 'chord.dart';
@@ -23,16 +24,21 @@ class ThresholdFilter implements ChromaListFilter {
 //TODO ガウシアンフィルタ
 
 class IntervalChordChangeDetector implements ChromaListFilter {
-  IntervalChordChangeDetector({required this.interval, required this.dt})
-      : _interval = interval.inMilliseconds / 1000;
+  IntervalChordChangeDetector({required this.interval, required this.dt}) {
+    _intervalSeconds = interval.inMilliseconds / 1000;
+    if (_intervalSeconds <= dt) {
+      debugPrint('Interval is less than dt. This filter will be ignored');
+    }
+  }
 
   final double dt;
   final Duration interval;
-  final double _interval;
+  late final double _intervalSeconds;
 
   @override
   List<Chroma> call(List<Chroma> chromas) {
     if (chromas.isEmpty) return [];
+    if (_intervalSeconds <= dt) return chromas;
 
     final slices = <int>[];
     double accumulatedTime = 0;
@@ -42,15 +48,15 @@ class IntervalChordChangeDetector implements ChromaListFilter {
       accumulatedTime += dt;
       accumulatedCount++;
 
-      if (accumulatedTime >= _interval) {
+      if (accumulatedTime >= _intervalSeconds) {
         slices.add(accumulatedCount);
-        accumulatedTime -= _interval;
+        accumulatedTime -= _intervalSeconds;
         accumulatedCount = 0;
       }
     }
 
     //コンピュータ特有の誤差を考慮
-    if (accumulatedTime + epsilon >= _interval) {
+    if (accumulatedTime + epsilon >= _intervalSeconds) {
       slices.add(accumulatedCount);
     }
 
