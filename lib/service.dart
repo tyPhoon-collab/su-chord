@@ -60,21 +60,13 @@ class DetectableChords extends _$DetectableChords {
   }
 }
 
-@riverpod
-class IsVisibleDebug extends _$IsVisibleDebug {
-  @override
-  bool build() => true;
-
-  void toggle() => state = !state;
-}
-
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
 @riverpod
 Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final factory = ref.watch(factoryProvider);
   final detectableChords = ref.watch(detectableChordsProvider);
-  final filters = factory.filter.eval; //TODO deal as provider or hardcoding.
+  final filters = factory.filter.realtime; //TODO deal as provider
 
   return {
     'matching + reassignment': () async => PatternMatchingChordEstimator(
@@ -134,4 +126,12 @@ Future<ChordEstimable> estimator(EstimatorRef ref) {
   final estimators = ref.watch(estimatorsProvider);
   final label = ref.watch(selectingEstimatorLabelProvider);
   return estimators[label]!.call();
+}
+
+@riverpod
+class IsVisibleDebug extends _$IsVisibleDebug {
+  @override
+  bool build() => true;
+
+  void toggle() => state = !state;
 }

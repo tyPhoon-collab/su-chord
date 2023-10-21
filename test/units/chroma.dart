@@ -158,11 +158,11 @@ void main() {
 
   test('cosine similarity', () {
     final f = factory8192_0;
-    final chromas =
-        f.guitarRange.reassignCombFilter(sampleData.cut(duration: 4));
+    final chromas = f.guitarRange
+        .reassignCombFilter(sampleData.cut(duration: 4, offset: 12));
 
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
-    final template = PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized;
+    final template = PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized;
     writer(pcp.cosineSimilarity(template));
   });
 

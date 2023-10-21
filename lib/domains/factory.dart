@@ -145,7 +145,7 @@ final class FilterFactory {
   Filters get eval => [interval(4.seconds)];
 
   Filters get realtime => [
-        ThresholdFilter(threshold: 10),
+        const ThresholdFilter(threshold: 10),
         TriadChordChangeDetector(),
       ];
 

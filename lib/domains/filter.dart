@@ -10,7 +10,7 @@ abstract interface class ChromaListFilter {
 }
 
 class ThresholdFilter implements ChromaListFilter {
-  ThresholdFilter({required this.threshold});
+  const ThresholdFilter({required this.threshold});
 
   final double threshold;
 
@@ -19,12 +19,16 @@ class ThresholdFilter implements ChromaListFilter {
       chroma.where((e) => e.max >= threshold).toList();
 }
 
+//TODO 移動平均(平均化)フィルタ
+//TODO ガウシアンフィルタ
+
 class IntervalChordChangeDetector implements ChromaListFilter {
-  IntervalChordChangeDetector({required this.interval, required this.dt});
+  IntervalChordChangeDetector({required this.interval, required this.dt})
+      : _interval = interval.inMilliseconds / 1000;
 
   final double dt;
   final Duration interval;
-  late final _interval = interval.inMilliseconds / 1000;
+  final double _interval;
 
   @override
   List<Chroma> call(List<Chroma> chromas) {
@@ -78,9 +82,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
     int count = 1;
     final slices = <int>[];
 
-    for (int i = 1; i < chroma.length; i++) {
-      final chord = chords[i];
-
+    for (final chord in chords.sublist(1)) {
       if (chord != preChord) {
         slices.add(count);
         count = 0;
@@ -96,7 +98,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
 }
 
 class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
-  DifferenceByThresholdChordChangeDetector({required this.threshold});
+  const DifferenceByThresholdChordChangeDetector({required this.threshold});
 
   final double threshold;
 
@@ -104,6 +106,34 @@ class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
   List<Chroma> call(List<Chroma> chroma) {
     // TODO: implement filter
     throw UnimplementedError();
+  }
+}
+
+class CosineSimilarityChordChangeDetector implements ChromaListFilter {
+  const CosineSimilarityChordChangeDetector({this.threshold = 0.75})
+      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]');
+
+  final double threshold;
+
+  @override
+  List<Chroma> call(List<Chroma> chroma) {
+    if (chroma.isEmpty) return const [];
+
+    final slices = <int>[];
+
+    Chroma preChroma = chroma.first;
+    int count = 1;
+    for (final value in chroma.sublist(1)) {
+      final score = value.cosineSimilarity(preChroma);
+      if (score < threshold) {
+        slices.add(count);
+        count = 0;
+      }
+      preChroma = value;
+      count++;
+    }
+
+    return _average(chroma, slices);
   }
 }
 
