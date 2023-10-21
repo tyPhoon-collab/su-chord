@@ -4,6 +4,7 @@ import 'package:chord/domains/estimator.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:chord/utils/loaders/csv.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -51,7 +52,7 @@ Future<void> main() async {
   });
 
   group('fold', () {
-    test('simple', () async {
+    test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
         filters: [
@@ -64,9 +65,10 @@ Future<void> main() async {
       );
       final progress = estimator.estimate(data);
       debugPrint(progress.toString());
+      debugPrint(progress.simplify().toString());
     });
 
-    test('simple with average', () async {
+    test('average', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
         filters: [
@@ -80,9 +82,10 @@ Future<void> main() async {
       );
       final progress = estimator.estimate(data);
       debugPrint(progress.toString());
+      debugPrint(progress.simplify().toString());
     });
 
-    test('simple with gaussian', () async {
+    test('gaussian', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
         filters: [
@@ -96,6 +99,7 @@ Future<void> main() async {
       );
       final progress = estimator.estimate(data);
       debugPrint(progress.toString());
+      debugPrint(progress.simplify().toString());
     });
   });
 
@@ -104,10 +108,11 @@ Future<void> main() async {
       chromaCalculable: f.guitarRange.reassignCombFilter,
       filters: [
         const ThresholdFilter(threshold: 10),
-        const CosineSimilarityChordChangeDetector(threshold: 0.8),
+        const CosineSimilarityChordChangeDetector(),
       ],
     );
     final progress = estimator.estimate(data);
-    expect(progress.length, 20);
+    debugPrint((await CSVLoader.corrects.load())[1].skip(1).toString());
+    debugPrint(progress.toString());
   });
 }

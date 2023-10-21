@@ -16,16 +16,16 @@ abstract class ChordProgressionBase<T extends ChordBase> extends Iterable<T?> {
   Iterator<T?> get iterator => _values.iterator;
 
   @override
-  String toString() => _values.isEmpty
-      ? 'No Chords'
-      : _values.map((e) => e?.toString() ?? noChordLabel).join(chordSeparator);
+  String toString() =>
+      _values.isEmpty
+          ? 'No Chords'
+          : _values.map((e) => e?.toString() ?? noChordLabel).join(
+          chordSeparator);
 
   List<String> toCSVRow() =>
       _values.map((e) => e?.toString() ?? noChordLabel).toList();
 
-  void add(T? chord) {
-    _values.add(chord);
-  }
+  void add(T? chord) => _values.add(chord);
 }
 
 class DegreeChordProgression extends ChordProgressionBase<DegreeChord>
@@ -52,8 +52,7 @@ class ChordProgression extends ChordProgressionBase<Chord> {
 
   ChordProgression.empty() : super([]);
 
-  factory ChordProgression.fromCSVRow(
-    Row row, {
+  factory ChordProgression.fromCSVRow(Row row, {
     bool ignoreNotParsable = false,
   }) {
     final chords = <Chord?>[];
@@ -83,7 +82,15 @@ class ChordProgression extends ChordProgressionBase<Chord> {
     return count / len;
   }
 
-  ChordProgression cut(int start, [int? end]) {
-    return ChordProgression(_values.sublist(start, end));
+  ChordProgression cut(int start, [int? end]) =>
+      ChordProgression(_values.sublist(start, end));
+
+  ChordProgression simplify() {
+    Chord? chord;
+    return ChordProgression(_values.where((e) {
+      final isDifferent = e != chord;
+      chord = e;
+      return isDifferent;
+    }).toList());
   }
 }

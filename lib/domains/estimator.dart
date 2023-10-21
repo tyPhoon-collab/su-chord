@@ -34,6 +34,7 @@ abstract class ChromaChordEstimator
     this.filters = const [],
   });
 
+  //service.dartから読み込んでいる。フロントエンドと同じコードタイプをデフォルトで扱える
   static final defaultDetectableChords =
       ProviderContainer().read(detectableChordsProvider);
 
@@ -67,9 +68,7 @@ abstract class ChromaChordEstimator
   }
 
   @override
-  ChordProgression flush() {
-    return estimate(AudioData.empty());
-  }
+  ChordProgression flush() => estimate(AudioData.empty());
 
   void _flush() {
     _chromas = [];

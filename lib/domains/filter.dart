@@ -71,7 +71,7 @@ class GaussianFilter implements ChromaListFilter {
     final closure = normalDistributionClosure(0, stdDev);
     final kernel = List.generate(
       kernelSize,
-          (i) => closure((i - kernelRadius).toDouble()),
+      (i) => closure((i - kernelRadius).toDouble()),
     );
 
     final filteredChroma = List.generate(chroma.length, (index) {
@@ -154,7 +154,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
     int count = 1;
     final slices = <int>[];
 
-    for (final chord in chords.sublist(1)) {
+    for (final chord in chords.skip(1)) {
       if (chord != preChord) {
         slices.add(count);
         count = 0;
@@ -195,7 +195,7 @@ class CosineSimilarityChordChangeDetector implements ChromaListFilter {
 
     Chroma preChroma = chroma.first;
     int count = 1;
-    for (final value in chroma.sublist(1)) {
+    for (final value in chroma.skip(1)) {
       final score = value.cosineSimilarity(preChroma);
       if (score < threshold) {
         slices.add(count);
@@ -204,6 +204,8 @@ class CosineSimilarityChordChangeDetector implements ChromaListFilter {
       preChroma = value;
       count++;
     }
+
+    slices.add(count);
 
     return _average(chroma, slices);
   }
