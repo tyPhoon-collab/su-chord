@@ -18,11 +18,14 @@ abstract interface class CSVLoader {
   }
 
   static const corrects =
-  SimpleCSVLoader(path: 'assets/csv/correct_only_sharp.csv');
+      SimpleCSVLoader(path: 'assets/csv/correct_only_sharp.csv');
 }
 
 final class SimpleCSVLoader implements CSVLoader {
-  const SimpleCSVLoader({required this.path, this.converter,});
+  const SimpleCSVLoader({
+    required this.path,
+    this.converter,
+  });
 
   final String path;
   final Converter<List<int>, String>? converter;

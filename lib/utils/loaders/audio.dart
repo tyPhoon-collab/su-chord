@@ -15,10 +15,10 @@ class AudioData {
   //TODO expand if duration > this.duration
   AudioData cut({
     double? duration,
-    double offset = 0,
+    double? offset,
   }) {
     if (duration == null || duration >= this.duration) return this;
-    final start = (offset * sampleRate).toInt();
+    final start = ((offset ?? 0) * sampleRate).toInt();
     final end = start + (duration * sampleRate).toInt();
     final newBuffer = buffer.sublist(start, end);
     return AudioData(buffer: newBuffer, sampleRate: sampleRate);
@@ -88,12 +88,16 @@ final class SimpleAudioLoader implements AudioLoader {
   final Uint8List? bytes;
 
   @override
-  Future<AudioData> load({double? duration, int? sampleRate}) async {
+  Future<AudioData> load({
+    double? duration,
+    double? offset,
+    int? sampleRate,
+  }) async {
     final wav = await _read();
     final sr = wav.samplesPerSecond;
     final buffer = wav.toMono();
     return AudioData(buffer: buffer, sampleRate: sr)
-        .cut(duration: duration)
+        .cut(duration: duration, offset: offset)
         .downSample(sampleRate);
   }
 

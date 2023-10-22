@@ -9,10 +9,18 @@ void main() {
     expect(data.buffer, isNotEmpty);
   });
 
-  test('load duration', () async {
+  test('duration', () async {
     const loader =
         SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
     final data = await loader.load(duration: 4);
+
+    expect(data.duration.round(), 4);
+  });
+
+  test('offset', () async {
+    const loader =
+        SimpleAudioLoader(path: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav');
+    final data = await loader.load(duration: 4, offset: 12);
 
     expect(data.duration.round(), 4);
   });
