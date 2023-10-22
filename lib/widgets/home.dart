@@ -12,10 +12,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(
+  Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Chord')),
         drawer: const _HomeDrawer(),
         body: Column(
@@ -32,7 +30,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: DefaultTextStyle.merge(
                   style:
-                  TextStyle(color: Get.theme.colorScheme.onSurfaceVariant),
+                      TextStyle(color: Get.theme.colorScheme.onSurfaceVariant),
                   child: const EstimatorPage(),
                 ),
               ),

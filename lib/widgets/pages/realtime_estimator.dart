@@ -180,7 +180,11 @@ class _EstimatedView extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         shrinkWrap: true,
         children: [
-          ChordProgressionView(progression: progression),
+          ChordProgressionView(
+            progression: ref.watch(isSimplifyChordProgressionProvider)
+                ? progression.simplify()
+                : progression,
+          ),
           if (ref.watch(isVisibleDebugProvider)) ...[
             Text(estimator.toString()),
             if (estimator case final HasDebugViews views)

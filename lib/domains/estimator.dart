@@ -61,7 +61,10 @@ abstract class ChromaChordEstimator
       () => filters.fold(_chromas, (pre, filter) => filter(pre)),
     );
 
-    final progression = estimateFromChroma(_filteredChromas);
+    final progression = measure(
+      'estimate',
+      () => estimateFromChroma(_filteredChromas),
+    );
 
     if (flush) _flush();
     return progression;
@@ -101,13 +104,11 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   @override
   ChordProgression estimateFromChroma(List<Chroma> chroma) {
     final progression = ChordProgression.empty();
-    measure('estimate', () {
-      for (final c in _filteredChromas) {
-        final chords = estimateOneFromChroma(c);
-        final chord = chordSelectable(chords, progression);
-        progression.add(chord);
-      }
-    });
+    for (final c in _filteredChromas) {
+      final chords = estimateOneFromChroma(c);
+      final chord = chordSelectable(chords, progression);
+      progression.add(chord);
+    }
 
     return progression;
   }

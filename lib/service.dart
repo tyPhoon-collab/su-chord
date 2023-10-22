@@ -43,12 +43,13 @@ class DetectableChords extends _$DetectableChords {
     // '6',
     // 'm6',
     'add9',
+    // 'madd9',
   };
 
   static Set<Chord> _fromQualities(Set<String> qualities) {
     return Set.unmodifiable([
       for (final root in Note.values)
-        for (final quality in qualities) Chord.parse(root.toString() + quality)
+        for (final quality in qualities) Chord.parse('$root$quality')
     ]);
   }
 
@@ -66,7 +67,7 @@ class DetectableChords extends _$DetectableChords {
 Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final factory = ref.watch(factoryProvider);
   final detectableChords = ref.watch(detectableChordsProvider);
-  final filters = factory.filter.eval; //TODO deal as provider
+  final filters = factory.filter.cosineSimilarity(); //TODO deal as provider
 
   return {
     'matching + reassignment': () async => PatternMatchingChordEstimator(
@@ -130,6 +131,14 @@ Future<ChordEstimable> estimator(EstimatorRef ref) {
 
 @riverpod
 class IsVisibleDebug extends _$IsVisibleDebug {
+  @override
+  bool build() => true;
+
+  void toggle() => state = !state;
+}
+
+@riverpod
+class IsSimplifyChordProgression extends _$IsSimplifyChordProgression {
   @override
   bool build() => true;
 

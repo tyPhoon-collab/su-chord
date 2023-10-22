@@ -43,6 +43,17 @@ class ConfigView extends StatelessWidget {
                         title: const Text('Estimator'),
                         trailing: _ChordEstimatorSelector(enable: enable),
                       ),
+                      CheckboxListTile(
+                        value: ref.watch(isSimplifyChordProgressionProvider),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          ref
+                              .read(isSimplifyChordProgressionProvider.notifier)
+                              .toggle();
+                        },
+                        title: const Text('Simplify Chord Progression'),
+                        secondary: const Icon(Icons.short_text_outlined),
+                      ),
                       ListTile(
                         enabled: enable,
                         leading: const Icon(Icons.mic_none_outlined),

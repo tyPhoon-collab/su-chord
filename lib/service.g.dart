@@ -40,7 +40,7 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'2fbe574387af4317ffa98dab3b0b6d7856f708ab';
+String _$estimatorsHash() => r'c0823da4969552b0206dabda3f5e27c3a276dc1b';
 
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
@@ -73,7 +73,7 @@ final estimatorProvider = AutoDisposeFutureProvider<ChordEstimable>.internal(
 );
 
 typedef EstimatorRef = AutoDisposeFutureProviderRef<ChordEstimable>;
-String _$detectableChordsHash() => r'98d8eae622c673a1680863d29dc4670cf3ee7345';
+String _$detectableChordsHash() => r'803c74aff32167306b3638ec4ecd76d0f139b681';
 
 /// See also [DetectableChords].
 @ProviderFor(DetectableChords)
@@ -89,22 +89,6 @@ final detectableChordsProvider =
 );
 
 typedef _$DetectableChords = AutoDisposeNotifier<Set<Chord>>;
-String _$isVisibleDebugHash() => r'26698fcb57e9c4ad065783e8477404eaee88a583';
-
-/// See also [IsVisibleDebug].
-@ProviderFor(IsVisibleDebug)
-final isVisibleDebugProvider =
-    AutoDisposeNotifierProvider<IsVisibleDebug, bool>.internal(
-  IsVisibleDebug.new,
-  name: r'isVisibleDebugProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$isVisibleDebugHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$IsVisibleDebug = AutoDisposeNotifier<bool>;
 String _$selectingEstimatorLabelHash() =>
     r'111796f7a1c6128575aff2231cab2d4ae501a888';
 
@@ -122,5 +106,38 @@ final selectingEstimatorLabelProvider =
 );
 
 typedef _$SelectingEstimatorLabel = AutoDisposeNotifier<String>;
+String _$isVisibleDebugHash() => r'26698fcb57e9c4ad065783e8477404eaee88a583';
+
+/// See also [IsVisibleDebug].
+@ProviderFor(IsVisibleDebug)
+final isVisibleDebugProvider =
+    AutoDisposeNotifierProvider<IsVisibleDebug, bool>.internal(
+  IsVisibleDebug.new,
+  name: r'isVisibleDebugProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isVisibleDebugHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$IsVisibleDebug = AutoDisposeNotifier<bool>;
+String _$isSimplifyChordProgressionHash() =>
+    r'40509d7fa4d3331c0e220002afe29713dc1e38a1';
+
+/// See also [IsSimplifyChordProgression].
+@ProviderFor(IsSimplifyChordProgression)
+final isSimplifyChordProgressionProvider =
+    AutoDisposeNotifierProvider<IsSimplifyChordProgression, bool>.internal(
+  IsSimplifyChordProgression.new,
+  name: r'isSimplifyChordProgressionProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$isSimplifyChordProgressionHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$IsSimplifyChordProgression = AutoDisposeNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
