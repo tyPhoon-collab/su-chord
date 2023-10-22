@@ -1,5 +1,6 @@
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,12 +9,12 @@ import 'package:get/get.dart';
 import 'writer.dart';
 
 void main() {
-  late final AudioData sampleData;
+  late final AudioData data;
   // late final AudioData noteC3Data;
   // late final AudioData chordCData;
 
   setUpAll(() async {
-    sampleData = await AudioLoader.sample.load(sampleRate: 22050);
+    data = await AudioLoader.sample.load(sampleRate: 22050);
     // noteC3Data =
     //     await const SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav')
     //         .load(sampleRate: 22050);
@@ -22,12 +23,11 @@ void main() {
     //         .load(sampleRate: 22050);
   });
 
-  group('pcp', () {
-    final writer = PCPChartWriter();
+  group('pcp bar chart', () {
+    const writer = PCPChartWriter();
     final f = factory8192_0;
     test('PCP of G', () async {
-      final chromas =
-          f.guitarRange.reassignCombFilter(sampleData.cut(duration: 4));
+      final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 4));
 
       final pcp = f.filter.interval(4.seconds).call(chromas).first;
       await writer(pcp.normalized, title: 'PCP of G');
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('PCP of C', () async {
-      final chromas = f.guitarRange.reassignCombFilter(sampleData.cut(
+      final chromas = f.guitarRange.reassignCombFilter(data.cut(
         duration: 4,
         offset: 12,
       ));
@@ -80,6 +80,31 @@ void main() {
         writer(mags1, title: '${scalar.name} mags ${f.context}'),
         writer(mags2, title: '${scalar.name} reassignment ${f.context}'),
       ]);
+    });
+  });
+
+  group('chromagram', () {
+    final f = factory8192_0;
+    final writer = SpecChartWriter.chroma(
+      sampleRate: f.context.sampleRate,
+      chunkSize: f.context.chunkSize,
+      chunkStride: f.context.chunkStride,
+    );
+
+    test('filter', () async {
+      final filters = [
+        const ThresholdFilter(threshold: 10),
+        GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
+      ];
+      var chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 12));
+      await writer(chromas, title: 'chromagram 0');
+
+      int count = 0;
+      for (final filter in filters) {
+        count++;
+        chromas = filter(chromas);
+        await writer(chromas, title: 'chromagram $count $filter');
+      }
     });
   });
 }

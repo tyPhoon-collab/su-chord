@@ -27,7 +27,7 @@ void main() {
     chordCData =
         await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
             .load(sampleRate: 22050);
-    writer = PCPChartWriter();
+    writer = const PCPChartWriter();
   });
 
   group('base', () {

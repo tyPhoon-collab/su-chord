@@ -5,12 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 abstract interface class Writer {
-  static final debugPrint = DebugPrintWriter();
+  static const debugPrint = DebugPrintWriter();
 
   Future<void> call(dynamic e, {String? title});
 }
 
 class DebugPrintWriter implements Writer {
+  const DebugPrintWriter();
+
   @override
   Future<void> call(e, {String? title}) async {
     debugPrint('[${title ?? 'log'}] $e');
@@ -19,6 +21,8 @@ class DebugPrintWriter implements Writer {
 
 //TODO Writer to ChartWriter?
 class BarChartWriter implements Writer {
+  const BarChartWriter();
+
   @override
   Future<void> call(e, {String? title}) async {
     if (e is! Iterable) {
@@ -47,6 +51,8 @@ class BarChartWriter implements Writer {
 }
 
 class PCPChartWriter implements Writer {
+  const PCPChartWriter();
+
   @override
   Future<void> call(e, {String? title}) async {
     if (e is! Iterable) {
@@ -76,6 +82,8 @@ class PCPChartWriter implements Writer {
 }
 
 abstract class UsingTempCSVFileChartWriter implements Writer {
+  const UsingTempCSVFileChartWriter();
+
   void _debugPrintIfNotEmpty(dynamic output) {
     if (output is String && output.isNotEmpty) {
       debugPrint(output);
@@ -90,7 +98,7 @@ abstract class UsingTempCSVFileChartWriter implements Writer {
       Writer.debugPrint(e, title: title);
       return;
     }
-    final data = (e as List<List>)
+    final data = (e as List<Iterable>)
         .map((e) => e.map((e) => e.toString()).toList())
         .toList();
 
@@ -111,12 +119,18 @@ abstract class UsingTempCSVFileChartWriter implements Writer {
 }
 
 class SpecChartWriter extends UsingTempCSVFileChartWriter {
-  SpecChartWriter({
+  const SpecChartWriter({
     required this.sampleRate,
     required this.chunkSize,
     required this.chunkStride,
     this.yAxis,
   });
+
+  const SpecChartWriter.chroma({
+    required this.sampleRate,
+    required this.chunkSize,
+    required this.chunkStride,
+  }) : yAxis = 'chroma';
 
   final int sampleRate;
   final int chunkSize;
@@ -142,30 +156,6 @@ class SpecChartWriter extends UsingTempCSVFileChartWriter {
             '--y_axis',
             yAxis,
           ]
-        ],
-      );
-}
-
-class ChromaChartWriter extends UsingTempCSVFileChartWriter {
-  ChromaChartWriter({required this.sampleRate});
-
-  final int sampleRate;
-
-  @override
-  Future<ProcessResult> run(e, String? title, File file) => Process.run(
-        'python3',
-        [
-          'python/plots/spec.py',
-          file.path,
-          sampleRate.toString(),
-          if (title != null) ...[
-            '--title',
-            title,
-            '--output',
-            'test/outputs/plots/$title.png',
-          ],
-          '--y_axis',
-          'chroma',
         ],
       );
 }
