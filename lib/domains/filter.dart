@@ -49,30 +49,37 @@ class AverageFilter implements ChromaListFilter {
 }
 
 class GaussianFilter implements ChromaListFilter {
-  const GaussianFilter({
-    required this.stdDev,
+  GaussianFilter({
+    required this.stdDevIndex,
     required this.kernelRadius,
-  }) : assert(stdDev > 0);
+  })  : assert(stdDevIndex > 0),
+        assert(kernelRadius > 0),
+        _kernel = List.generate(
+          kernelRadius * 2 + 1,
+          (i) =>
+              normalDistribution((i - kernelRadius).toDouble(), 0, stdDevIndex),
+        );
 
-  factory GaussianFilter.three({required double stdDev}) {
+  ///stdDevの単位を秒数とする
+  ///時間分解能を渡すことで、秒数でのガウシアンフィルタを考慮する
+  factory GaussianFilter.dt({
+    required double stdDev,
+    required double dt,
+    double kernelRadiusStdDevMultiplier = 3,
+  }) {
     return GaussianFilter(
-      stdDev: stdDev,
-      kernelRadius: (stdDev * 3).toInt(),
+      stdDevIndex: stdDev / dt,
+      kernelRadius: stdDev * kernelRadiusStdDevMultiplier ~/ dt,
     );
   }
 
-  final double stdDev;
+  final double stdDevIndex;
   final int kernelRadius;
+  late final List<double> _kernel;
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
     if (chroma.isEmpty) return const [];
-    final kernelSize = kernelRadius * 2 + 1;
-    final closure = normalDistributionClosure(0, stdDev);
-    final kernel = List.generate(
-      kernelSize,
-      (i) => closure((i - kernelRadius).toDouble()),
-    );
 
     final filteredChroma = List.generate(chroma.length, (index) {
       Chroma sum = Chroma.zero(chroma.first.length);
@@ -80,7 +87,7 @@ class GaussianFilter implements ChromaListFilter {
         final neighborIndex = index + i;
         if (neighborIndex < 0 || chroma.length <= neighborIndex) continue;
 
-        sum += chroma[neighborIndex] * kernel[i + kernelRadius];
+        sum += chroma[neighborIndex] * _kernel[i + kernelRadius];
       }
       return sum;
     });
@@ -91,7 +98,7 @@ class GaussianFilter implements ChromaListFilter {
 
 class IntervalChordChangeDetector implements ChromaListFilter {
   IntervalChordChangeDetector({required this.interval, required this.dt}) {
-    _intervalSeconds = interval.inMilliseconds / 1000;
+    _intervalSeconds = interval.inMicroseconds / 1000000;
     if (_intervalSeconds <= dt) {
       debugPrint('Interval is less than dt. This filter will be ignored');
     }

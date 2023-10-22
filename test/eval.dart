@@ -243,8 +243,7 @@ Future<void> main() async {
 
   //service.dartに登録されている推定器のテスト
   group('riverpods front end estimators', () {
-    final container = ProviderContainer();
-    final estimators = container.read(estimatorsProvider);
+    final estimators = ProviderContainer().read(estimatorsProvider);
 
     test('all', () async {
       for (final MapEntry(:key, :value) in estimators.entries) {
@@ -359,9 +358,9 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 
     //ignore header
     return Map.fromEntries(
-      fields.sublist(1).map((e) => MapEntry(
+      fields.skip(1).map((e) => MapEntry(
             e.first.toString(),
-            ChordProgression(e.sublist(1).map((e) => Chord.parse(e)).toList()),
+            ChordProgression(e.skip(1).map((e) => Chord.parse(e)).toList()),
           )),
     );
   }

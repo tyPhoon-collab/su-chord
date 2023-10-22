@@ -1,3 +1,4 @@
+import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/estimator.dart';
@@ -12,6 +13,12 @@ import 'package:get/get.dart';
 Future<void> main() async {
   final f = factory8192_0;
   final data = await AudioLoader.sample.load(sampleRate: f.context.sampleRate);
+  final corrects = ChordProgression.fromCSVRow(
+    (await CSVLoader.corrects.load())[1]
+        .skip(1)
+        .map((e) => e.toString())
+        .toList(),
+  );
 
   group('interval', () {
     test('just', () {
@@ -64,6 +71,8 @@ Future<void> main() async {
         ],
       );
       final progress = estimator.estimate(data);
+      debugPrint(corrects.toString());
+
       debugPrint(progress.toString());
       debugPrint(progress.simplify().toString());
     });
@@ -77,10 +86,12 @@ Future<void> main() async {
             interval: 0.5.seconds,
             dt: f.context.dt,
           ),
-          const AverageFilter(halfRangeIndex: 2),
+          const AverageFilter(halfRangeIndex: 1),
         ],
       );
       final progress = estimator.estimate(data);
+      debugPrint(corrects.toString());
+
       debugPrint(progress.toString());
       debugPrint(progress.simplify().toString());
     });
@@ -94,10 +105,12 @@ Future<void> main() async {
             interval: 0.5.seconds,
             dt: f.context.dt,
           ),
-          const GaussianFilter(stdDev: 1, kernelRadius: 2),
+          GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
         ],
       );
       final progress = estimator.estimate(data);
+      debugPrint(corrects.toString());
+
       debugPrint(progress.toString());
       debugPrint(progress.simplify().toString());
     });
@@ -112,7 +125,7 @@ Future<void> main() async {
       ],
     );
     final progress = estimator.estimate(data);
-    debugPrint((await CSVLoader.corrects.load())[1].skip(1).toString());
+    debugPrint(corrects.toString());
     debugPrint(progress.toString());
   });
 }

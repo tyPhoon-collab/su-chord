@@ -10,14 +10,15 @@ import 'chroma_calculator.dart';
 class CombFilterContext {
   const CombFilterContext({
     this.hzStdDevCoefficient = 1 / 72,
-    this.kernelRadius = 4,
+    this.kernelRadiusStdDevMultiplier = 3,
   });
 
   @override
-  String toString() => '$hzStdDevCoefficient, $kernelRadius';
+  String toString() => '$hzStdDevCoefficient-$kernelRadiusStdDevMultiplier';
 
+  ///周波数fに依存する標準偏差。f * hzStdDevCoefficient
   final double hzStdDevCoefficient;
-  final double kernelRadius;
+  final double kernelRadiusStdDevMultiplier;
 }
 
 ///コムフィルタを使用してクロマを求める
@@ -67,11 +68,11 @@ class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
       final mean = hz;
       final stdDev = hz * context.hzStdDevCoefficient;
       // 正規分布の端っこの方は値がほとんど0であるため、計算量削減のため畳み込む範囲を指定する
-      final range = context.kernelRadius * stdDev;
+      final kernelRadius = context.kernelRadiusStdDevMultiplier * stdDev;
       final closure = normalDistributionClosure(mean, stdDev);
 
-      final startIndex = mc.indexOfFrequency(mean - range, sr).round();
-      final endIndex = mc.indexOfFrequency(mean + range, sr).round();
+      final startIndex = mc.indexOfFrequency(mean - kernelRadius, sr).round();
+      final endIndex = mc.indexOfFrequency(mean + kernelRadius, sr).round();
 
       sum += magnitude
           .sublist(startIndex, endIndex)
