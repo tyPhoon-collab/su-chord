@@ -121,7 +121,7 @@ Future<void> main() async {
       chromaCalculable: f.guitarRange.reassignCombFilter,
       filters: [
         const ThresholdFilter(threshold: 10),
-        const CosineSimilarityChordChangeDetector(),
+        const CosineSimilarityChordChangeDetector(threshold: 0.75),
       ],
     );
     final progress = estimator.estimate(data);

@@ -66,7 +66,7 @@ class DetectableChords extends _$DetectableChords {
 Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final factory = ref.watch(factoryProvider);
   final detectableChords = ref.watch(detectableChordsProvider);
-  final filters = factory.filter.realtime; //TODO deal as provider
+  final filters = factory.filter.eval; //TODO deal as provider
 
   return {
     'matching + reassignment': () async => PatternMatchingChordEstimator(

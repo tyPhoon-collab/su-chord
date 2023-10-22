@@ -189,7 +189,7 @@ class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
 }
 
 class CosineSimilarityChordChangeDetector implements ChromaListFilter {
-  const CosineSimilarityChordChangeDetector({this.threshold = 0.75})
+  const CosineSimilarityChordChangeDetector({required this.threshold})
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]');
 
   final double threshold;

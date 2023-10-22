@@ -188,6 +188,25 @@ Future<void> main() async {
     });
   });
 
+  group('HCDF', () {
+    final f = factory8192_0;
+
+    test('cosine similarity', () {
+      final e = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: f.filter.cosineSimilarity(similarityThreshold: 0.85),
+      );
+
+      for (final context in contexts) {
+        for (final data in context.data.values) {
+          final progression = e.estimate(data);
+          debugPrint(context.corrects.toString());
+          debugPrint(progression.toString());
+        }
+      }
+    });
+  });
+
   group('control experiment', () {
     final f = factory8192_0;
 

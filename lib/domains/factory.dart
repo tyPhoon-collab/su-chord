@@ -144,9 +144,18 @@ final class FilterFactory {
 
   Filters get eval => [interval(4.seconds)];
 
-  Filters get realtime => [
+  Filters get triad => [
         const ThresholdFilter(threshold: 10),
         TriadChordChangeDetector(),
+      ];
+
+  Filters cosineSimilarity({
+    double powerThreshold = 10,
+    double similarityThreshold = 0.8,
+  }) =>
+      [
+        ThresholdFilter(threshold: powerThreshold),
+        CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
       ];
 
   ChromaListFilter interval(Duration duration) =>
