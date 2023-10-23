@@ -12,6 +12,7 @@ import 'chord_progression.dart';
 import 'chord_selector.dart';
 import 'chroma.dart';
 import 'chroma_calculators/chroma_calculator.dart';
+import 'debug.dart';
 import 'filter.dart';
 import 'note_extractor.dart';
 
@@ -19,10 +20,6 @@ abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data, [bool flush = true]);
 
   ChordProgression flush();
-}
-
-abstract interface class HasDebugViews {
-  List<Widget> build();
 }
 
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
@@ -80,12 +77,29 @@ abstract class ChromaChordEstimator
   ChordProgression estimateFromChroma(List<Chroma> chroma);
 
   @override
-  List<Widget> build() => [
-        Chromagram(chromas: _filteredChromas),
+  List<DebugChip> build() => [
+        DebugChip(
+          titleText: 'Chromagram',
+          child: Chromagram(chromas: _filteredChromas),
+        ),
         // if (chromaCalculable case final HasMagnitudes hasMagnitudes)
         //   if (hasMagnitudes.cachedMagnitudes case final Magnitudes mag)
         //     SpectrogramChart(magnitudes: mag),
-        CalculateTimeTableView(table: calculateTimes),
+        DebugChip(
+          titleText: 'Chroma List Size',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('chroma list size: ${_chromas.length}'),
+              Text('filtered chroma list size: ${_filteredChromas.length}'),
+            ],
+          ),
+        ),
+        DebugChip(
+          titleText: 'Calculate Times',
+          child: CalculateTimeTableView(table: calculateTimes),
+        )
       ];
 }
 

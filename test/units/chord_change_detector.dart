@@ -12,13 +12,24 @@ import 'package:get/get.dart';
 
 Future<void> main() async {
   final f = factory8192_0;
-  final data = await AudioLoader.sample.load(sampleRate: f.context.sampleRate);
-  final corrects = ChordProgression.fromCSVRow(
-    (await CSVLoader.corrects.load())[1]
+  late final AudioData data;
+  late final ChordProgression corrects;
+
+  void print(ChordProgression progression) {
+    debugPrint('correct:\t\t$corrects');
+    debugPrint('predict folded:\t${progression.simplify()}');
+    debugPrint('predict:\t\t$progression');
+  }
+
+  setUpAll(() async {
+    data = await AudioLoader.sample.load(sampleRate: f.context.sampleRate);
+    corrects = ChordProgression.fromCSVRow(
+        (await CSVLoader.corrects.load())[1]
         .skip(1)
         .map((e) => e.toString())
         .toList(),
-  );
+    );
+  });
 
   group('interval', () {
     test('just', () {
@@ -59,60 +70,43 @@ Future<void> main() async {
   });
 
   group('fold', () {
+    final base = [
+      const ThresholdFilter(threshold: 10),
+      IntervalChordChangeDetector(interval: 0.5.seconds, dt: f.context.dt),
+    ];
+
+
     test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
-        filters: [
-          const ThresholdFilter(threshold: 10),
-          IntervalChordChangeDetector(
-            interval: 0.5.seconds,
-            dt: f.context.dt,
-          ),
-        ],
+        filters: base,
       );
-      final progress = estimator.estimate(data);
-      debugPrint(corrects.toString());
-
-      debugPrint(progress.toString());
-      debugPrint(progress.simplify().toString());
+      final progression = estimator.estimate(data);
+      print(progression);
     });
 
     test('average', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
         filters: [
-          const ThresholdFilter(threshold: 10),
-          IntervalChordChangeDetector(
-            interval: 0.5.seconds,
-            dt: f.context.dt,
-          ),
-          const AverageFilter(halfRangeIndex: 1),
+          ...base,
+          const AverageFilter(kernelRadius: 1),
         ],
       );
-      final progress = estimator.estimate(data);
-      debugPrint(corrects.toString());
-
-      debugPrint(progress.toString());
-      debugPrint(progress.simplify().toString());
+      final progression = estimator.estimate(data);
+      print(progression);
     });
 
     test('gaussian', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
         filters: [
-          const ThresholdFilter(threshold: 10),
-          IntervalChordChangeDetector(
-            interval: 0.5.seconds,
-            dt: f.context.dt,
-          ),
+          ...base,
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
         ],
       );
-      final progress = estimator.estimate(data);
-      debugPrint(corrects.toString());
-
-      debugPrint(progress.toString());
-      debugPrint(progress.simplify().toString());
+      final progression = estimator.estimate(data);
+      print(progression);
     });
   });
 
@@ -124,8 +118,8 @@ Future<void> main() async {
         const CosineSimilarityChordChangeDetector(threshold: 0.75),
       ],
     );
-    final progress = estimator.estimate(data);
-    debugPrint(corrects.toString());
-    debugPrint(progress.toString());
+    final progression = estimator.estimate(data);
+    print(progression);
   });
 }
+

@@ -20,7 +20,7 @@ void main() {
         .map((e) => Chroma(List.filled(3, e * e)))
         .toList();
 
-    final c = const AverageFilter(halfRangeIndex: 1).call(chroma);
+    final c = const AverageFilter(kernelRadius: 1).call(chroma);
     expect(c.length, 5);
     expect(c[0].first, (1 + 4) / 2);
     expect(c[1].first, (1 + 4 + 9) / 3);

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
 import '../../domains/chord_progression.dart';
+import '../../domains/debug.dart';
 import '../../domains/estimator.dart';
 import '../../domains/factory.dart';
 import '../../recorder_service.dart';
@@ -185,15 +186,34 @@ class _EstimatedView extends ConsumerWidget {
                 ? progression.simplify()
                 : progression,
           ),
-          if (ref.watch(isVisibleDebugProvider)) ...[
-            Text(estimator.toString()),
-            if (estimator case final HasDebugViews views)
-              Wrap(children: views.build())
-          ]
+          _EstimatorDebugView(estimator: estimator),
         ],
       ),
     );
   }
+}
+
+class _EstimatorDebugView extends ConsumerWidget {
+  const _EstimatorDebugView({required this.estimator});
+
+  final ChordEstimable estimator;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      (ref.watch(isVisibleDebugProvider))
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(estimator.toString()),
+                if (estimator case final HasDebugViews views)
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: views.build(),
+                  )
+              ],
+            )
+          : const SizedBox();
 }
 
 class _WelcomeView extends StatelessWidget {

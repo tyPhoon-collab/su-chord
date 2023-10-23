@@ -21,10 +21,9 @@ class ThresholdFilter implements ChromaListFilter {
 }
 
 class AverageFilter implements ChromaListFilter {
-  const AverageFilter({required this.halfRangeIndex})
-      : assert(halfRangeIndex > 0);
+  const AverageFilter({required this.kernelRadius}) : assert(kernelRadius > 0);
 
-  final int halfRangeIndex;
+  final int kernelRadius;
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
@@ -33,7 +32,7 @@ class AverageFilter implements ChromaListFilter {
       Chroma sum = Chroma.zero(chroma.first.length);
       int count = 0;
 
-      for (int i = -halfRangeIndex; i <= halfRangeIndex; i++) {
+      for (int i = -kernelRadius; i <= kernelRadius; i++) {
         final neighborIndex = index + i;
         if (neighborIndex < 0 || chroma.length <= neighborIndex) continue;
 
