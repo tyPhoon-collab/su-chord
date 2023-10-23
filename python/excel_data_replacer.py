@@ -5,14 +5,15 @@ CLIとして扱う想定
 ex) python3 python/excel_data_replacer.py 'test/outputs/result.xlsx'
 """
 
-import csv
 import argparse
-import os
-import natsort
+import csv
 import glob
+import itertools
+import os
 
-from openpyxl.worksheet.worksheet import Worksheet
+import natsort
 from openpyxl import Workbook, load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 
 DEFAULT_OUTPUT_PATH = "test/outputs/result.xlsx"
 START_COLUMN = 2
@@ -90,11 +91,12 @@ def _get_files(input_path: str) -> list[str]:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="csv to excel")
 
-    parser.add_argument("input_path", help="input path. file or dir")
+    parser.add_argument("input_path", nargs="+", help="input path. file or dir")
     parser.add_argument("-o", "--output_path", help="output path", default=DEFAULT_OUTPUT_PATH)
 
     args = parser.parse_args()
 
-    paths = _get_files(args.input_path)
+    paths = [_get_files(path) for path in args.input_path]
+    paths = list(itertools.chain.from_iterable(paths))
 
     ExcelDataReplacer(paths, start_column=START_COLUMN, start_row=START_ROW).write(args.output_path)

@@ -15,10 +15,10 @@ class Table extends Iterable<Row> {
   final List<Row> _values;
 
   void clear([remainingHeader = true]) {
-    final header = _values.first;
+    final header = _values.firstOrNull;
     _values.clear();
 
-    if (remainingHeader) add(header);
+    if (remainingHeader && header != null) add(header);
   }
 
   void add(Row row) {

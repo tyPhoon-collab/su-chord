@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
@@ -27,14 +28,14 @@ Future<void> main() async {
   final contexts = await _EvaluatorContext.fromFolder(
     [
       'assets/evals/Halion_CleanGuitarVX',
-      // 'assets/evals/Halion_CleanStratGuitar',
-      // 'assets/evals/HojoGuitar',
-      // 'assets/evals/RealStrat',
+      'assets/evals/Halion_CleanStratGuitar',
+      'assets/evals/HojoGuitar',
+      'assets/evals/RealStrat',
     ],
     // songIdsFilter: ['13'],
   );
 
-  Table.bypass = true;
+  // Table.bypass = true;
   Measure.logger = null;
 
   test('cross validation', () async {
@@ -113,49 +114,27 @@ Future<void> main() async {
   });
 
   group('prop', () {
+    final f = factory8192_0;
+
     test('main', () async {
       _Evaluator(
-        header: ['matching + reassignment + db, ${factory2048_1024.context}'],
+        header: ['main'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory2048_1024.guitarRange.reassignment,
-          filters: factory2048_1024.filter.eval,
-          chordSelectable: await factory2048_1024.selector.db,
+          chromaCalculable: f.guitarRange.reassignCombFilter,
+          filters: f.filter.eval,
         ),
-      )
-          .evaluate(contexts)
-          .toCSV('test/outputs/pattern_matching_reassignment_db.csv');
+      ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
 
-    test('sub', () async {
+    test('scalar', () {
       _Evaluator(
-        header: ['matching + reassignment, ${factory2048_1024.context}'],
+        header: ['scalar'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: factory2048_1024.guitarRange.reassignment,
-          filters: factory2048_1024.filter.eval,
+          chromaCalculable: f.guitarRange.reassignCombFilter,
+          filters: f.filter.eval,
+          scalar: ThirdHarmonicChromaScalar(pow(0.6, 3 - 1).toDouble()),
         ),
-      )
-          .evaluate(contexts)
-          .toCSV('test/outputs/pattern_matching_reassignment.csv');
-    });
-
-    group('template scalar', () {
-      test('thirdHarmonic', () async {
-        const factor = 0.2;
-
-        _Evaluator(
-          header: [
-            'matching + reassignment + db + scalar, ${factory2048_1024.context}'
-          ],
-          estimator: PatternMatchingChordEstimator(
-            chromaCalculable: factory2048_1024.guitarRange.reassignment,
-            filters: factory2048_1024.filter.eval,
-            chordSelectable: await factory2048_1024.selector.db,
-            scalar: TemplateChromaScalar.thirdHarmonic(factor),
-          ),
-        )
-            .evaluate(contexts)
-            .toCSV('test/outputs/pattern_matching_reassignment_db_scalar.csv');
-      });
+      ).evaluate(contexts).toCSV('test/outputs/scalar.csv');
     });
   });
 
@@ -206,59 +185,6 @@ Future<void> main() async {
           debugPrint(progression.toString());
         }
       }
-    });
-  });
-
-  group('control experiment', () {
-    final f = factory8192_0;
-
-    test('matching + comb filter', () {
-      _Evaluator(
-        header: ['matching + comb filter, ${f.context}'],
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter,
-          filters: f.filter.eval,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb.csv');
-    });
-
-    test('matching + comb filter + scalar', () async {
-      _Evaluator(
-        header: ['matching + comb filter, ${f.context}'],
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter,
-          filters: f.filter.eval,
-          chordSelectable: await f.selector.db,
-          scalar: TemplateChromaScalar.thirdHarmonic(0.1),
-        ),
-      )
-          .evaluate(contexts)
-          .toCSV('test/outputs/pattern_matching_comb_scalar.csv');
-    });
-
-    test('matching + log comb filter', () {
-      _Evaluator(
-        header: ['matching + log comb filter, ${f.context}'],
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.combFilterWith(
-              magnitudesCalculable:
-                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: f.filter.eval,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/pattern_matching_comb_log.csv');
-    });
-
-    test('search + reassignment', () async {
-      _Evaluator(
-        header: [
-          'search + reassignment, ${f.extractor.threshold()}, ${f.context}'
-        ],
-        estimator: SearchTreeChordEstimator(
-            chromaCalculable: f.guitarRange.reassignment,
-            filters: f.filter.eval,
-            noteExtractable: f.extractor.threshold(),
-            chordSelectable: await f.selector.db),
-      ).evaluate(contexts).toCSV('test/outputs/search_tree_reassignment.csv');
     });
   });
 

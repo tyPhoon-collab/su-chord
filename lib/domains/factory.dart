@@ -142,7 +142,9 @@ final class FilterFactory {
 
   final EstimatorFactoryContext context;
 
-  Filters get eval => [interval(4.seconds)];
+  Filters get eval => [
+        interval(4.seconds),
+      ];
 
   Filters get triad => [
         const ThresholdFilter(threshold: 10),

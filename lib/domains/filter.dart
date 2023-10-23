@@ -51,11 +51,12 @@ class GaussianFilter implements ChromaListFilter {
   GaussianFilter({
     required this.stdDevIndex,
     required this.kernelRadius,
-  })  : assert(stdDevIndex > 0),
+  })
+      : assert(stdDevIndex > 0),
         assert(kernelRadius > 0),
         _kernel = List.generate(
           kernelRadius * 2 + 1,
-          (i) =>
+              (i) =>
               normalDistribution((i - kernelRadius).toDouble(), 0, stdDevIndex),
         );
 
@@ -125,11 +126,6 @@ class IntervalChordChangeDetector implements ChromaListFilter {
         accumulatedTime -= _intervalSeconds;
         accumulatedCount = 0;
       }
-    }
-
-    //コンピュータ特有の誤差を考慮
-    if (accumulatedTime + epsilon >= _intervalSeconds) {
-      slices.add(accumulatedCount);
     }
 
     return _average(chromas, slices);

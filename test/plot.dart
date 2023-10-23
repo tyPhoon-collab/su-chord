@@ -1,4 +1,5 @@
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -26,35 +27,49 @@ void main() {
   group('pcp bar chart', () {
     const writer = PCPChartWriter();
     final f = factory8192_0;
-    test('PCP of G', () async {
-      final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 4));
 
-      final pcp = f.filter.interval(4.seconds).call(chromas).first;
-      await writer(pcp.normalized, title: 'PCP of G');
+    group('power point example', () {
+      test('PCP of G', () async {
+        final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 4));
+
+        final pcp = f.filter.interval(4.seconds).call(chromas).first;
+        await writer(pcp.normalized, title: 'PCP of G');
+      });
+
+      test('template of G', () async {
+        await writer(
+          PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized,
+          title: 'Template of G',
+        );
+      });
+
+      test('PCP of C', () async {
+        final chromas = f.guitarRange.reassignCombFilter(data.cut(
+          duration: 4,
+          offset: 12,
+        ));
+
+        final pcp = f.filter.interval(4.seconds).call(chromas).first;
+        await writer(pcp.normalized, title: 'PCP of C');
+      });
+
+      test('template of C', () async {
+        await writer(
+          PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized,
+          title: 'Template of C',
+        );
+      });
     });
 
-    test('template of G', () async {
-      await writer(
-        PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized,
-        title: 'Template of G',
-      );
-    });
-
-    test('PCP of C', () async {
-      final chromas = f.guitarRange.reassignCombFilter(data.cut(
-        duration: 4,
-        offset: 12,
-      ));
-
-      final pcp = f.filter.interval(4.seconds).call(chromas).first;
-      await writer(pcp.normalized, title: 'PCP of C');
-    });
-
-    test('template of C', () async {
-      await writer(
-        PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized,
-        title: 'Template of C',
-      );
+    group('scalar', () {
+      test('scaled template of C', () async {
+        await writer(
+          const ThirdHarmonicChromaScalar(0.2)
+              .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
+              .normalized,
+          title: 'Scaled template of C',
+        );
+      });
     });
   });
 
