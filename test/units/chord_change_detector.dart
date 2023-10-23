@@ -1,7 +1,7 @@
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
-import 'package:chord/domains/estimator.dart';
+import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loaders/audio.dart';
@@ -122,4 +122,3 @@ Future<void> main() async {
     print(progression);
   });
 }
-

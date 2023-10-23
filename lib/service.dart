@@ -3,7 +3,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'domains/chord.dart';
 import 'domains/equal_temperament.dart';
-import 'domains/estimator.dart';
+import 'domains/estimator/estimator.dart';
+import 'domains/estimator/pattern_matching.dart';
+import 'domains/estimator/search.dart';
 import 'domains/factory.dart';
 import 'domains/magnitudes_calculator.dart';
 

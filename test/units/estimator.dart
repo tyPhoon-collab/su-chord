@@ -1,4 +1,5 @@
-import 'package:chord/domains/estimator.dart';
+import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
