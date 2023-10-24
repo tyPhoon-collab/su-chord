@@ -100,6 +100,8 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   ReassignmentMagnitudesCalculator({
     super.chunkSize,
     super.chunkStride,
+    super.isReassignFrequencyDimension,
+    super.isReassignTimeDimension,
     super.scalar,
   }) : super.hanning();
 

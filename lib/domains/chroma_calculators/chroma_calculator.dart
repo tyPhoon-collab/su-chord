@@ -41,24 +41,33 @@ class ReassignmentCalculator extends STFTCalculator {
   ReassignmentCalculator.hanning({
     super.chunkSize,
     super.chunkStride,
+    this.isReassignTimeDimension = false,
+    this.isReassignFrequencyDimension = true,
     this.scalar = MagnitudeScalar.none,
   }) : super.hanning() {
-    final windowD = Float64List.fromList(
-      window
-          .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
-          .toList(),
-    );
-    final windowT = Float64List.fromList(
-      window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
-    );
+    if (isReassignFrequencyDimension) {
+      final windowD = Float64List.fromList(
+        window
+            .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
+            .toList(),
+      );
+      stftD = STFT(chunkSize, windowD);
+    }
 
-    stftD = STFT(chunkSize, windowD);
-    stftT = STFT(chunkSize, windowT);
+    if (isReassignTimeDimension) {
+      final windowT = Float64List.fromList(
+        window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
+      );
+
+      stftT = STFT(chunkSize, windowT);
+    }
   }
 
-  late final STFT stftD;
-  late final STFT stftT;
+  STFT? stftD;
+  STFT? stftT;
   final MagnitudeScalar scalar;
+  final bool isReassignTimeDimension;
+  final bool isReassignFrequencyDimension;
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
@@ -67,8 +76,8 @@ class ReassignmentCalculator extends STFTCalculator {
     final Magnitudes magnitudes = [];
 
     final s = <Float64x2List>[];
-    final sD = <Float64x2List>[];
-    final sT = <Float64x2List>[];
+    late final sD = <Float64x2List>[];
+    late final sT = <Float64x2List>[];
 
     void sCallback(Float64x2List freq) {
       final f = freq.discardConjugates();
@@ -85,13 +94,13 @@ class ReassignmentCalculator extends STFTCalculator {
     }
 
     stft.stream(data.buffer, sCallback, chunkStride);
-    stftD.stream(data.buffer, sDCallback, chunkStride);
-    stftT.stream(data.buffer, sTCallback, chunkStride);
+    stftD?.stream(data.buffer, sDCallback, chunkStride);
+    stftT?.stream(data.buffer, sTCallback, chunkStride);
 
     if (flush) {
       stft.flush(sCallback);
-      stftD.flush(sDCallback);
-      stftT.flush(sTCallback);
+      stftD?.flush(sDCallback);
+      stftT?.flush(sTCallback);
     }
 
     final points = <Point>[];
@@ -104,9 +113,12 @@ class ReassignmentCalculator extends STFTCalculator {
         if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
 
         points.add(Point(
-          x: i * dt,
-          // x: i * dt + complexDivision(sT[i][j], s[i][j]).x / sr,
-          y: j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi),
+          x: isReassignTimeDimension
+              ? i * dt + complexDivision(sT[i][j], s[i][j]).x / sr
+              : i * dt,
+          y: isReassignFrequencyDimension
+              ? j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi)
+              : j * df,
           weight: magnitudes[i][j],
         ));
       }

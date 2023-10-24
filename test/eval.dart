@@ -36,7 +36,7 @@ Future<void> main() async {
     // songIdsFilter: ['13'],
   );
 
-  // Table.bypass = true;
+  Table.bypass = true;
   Measure.logger = null;
 
   test('cross validation', () async {
@@ -48,7 +48,7 @@ Future<void> main() async {
 
     final folderName = f.context.sanitize();
     final folderPath = 'test/outputs/cross_validations/$folderName';
-    final directory = await Directory(folderPath).create();
+    final directory = await Directory(folderPath).create(recursive: true);
 
     for (final estimator in [
       for (final chromaCalculable in [
@@ -311,7 +311,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
             value.map((e) => e.soundSource),
             await Future.wait(value.map(
               (e) => e.loader.load(
-                duration: 83,
+                duration: 80,
                 sampleRate: sampleRate,
               ),
             )),

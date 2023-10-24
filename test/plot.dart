@@ -83,14 +83,14 @@ void main() {
   });
 
   group('spec', () {
-    final f = factory2048_1024;
+    final f = factory8192_0;
     final writer = SpecChartWriter(
       sampleRate: f.context.sampleRate,
       chunkSize: f.context.chunkSize,
       chunkStride: f.context.chunkStride,
     );
 
-    test('compare stft vs reassignment', () async {
+    test('1 compare stft vs reassignment', () async {
       final data =
           await const SimpleAudioLoader(path: 'assets/evals/nutctracker.wav')
               .load(duration: 30, sampleRate: f.context.sampleRate);
@@ -105,6 +105,21 @@ void main() {
         writer(mags2, title: '${scalar.name} reassignment ${f.context}'),
       ]);
     });
+
+    test('2 compare stft vs reassignment', () async {
+      final data = await AudioLoader.sample.load(
+        duration: 16,
+        sampleRate: f.context.sampleRate,
+      );
+
+      final mags1 = f.magnitude.stft().call(data);
+      final mags2 = f.magnitude.reassignment().call(data);
+
+      await Future.wait([
+        writer(mags1, title: 'mags ${f.context}'),
+        writer(mags2, title: 'reassignment ${f.context}'),
+      ]);
+    });
   });
 
   group('chromagram', () {
@@ -114,6 +129,19 @@ void main() {
       chunkSize: f.context.chunkSize,
       chunkStride: f.context.chunkStride,
     );
+
+    test('_compare', () async {
+      final cutData = data.cut(duration: 16);
+      final estimators = [
+        f.guitarRange.combFilter,
+        f.guitarRange.reassignCombFilter,
+      ];
+
+      Future.wait([
+        for (final e in estimators)
+          writer(e.call(cutData), title: 'chromagram $e ${f.context}'),
+      ]);
+    });
 
     test('common', () async {
       final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 16));

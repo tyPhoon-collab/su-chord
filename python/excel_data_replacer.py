@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    paths = [_get_files(path) for path in args.input_path]
-    paths = list(itertools.chain.from_iterable(paths))
+    paths_list = [_get_files(path) for path in args.input_path]
+    paths = list(itertools.chain.from_iterable(paths_list))
 
     ExcelDataReplacer(paths, start_column=START_COLUMN, start_row=START_ROW).write(args.output_path)
