@@ -49,3 +49,4 @@ app.*.map.json
 .vscode
 
 /test/outputs/plots/*.png
+/test/outputs/cross_validations/

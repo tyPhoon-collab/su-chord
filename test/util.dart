@@ -43,3 +43,10 @@ void printProgression(String label, ChordProgression progression) {
 void printSeparation() {
   debugPrint('-' * 20);
 }
+
+extension Sanitize on Object {
+  String sanitize() => toString()
+      .replaceAll(RegExp(r'\s+'), '_')
+      .replaceAll(',', '__')
+      .replaceAll(':', '-');
+}

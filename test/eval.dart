@@ -40,9 +40,15 @@ Future<void> main() async {
   Measure.logger = null;
 
   test('cross validation', () async {
-    //TODO 見やすく書けるようにする
+    Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
+
     final f = factory8192_0;
     final db = await f.selector.db;
+    final filter = f.filter.eval;
+
+    final folderName = f.context.sanitize();
+    final folderPath = 'test/outputs/cross_validations/$folderName';
+    final directory = await Directory(folderPath).create();
 
     for (final estimator in [
       for (final chromaCalculable in [
@@ -60,11 +66,11 @@ Future<void> main() async {
       ]) ...[
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
-          filters: f.filter.eval,
+          filters: filter,
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,
-          filters: f.filter.eval,
+          filters: filter,
           noteExtractable: switch (chromaCalculable) {
             final HasMagnitudes value =>
               f.extractor.threshold(scalar: value.magnitudeScalar),
@@ -74,10 +80,7 @@ Future<void> main() async {
         ),
       ]
     ]) {
-      final fileName = estimator
-          .toString()
-          .replaceAll(RegExp(r'\s+'), '_')
-          .replaceAll(',', '__');
+      final fileName = estimator.sanitize();
 
       debugPrint(estimator.toString());
 
@@ -86,13 +89,15 @@ Future<void> main() async {
         estimator: estimator,
       ).evaluate(contexts);
 
-      table.toCSV('test/outputs/cross_validations/$fileName.csv');
+      table.toCSV('${directory.path}/$fileName.csv');
 
       for (final row in table.headlessValues) {
-        debugPrint(ChordProgression.fromCSVRow(
-          row.sublist(1),
-          ignoreNotParsable: true,
-        ).toString());
+        debugPrint(
+          ChordProgression.fromCSVRow(
+            row.sublist(1),
+            ignoreNotParsable: true,
+          ).toString(),
+        );
       }
     }
   });
@@ -287,6 +292,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   static Future<Iterable<_EvaluatorContext>> fromFolder(
     Iterable<String> folderPaths, {
     Iterable<_SongID>? songIdsFilter,
+    int sampleRate = 22050,
   }) async {
     final contexts = <_EvaluatorContext>[];
     final corrects = await _getCorrectChords();
@@ -304,7 +310,10 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
           data: Map.fromIterables(
             value.map((e) => e.soundSource),
             await Future.wait(value.map(
-              (e) => e.loader.load(duration: 83, sampleRate: 22050),
+              (e) => e.loader.load(
+                duration: 83,
+                sampleRate: sampleRate,
+              ),
             )),
           ),
           corrects: corrects[songId]!,
@@ -345,7 +354,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 class _Evaluator {
   _Evaluator({
     required this.estimator,
-    Row? header,
+    Row? header = const ['no title'],
   }) : _table = Table.empty(header);
 
   final ChordEstimable estimator;

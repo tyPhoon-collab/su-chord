@@ -78,7 +78,8 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
   );
 
   @override
-  String toString() => 'matching $scalar template scaled, ${super.toString()}';
+  String toString() =>
+      'matching ${scalar ?? 'none'} template scaled, ${super.toString()}';
 
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
