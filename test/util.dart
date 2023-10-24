@@ -39,3 +39,7 @@ void printProgressions(
 void printProgression(String label, ChordProgression progression) {
   debugPrint('$label(${progression.length})\t: $progression');
 }
+
+void printSeparation() {
+  debugPrint('-' * 20);
+}

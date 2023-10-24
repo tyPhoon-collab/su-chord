@@ -62,12 +62,21 @@ void main() {
     });
 
     group('scalar', () {
-      test('scaled template of C', () async {
+      test('third scaled template of C', () async {
         await writer(
           const ThirdHarmonicChromaScalar(0.2)
               .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
               .normalized,
-          title: 'Scaled template of C',
+          title: 'third scaled template of C',
+        );
+      });
+
+      test('harmonics scaled template of C', () async {
+        await writer(
+          HarmonicsChromaScalar()
+              .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
+              .normalized,
+          title: 'harmonics scaled template of C',
         );
       });
     });

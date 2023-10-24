@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
@@ -30,9 +29,9 @@ Future<void> main() async {
   final contexts = await _EvaluatorContext.fromFolder(
     [
       'assets/evals/Halion_CleanGuitarVX',
-      // 'assets/evals/Halion_CleanStratGuitar',
-      // 'assets/evals/HojoGuitar',
-      // 'assets/evals/RealStrat',
+      'assets/evals/Halion_CleanStratGuitar',
+      'assets/evals/HojoGuitar',
+      'assets/evals/RealStrat',
     ],
     // songIdsFilter: ['13'],
   );
@@ -42,23 +41,6 @@ Future<void> main() async {
 
   test('cross validation', () async {
     //TODO 見やすく書けるようにする
-
-    //以下の場合をすべて確かめて、csvに出力する
-
-    //* ChordEstimator
-    //パターンマッチング
-    //探索木
-
-    //* ChromaCalculator
-    //スパース + 平均律ビン
-    //スパース + コムフィルタ
-    //コムフィルタ
-
-    //* MagnitudeScalar
-    //L2ノルム
-    //自然対数
-    //(dB)
-
     final f = factory8192_0;
     final db = await f.selector.db;
 
@@ -128,15 +110,28 @@ Future<void> main() async {
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
 
-    test('scalar', () {
-      _Evaluator(
-        header: ['scalar'],
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter,
-          filters: f.filter.eval,
-          scalar: ThirdHarmonicChromaScalar(pow(0.6, 3 - 1).toDouble()),
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/scalar.csv');
+    group('template scalar', () {
+      test('third scaled', () {
+        _Evaluator(
+          header: ['scalar'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter,
+            filters: f.filter.eval,
+            scalar: const ThirdHarmonicChromaScalar(0.2),
+          ),
+        ).evaluate(contexts).toCSV('test/outputs/third_scalar.csv');
+      });
+
+      test('harmonics scaled', () {
+        _Evaluator(
+          header: ['scalar'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter,
+            filters: f.filter.eval,
+            scalar: HarmonicsChromaScalar(),
+          ),
+        ).evaluate(contexts).toCSV('test/outputs/harmonics_scalar.csv');
+      });
     });
   });
 
@@ -187,6 +182,8 @@ Future<void> main() async {
           final progression = e.estimate(data);
           printProgression('predicts', progression.simplify());
         }
+
+        printSeparation();
       }
     });
 
@@ -202,6 +199,7 @@ Future<void> main() async {
           final progression = e.estimate(data);
           printProgression('predicts', progression);
         }
+        printSeparation();
       }
     });
   });

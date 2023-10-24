@@ -1,14 +1,17 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 
 import '../chord.dart';
 import '../chroma.dart';
 import 'estimator.dart';
 
-abstract interface class TemplateChromaScalable {
+abstract interface class ChromaScalable {
   Chroma call(Chroma c);
 }
 
-class ThirdHarmonicChromaScalar implements TemplateChromaScalable {
+///３倍音のみ考慮する
+class ThirdHarmonicChromaScalar implements ChromaScalable {
   const ThirdHarmonicChromaScalar(this.factor);
 
   final double factor;
@@ -19,6 +22,40 @@ class ThirdHarmonicChromaScalar implements TemplateChromaScalable {
   @override
   Chroma call(Chroma c) {
     return (c * factor).shift(7) + c;
+  }
+}
+
+///Chord recognition by fitting rescaled chroma vectors to chord templates
+///指数的に倍音をたたみ込む
+///s^(i-1)に従う : i倍音
+class HarmonicsChromaScalar implements ChromaScalable {
+  HarmonicsChromaScalar({
+    this.baseFactor = 0.6,
+    this.until = 4,
+  }) : _factors = List.generate(
+          until,
+          (index) => (
+            harmonicIndex: _harmonics[index],
+            factor: pow(baseFactor, index).toDouble(),
+          ),
+        );
+
+  final int until;
+  final double baseFactor;
+  final Iterable<({int harmonicIndex, double factor})> _factors;
+
+  static const _harmonics = [0, 12, 19, 24];
+
+  @override
+  String toString() => 'harmonic $baseFactor-$until';
+
+  @override
+  Chroma call(Chroma c) {
+    Chroma chroma = Chroma.zero(c.length);
+    for (final v in _factors) {
+      chroma += c.shift(v.harmonicIndex) * v.factor;
+    }
+    return chroma;
   }
 }
 
@@ -33,7 +70,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
         templates = templates ?? ChromaChordEstimator.defaultDetectableChords;
 
   final Set<Chord> templates;
-  final TemplateChromaScalable? scalar;
+  final ChromaScalable? scalar;
 
   late final templateChromas = groupBy(
     templates,
