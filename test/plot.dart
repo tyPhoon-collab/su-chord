@@ -106,10 +106,25 @@ void main() {
       chunkStride: f.context.chunkStride,
     );
 
+    test('common', () async {
+      final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 16));
+      await writer(chromas, title: 'chromagram');
+    });
+
+    test('log scaled', () async {
+      final chromas = f.guitarRange
+          .combFilterWith(
+            magnitudesCalculable:
+                f.magnitude.reassignment(scalar: MagnitudeScalar.ln),
+          )
+          .call(data.cut(duration: 12));
+      await writer(chromas, title: 'chromagram');
+    });
+
     test('filter', () async {
       final filters = [
-        const ThresholdFilter(threshold: 10),
-        GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
+        const ThresholdFilter(threshold: 20),
+        // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
       ];
       var chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 12));
       await writer(chromas, title: 'chromagram 0');

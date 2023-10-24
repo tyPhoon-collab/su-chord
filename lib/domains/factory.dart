@@ -147,21 +147,24 @@ final class FilterFactory {
       ];
 
   Filters get triad => [
-        const ThresholdFilter(threshold: 10),
+        threshold(20),
         TriadChordChangeDetector(),
       ];
 
   Filters cosineSimilarity({
-    double powerThreshold = 10,
+    double powerThreshold = 20,
     double similarityThreshold = 0.8,
   }) =>
       [
-        ThresholdFilter(threshold: powerThreshold),
+        threshold(powerThreshold),
         CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
       ];
 
   ChromaListFilter interval(Duration duration) =>
       IntervalChordChangeDetector(interval: duration, dt: context.dt);
+
+  ChromaListFilter threshold(double powerThreshold) =>
+      ThresholdFilter(threshold: powerThreshold);
 }
 
 final class ChordSelectorFactory {

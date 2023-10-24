@@ -51,13 +51,15 @@ class GaussianFilter implements ChromaListFilter {
   GaussianFilter({
     required this.stdDevIndex,
     required this.kernelRadius,
-  })
-      : assert(stdDevIndex > 0),
+  })  : assert(stdDevIndex > 0),
         assert(kernelRadius > 0),
         _kernel = List.generate(
           kernelRadius * 2 + 1,
-              (i) =>
-              normalDistribution((i - kernelRadius).toDouble(), 0, stdDevIndex),
+          (i) => normalDistribution(
+            (i - kernelRadius).toDouble(),
+            0,
+            stdDevIndex,
+          ),
         );
 
   ///stdDevの単位を秒数とする
@@ -199,6 +201,8 @@ class CosineSimilarityChordChangeDetector implements ChromaListFilter {
     int count = 1;
     for (final value in chroma.skip(1)) {
       final score = value.cosineSimilarity(preChroma);
+      // debugPrint(score.toStringAsFixed(3));
+
       if (score < threshold) {
         slices.add(count);
         count = 0;

@@ -20,6 +20,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'util.dart';
+
 typedef _CorrectChords = Map<_SongID, ChordProgression>;
 typedef _SongID = String;
 typedef _SoundSource = String;
@@ -28,9 +30,9 @@ Future<void> main() async {
   final contexts = await _EvaluatorContext.fromFolder(
     [
       'assets/evals/Halion_CleanGuitarVX',
-      'assets/evals/Halion_CleanStratGuitar',
-      'assets/evals/HojoGuitar',
-      'assets/evals/RealStrat',
+      // 'assets/evals/Halion_CleanStratGuitar',
+      // 'assets/evals/HojoGuitar',
+      // 'assets/evals/RealStrat',
     ],
     // songIdsFilter: ['13'],
   );
@@ -172,17 +174,33 @@ Future<void> main() async {
   group('HCDF', () {
     final f = factory8192_0;
 
-    test('cosine similarity', () {
+    test('fold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter,
-        filters: f.filter.cosineSimilarity(similarityThreshold: 0.85),
+        filters: [f.filter.threshold(20)],
       );
 
       for (final context in contexts) {
+        printProgression('corrects', context.corrects);
+
         for (final data in context.data.values) {
           final progression = e.estimate(data);
-          debugPrint(context.corrects.toString());
-          debugPrint(progression.toString());
+          printProgression('predicts', progression.simplify());
+        }
+      }
+    });
+
+    test('cosine similarity', () {
+      final e = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: f.filter.cosineSimilarity(),
+      );
+
+      for (final context in contexts) {
+        printProgression('corrects', context.corrects);
+        for (final data in context.data.values) {
+          final progression = e.estimate(data);
+          printProgression('predicts', progression);
         }
       }
     });

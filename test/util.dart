@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:flutter/foundation.dart';
 
 class AudioStreamEmulator {
   const AudioStreamEmulator({
@@ -21,4 +23,19 @@ class AudioStreamEmulator {
       sleep(sleepDuration);
     }
   }
+}
+
+void printProgressions(
+  ChordProgression progression, [
+  ChordProgression? corrects,
+]) {
+  if (corrects != null) {
+    printProgression('corrects', corrects);
+  }
+  printProgression('predicts', progression.simplify());
+  printProgression('predict all', progression);
+}
+
+void printProgression(String label, ChordProgression progression) {
+  debugPrint('$label(${progression.length})\t: $progression');
 }

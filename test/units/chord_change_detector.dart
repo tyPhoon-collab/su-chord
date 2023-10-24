@@ -6,28 +6,26 @@ import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+
+import '../util.dart';
 
 Future<void> main() async {
   final f = factory8192_0;
   late final AudioData data;
   late final ChordProgression corrects;
 
-  void print(ChordProgression progression) {
-    debugPrint('correct:\t\t$corrects');
-    debugPrint('predict folded:\t${progression.simplify()}');
-    debugPrint('predict:\t\t$progression');
-  }
-
   setUpAll(() async {
-    data = await AudioLoader.sample.load(sampleRate: f.context.sampleRate);
+    data = await AudioLoader.sample.load(
+      sampleRate: f.context.sampleRate,
+      duration: 80,
+    );
     corrects = ChordProgression.fromCSVRow(
-        (await CSVLoader.corrects.load())[1]
-        .skip(1)
-        .map((e) => e.toString())
-        .toList(),
+      (await CSVLoader.corrects.load())[1]
+          .skip(1)
+          .map((e) => e.toString())
+          .toList(),
     );
   });
 
@@ -55,6 +53,15 @@ Future<void> main() async {
       final chromas = List.filled(4, Chroma.empty);
       expect(ccd(chromas).length, 4); // same as chromas.length
     });
+
+    test('estimator', () {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter,
+        filters: f.filter.eval,
+      );
+      final progress = estimator.estimate(data);
+      expect(progress.length, 20);
+    });
   });
 
   test('triad', () async {
@@ -71,10 +78,9 @@ Future<void> main() async {
 
   group('fold', () {
     final base = [
-      const ThresholdFilter(threshold: 10),
-      IntervalChordChangeDetector(interval: 0.5.seconds, dt: f.context.dt),
+      const ThresholdFilter(threshold: 20),
+      // IntervalChordChangeDetector(interval: 0.5.seconds, dt: f.context.dt),
     ];
-
 
     test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
@@ -82,7 +88,7 @@ Future<void> main() async {
         filters: base,
       );
       final progression = estimator.estimate(data);
-      print(progression);
+      printProgressions(progression, corrects);
     });
 
     test('average', () async {
@@ -94,7 +100,7 @@ Future<void> main() async {
         ],
       );
       final progression = estimator.estimate(data);
-      print(progression);
+      printProgressions(progression, corrects);
     });
 
     test('gaussian', () async {
@@ -106,7 +112,7 @@ Future<void> main() async {
         ],
       );
       final progression = estimator.estimate(data);
-      print(progression);
+      printProgressions(progression, corrects);
     });
   });
 
@@ -114,11 +120,11 @@ Future<void> main() async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.reassignCombFilter,
       filters: [
-        const ThresholdFilter(threshold: 10),
+        const ThresholdFilter(threshold: 20),
         const CosineSimilarityChordChangeDetector(threshold: 0.75),
       ],
     );
     final progression = estimator.estimate(data);
-    print(progression);
+    printProgressions(progression, corrects);
   });
 }
