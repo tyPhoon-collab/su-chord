@@ -1,6 +1,7 @@
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -24,15 +25,21 @@ void main() {
   test('reassignment', () async {
     final c = factory.magnitude.reassignment();
     final mags = c(data);
+    debugPrint(mags.first.length.toString());
     expect(mags, isNotEmpty);
   });
 
-  group('dB', () {
-    test('reassignment', () async {
-      final c = factory.magnitude.reassignment(scalar: MagnitudeScalar.dB);
-      final mags = c(data);
-      expect(mags, isNotEmpty);
-    });
+  test('keep resolution reassignment', () async {
+    final c = factory2048_1024.magnitude.reassignment(overrideChunkSize: 8192);
+    final mags = c(data);
+    debugPrint(mags.first.length.toString());
+    expect(mags, isNotEmpty);
+  });
+
+  test('reassignment dB', () async {
+    final c = factory.magnitude.reassignment(scalar: MagnitudeScalar.dB);
+    final mags = c(data);
+    expect(mags, isNotEmpty);
   });
 
   // test('same size for different chunkSize and chunkStride', () {

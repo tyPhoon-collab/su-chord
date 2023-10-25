@@ -88,11 +88,13 @@ final class MagnitudesFactory {
 
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
+    int? overrideChunkSize,
   }) =>
       ReassignmentMagnitudesCalculator(
         chunkSize: context.chunkSize,
         chunkStride: context.chunkStride,
         scalar: scalar,
+        overrideChunkSize: overrideChunkSize,
       );
 }
 
@@ -113,8 +115,8 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable get combFilter => combFilterWith();
 
-  ChromaCalculable get reassignCombFilter =>
-      combFilterWith(magnitudesCalculable: magnitude.reassignment());
+  ChromaCalculable get reassignCombFilter => combFilterWith(
+      magnitudesCalculable: magnitude.reassignment(overrideChunkSize: 8192));
 
   ChromaCalculable combFilterWith({
     CombFilterContext? combFilterContext,

@@ -103,20 +103,36 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
     super.isReassignFrequencyDimension,
     super.isReassignTimeDimension,
     super.scalar,
-  }) : super.hanning();
+    this.overrideChunkSize,
+  })  : assert(overrideChunkSize == null || isReassignFrequencyDimension),
+        assert(!isReassignTimeDimension, 'not supported now'),
+        super.hanning();
+
+  ///再割り当て法は擬似的に周波数分解能を向上させることができる
+  ///例えば、chunkSize=2048であっても、overrideChunkSizeを8192とすれば
+  ///擬似的に4倍の周波数分解能をトレードオフなしに得ることができる
+  ///nullならchunkSizeとして扱う
+  //TODO overrideChunkStrideを用意する
+  final int? overrideChunkSize;
 
   late Bin _binY;
 
   @override
-  String toString() => 'sparse mags ${scalar.name} scaled';
+  MagnitudeScalar get magnitudeScalar => scalar;
+
+  int get _chunkSize => overrideChunkSize ?? super.chunkSize;
 
   @override
-  MagnitudeScalar get magnitudeScalar => scalar;
+  String toString() =>
+      'sparse mags ${scalar.name} scaled${overrideChunkSize != null ? ' override by $overrideChunkSize' : ''}';
+
+  @override
+  double deltaFrequency(int sampleRate) => sampleRate / _chunkSize;
 
   @override
   void onSampleRateChanged(int newSampleRate) {
     final df = deltaFrequency(newSampleRate);
-    _binY = List.generate(chunkSize ~/ 2 + 2, (i) => i * df);
+    _binY = List.generate(_chunkSize ~/ 2 + 2, (i) => i * df);
   }
 
   @override
@@ -144,9 +160,9 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
 
   @override
   double frequency(int index, int sampleRate) =>
-      stft.frequency(index, sampleRate.toDouble());
+      index * sampleRate / _chunkSize;
 
   @override
   double indexOfFrequency(double freq, int sampleRate) =>
-      stft.indexOfFrequency(freq, sampleRate.toDouble());
+      freq * _chunkSize / sampleRate;
 }

@@ -83,7 +83,7 @@ void main() {
   });
 
   group('spec', () {
-    final f = factory8192_0;
+    final f = factory2048_1024;
     final writer = SpecChartWriter(
       sampleRate: f.context.sampleRate,
       chunkSize: f.context.chunkSize,
@@ -113,7 +113,8 @@ void main() {
       );
 
       final mags1 = f.magnitude.stft().call(data);
-      final mags2 = f.magnitude.reassignment().call(data);
+      final mags2 =
+          f.magnitude.reassignment(overrideChunkSize: 8192).call(data);
 
       await Future.wait([
         writer(mags1, title: 'mags ${f.context}'),
@@ -135,9 +136,10 @@ void main() {
       final estimators = [
         f.guitarRange.combFilter,
         f.guitarRange.reassignCombFilter,
+        f.guitarRange.reassignment,
       ];
 
-      Future.wait([
+      await Future.wait([
         for (final e in estimators)
           writer(e.call(cutData), title: 'chromagram $e ${f.context}'),
       ]);

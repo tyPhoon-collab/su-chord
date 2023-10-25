@@ -42,7 +42,7 @@ Future<void> main() async {
   test('cross validation', () async {
     Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
 
-    final f = factory8192_0;
+    final f = factory2048_1024;
     final db = await f.selector.db;
     final filter = f.filter.eval;
 
@@ -60,7 +60,10 @@ Future<void> main() async {
           ),
           f.guitarRange.combFilterWith(
             combFilterContext: const CombFilterContext(),
-            magnitudesCalculable: f.magnitude.reassignment(scalar: scalar),
+            magnitudesCalculable: f.magnitude.reassignment(
+              scalar: scalar,
+              overrideChunkSize: 8192,
+            ),
           ),
         ]
       ]) ...[
