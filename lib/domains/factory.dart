@@ -12,21 +12,29 @@ import 'note_extractor.dart';
 
 typedef Filters = List<ChromaListFilter>;
 
-final factory2048_1024 = EstimatorFactory(
-  const EstimatorFactoryContext(
-    chunkSize: 2048,
-    chunkStride: 1024,
-    sampleRate: 22050,
-  ),
-);
+final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 2048,
+  chunkStride: 1024,
+  sampleRate: 22050,
+));
 
-final factory8192_0 = EstimatorFactory(
-  const EstimatorFactoryContext(
-    chunkSize: 8192,
-    chunkStride: 0,
-    sampleRate: 22050,
-  ),
-);
+final factory2048_0 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 2048,
+  chunkStride: 0,
+  sampleRate: 22050,
+));
+
+final factory4096_0 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 4096,
+  chunkStride: 0,
+  sampleRate: 22050,
+));
+
+final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 8192,
+  chunkStride: 0,
+  sampleRate: 22050,
+));
 
 final class EstimatorFactoryContext {
   const EstimatorFactoryContext({

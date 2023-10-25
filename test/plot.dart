@@ -11,26 +11,77 @@ import 'writer.dart';
 
 void main() {
   late final AudioData data;
-  // late final AudioData noteC3Data;
-  // late final AudioData chordCData;
+  late final AudioData data_G; // ignore: non_constant_identifier_names
+  late final AudioData data_C; // ignore: non_constant_identifier_names
+  late final AudioData data_G_Em_Bm_C; // ignore: non_constant_identifier_names
+  late final AudioData nutcrackerData;
 
   setUpAll(() async {
     data = await AudioLoader.sample.load(sampleRate: 22050);
-    // noteC3Data =
-    //     await const SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav')
-    //         .load(sampleRate: 22050);
-    // chordCData =
-    //     await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
-    //         .load(sampleRate: 22050);
+    data_G = data.cut(duration: 4.1);
+    data_C = data.cut(duration: 4, offset: 12.1);
+    data_G_Em_Bm_C = data.cut(duration: 16.1);
+
+    nutcrackerData = await const SimpleAudioLoader(
+      path: 'assets/evals/nutcracker.wav',
+    ).load(
+      duration: 30,
+      sampleRate: 22050,
+    );
   });
 
   group('pcp bar chart', () {
     const writer = PCPChartWriter();
-    final f = factory8192_0;
+
+    test('compare by change window size', () async {
+      final factories = [
+        factory8192_0,
+        factory2048_0,
+        factory2048_1024,
+      ];
+
+      await Future.wait([
+        for (final f in factories)
+          for (final cc in [
+            f.guitarRange.combFilter,
+            f.guitarRange.reassignCombFilter
+          ])
+            writer(
+              f.filter.interval(4.seconds).call(cc(data_G)).first.normalized,
+              title: 'pcp of G, ${f.context} $cc',
+            )
+      ]);
+    });
+
+    test('_compare', () async {
+      final f = factory4096_0;
+      final chromaCalculators = [
+        f.guitarRange.reassignCombFilter,
+        f.guitarRange.combFilterWith(
+          magnitudesCalculable: f.magnitude.reassignment(
+            scalar: MagnitudeScalar.ln,
+            overrideChunkSize: 8192,
+          ),
+        ),
+      ];
+
+      await Future.wait(
+        chromaCalculators.map((cc) => writer(
+              f.filter
+                  .interval(4.seconds)
+                  .call(cc.call(data_G))
+                  .first
+                  .normalized,
+              title: 'pcp of G $cc ${f.context}',
+            )),
+      );
+    });
 
     group('power point example', () {
+      final f = factory8192_0;
+
       test('PCP of G', () async {
-        final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 4));
+        final chromas = f.guitarRange.reassignCombFilter(data_G);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of G');
@@ -44,10 +95,7 @@ void main() {
       });
 
       test('PCP of C', () async {
-        final chromas = f.guitarRange.reassignCombFilter(data.cut(
-          duration: 4,
-          offset: 12,
-        ));
+        final chromas = f.guitarRange.reassignCombFilter(data_C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of C');
@@ -90,15 +138,12 @@ void main() {
       chunkStride: f.context.chunkStride,
     );
 
-    test('1 compare stft vs reassignment', () async {
-      final data =
-          await const SimpleAudioLoader(path: 'assets/evals/nutctracker.wav')
-              .load(duration: 30, sampleRate: f.context.sampleRate);
-
+    test('stft vs reassignment', () async {
       const scalar = MagnitudeScalar.dB;
 
-      final mags1 = f.magnitude.stft(scalar: scalar).call(data);
-      final mags2 = f.magnitude.reassignment(scalar: scalar).call(data);
+      final mags1 = f.magnitude.stft(scalar: scalar).call(nutcrackerData);
+      final mags2 =
+          f.magnitude.reassignment(scalar: scalar).call(nutcrackerData);
 
       await Future.wait([
         writer(mags1, title: '${scalar.name} mags ${f.context}'),
@@ -106,15 +151,11 @@ void main() {
       ]);
     });
 
-    test('2 compare stft vs reassignment', () async {
-      final data = await AudioLoader.sample.load(
-        duration: 16,
-        sampleRate: f.context.sampleRate,
-      );
-
+    test('stft vs reassignment', () async {
       final mags1 = f.magnitude.stft().call(data);
-      final mags2 =
-          f.magnitude.reassignment(overrideChunkSize: 8192).call(data);
+      final mags2 = f.magnitude
+          .reassignment(overrideChunkSize: 8192)
+          .call(data.cut(duration: 16));
 
       await Future.wait([
         writer(mags1, title: 'mags ${f.context}'),
@@ -131,18 +172,19 @@ void main() {
       chunkStride: f.context.chunkStride,
     );
 
-    test('_compare', () async {
-      final cutData = data.cut(duration: 16);
+    test('compare', () async {
       final estimators = [
         f.guitarRange.combFilter,
         f.guitarRange.reassignCombFilter,
         f.guitarRange.reassignment,
       ];
 
-      await Future.wait([
-        for (final e in estimators)
-          writer(e.call(cutData), title: 'chromagram $e ${f.context}'),
-      ]);
+      await Future.wait(
+        estimators.map((e) => writer(
+              e.call(data_G_Em_Bm_C),
+              title: 'chromagram $e ${f.context}',
+            )),
+      );
     });
 
     test('common', () async {
