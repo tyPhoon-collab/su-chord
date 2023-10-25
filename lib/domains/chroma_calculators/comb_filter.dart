@@ -25,7 +25,7 @@ class CombFilterContext {
 class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
   CombFilterChromaCalculator({
     required this.magnitudesCalculable,
-    this.chromaContext = const ChromaContext(),
+    this.chromaContext = ChromaContext.guitar,
     this.context = const CombFilterContext(),
   }) : super();
 

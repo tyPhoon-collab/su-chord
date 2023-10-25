@@ -6,7 +6,6 @@ import 'chroma.dart';
 import 'chroma_calculators/chroma_calculator.dart';
 import 'chroma_calculators/comb_filter.dart';
 import 'chroma_calculators/reassignment.dart';
-import 'equal_temperament.dart';
 import 'filter.dart';
 import 'magnitudes_calculator.dart';
 import 'note_extractor.dart';
@@ -40,7 +39,9 @@ final class EstimatorFactoryContext {
   final int chunkStride;
   final int sampleRate;
 
-  double get dt => (chunkStride == 0 ? chunkSize : chunkStride) / sampleRate;
+  int get _chunkStride => chunkStride == 0 ? chunkSize : chunkStride;
+
+  double get dt => _chunkStride / sampleRate;
 
   @override
   String toString() =>
@@ -61,14 +62,12 @@ final class EstimatorFactory {
   late final guitarRange = ChromaCalculatorFactory(
     context,
     magnitude: magnitude,
-    chromaContext: const ChromaContext(
-      lowest: MusicalScale.E2,
-      perOctave: 6,
-    ),
+    chromaContext: ChromaContext.guitar,
   );
   late final bigRange = ChromaCalculatorFactory(
     context,
     magnitude: magnitude,
+    chromaContext: ChromaContext.big,
   );
 }
 
@@ -101,7 +100,7 @@ final class MagnitudesFactory {
 final class ChromaCalculatorFactory {
   const ChromaCalculatorFactory(
     this.context, {
-    this.chromaContext = const ChromaContext(),
+    required this.chromaContext,
     required this.magnitude,
   });
 

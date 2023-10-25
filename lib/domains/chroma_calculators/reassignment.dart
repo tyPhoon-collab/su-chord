@@ -18,7 +18,7 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
     super.chunkStride,
     super.isReassignFrequencyDimension,
     super.isReassignTimeDimension,
-    this.chromaContext = const ChromaContext(),
+    this.chromaContext = ChromaContext.guitar,
     super.scalar,
   }) : super.hanning();
 

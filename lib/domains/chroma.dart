@@ -121,11 +121,22 @@ class PCP extends Chroma {
   static final zero = PCP(List.filled(12, 0));
 }
 
+@immutable
 class ChromaContext {
   const ChromaContext({
-    this.lowest = MusicalScale.C1,
-    this.perOctave = 7,
+    required this.lowest,
+    required this.perOctave,
   });
+
+  static const guitar = ChromaContext(
+    lowest: MusicalScale.E2,
+    perOctave: 6,
+  );
+
+  static const big = ChromaContext(
+    lowest: MusicalScale.C1,
+    perOctave: 7,
+  );
 
   final MusicalScale lowest;
   final int perOctave;
