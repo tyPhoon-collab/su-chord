@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
@@ -43,8 +45,8 @@ void main() {
       await Future.wait([
         for (final f in factories)
           for (final cc in [
-            f.guitarRange.combFilter,
-            f.guitarRange.reassignCombFilter
+            f.guitarRange.combFilter(),
+            f.guitarRange.reassignCombFilter(),
           ])
             writer(
               f.filter.interval(4.seconds).call(cc(data_G)).first.normalized,
@@ -56,13 +58,8 @@ void main() {
     test('_compare', () async {
       final f = factory4096_0;
       final chromaCalculators = [
-        f.guitarRange.reassignCombFilter,
-        f.guitarRange.combFilterWith(
-          magnitudesCalculable: f.magnitude.reassignment(
-            scalar: MagnitudeScalar.ln,
-            overrideChunkSize: 8192,
-          ),
-        ),
+        f.guitarRange.reassignCombFilter(),
+        f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
       ];
 
       await Future.wait(
@@ -81,7 +78,7 @@ void main() {
       final f = factory8192_0;
 
       test('PCP of G', () async {
-        final chromas = f.guitarRange.reassignCombFilter(data_G);
+        final chromas = f.guitarRange.reassignCombFilter().call(data_G);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of G');
@@ -95,7 +92,7 @@ void main() {
       });
 
       test('PCP of C', () async {
-        final chromas = f.guitarRange.reassignCombFilter(data_C);
+        final chromas = f.guitarRange.reassignCombFilter().call(data_C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of C');
@@ -174,9 +171,9 @@ void main() {
 
     test('compare', () async {
       final estimators = [
-        f.guitarRange.combFilter,
-        f.guitarRange.reassignCombFilter,
-        f.guitarRange.reassignment,
+        f.guitarRange.combFilter(),
+        f.guitarRange.reassignCombFilter(),
+        f.guitarRange.reassignment(),
       ];
 
       await Future.wait(
@@ -188,34 +185,51 @@ void main() {
     });
 
     test('common', () async {
-      final chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 16));
+      final chromas = f.guitarRange.reassignCombFilter().call(data_G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
     });
 
     test('log scaled', () async {
       final chromas = f.guitarRange
-          .combFilterWith(
-            magnitudesCalculable:
-                f.magnitude.reassignment(scalar: MagnitudeScalar.ln),
-          )
+          .reassignCombFilter(scalar: MagnitudeScalar.ln)
           .call(data.cut(duration: 12));
       await writer(chromas, title: 'chromagram');
     });
 
-    test('filter', () async {
-      final filters = [
-        const ThresholdFilter(threshold: 20),
-        // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
-      ];
-      var chromas = f.guitarRange.reassignCombFilter(data.cut(duration: 12));
-      await writer(chromas, title: 'chromagram 0');
+    group('filter', () {
+      test('threshold 20', () async {
+        final filters = [
+          const ThresholdFilter(threshold: 20),
+          // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
+        ];
+        final cc = f.guitarRange.reassignCombFilter();
+        var chromas = cc(data.cut(duration: 12));
+        await writer(chromas, title: 'chromagram 0 $cc');
 
-      int count = 0;
-      for (final filter in filters) {
-        count++;
-        chromas = filter(chromas);
-        await writer(chromas, title: 'chromagram $count $filter');
-      }
+        int count = 0;
+        for (final filter in filters) {
+          count++;
+          chromas = filter(chromas);
+          await writer(chromas, title: 'chromagram $count $filter $cc');
+        }
+      });
+
+      test('threshold log', () async {
+        final filters = [
+          ThresholdFilter(threshold: log(20)),
+          // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
+        ];
+        final cc = f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln);
+        var chromas = cc(data.cut(duration: 12));
+        await writer(chromas, title: 'chromagram 0 $cc');
+
+        int count = 0;
+        for (final filter in filters) {
+          count++;
+          chromas = filter(chromas);
+          await writer(chromas, title: 'chromagram $count $filter $cc');
+        }
+      });
     });
   });
 }

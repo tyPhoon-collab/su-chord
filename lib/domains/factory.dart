@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:get/get.dart';
 
 import '../utils/loaders/csv.dart';
@@ -120,12 +122,17 @@ final class ChromaCalculatorFactory {
 
   int get _chunkSize => context.chunkSize;
 
-  ChromaCalculable get combFilter => combFilterWith();
+  ChromaCalculable reassignCombFilter({
+    MagnitudeScalar scalar = MagnitudeScalar.none,
+  }) =>
+      combFilter(
+        magnitudesCalculable: magnitude.reassignment(
+          scalar: scalar,
+          overrideChunkSize: 8192,
+        ),
+      );
 
-  ChromaCalculable get reassignCombFilter => combFilterWith(
-      magnitudesCalculable: magnitude.reassignment(overrideChunkSize: 8192));
-
-  ChromaCalculable combFilterWith({
+  ChromaCalculable combFilter({
     CombFilterContext? combFilterContext,
     MagnitudesCalculable? magnitudesCalculable,
   }) =>
@@ -135,9 +142,7 @@ final class ChromaCalculatorFactory {
         context: combFilterContext ?? const CombFilterContext(),
       );
 
-  ChromaCalculable get reassignment => reassignmentWith();
-
-  ChromaCalculable reassignmentWith({MagnitudeScalar? scalar}) =>
+  ChromaCalculable reassignment({MagnitudeScalar? scalar}) =>
       ReassignmentChromaCalculator(
         chunkSize: _chunkSize,
         chunkStride: _chunkStride,
@@ -163,9 +168,10 @@ final class FilterFactory {
   Filters cosineSimilarity({
     double powerThreshold = 20,
     double similarityThreshold = 0.8,
+    bool isLogScale = false,
   }) =>
       [
-        threshold(powerThreshold),
+        threshold(isLogScale ? log(powerThreshold) : powerThreshold),
         CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
       ];
 

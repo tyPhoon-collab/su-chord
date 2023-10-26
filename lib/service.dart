@@ -17,7 +17,7 @@ part 'service.g.dart';
 @riverpod
 EstimatorFactoryContext factoryContext(FactoryContextRef ref) =>
     const EstimatorFactoryContext(
-      chunkSize: 8192,
+      chunkSize: 4096,
       chunkStride: 0,
       sampleRate: 22050,
     );
@@ -67,49 +67,54 @@ class DetectableChords extends _$DetectableChords {
 ///フロントエンドでどの推定器を使うか選ぶことができる
 @riverpod
 Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
-  final factory = ref.watch(factoryProvider);
+  final f = ref.watch(factoryProvider);
   final detectableChords = ref.watch(detectableChordsProvider);
-  final filters = factory.filter.cosineSimilarity(); //TODO deal as provider
 
   return {
     'matching + reassignment': () async => PatternMatchingChordEstimator(
-          chromaCalculable: factory.guitarRange.reassignment,
-          filters: filters,
+          chromaCalculable: f.guitarRange.reassignment(),
+          filters: f.filter.cosineSimilarity(),
           templates: detectableChords,
         ),
     'matching + reassignment comb': () async => PatternMatchingChordEstimator(
-          chromaCalculable: factory.guitarRange.reassignCombFilter,
-          filters: filters,
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: f.filter.cosineSimilarity(),
+          templates: detectableChords,
+        ),
+    'matching + reassignment comb + ln scale': () async =>
+        PatternMatchingChordEstimator(
+          chromaCalculable:
+              f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+          filters: f.filter.cosineSimilarity(isLogScale: true),
           templates: detectableChords,
         ),
     'matching + comb': () async => PatternMatchingChordEstimator(
-          chromaCalculable: factory.guitarRange.combFilter,
-          filters: filters,
+          chromaCalculable: f.guitarRange.combFilter(),
+          filters: f.filter.cosineSimilarity(),
           templates: detectableChords,
         ),
     'search tree + comb': () async => SearchTreeChordEstimator(
-          chromaCalculable: factory.guitarRange.combFilter,
-          filters: filters,
-          noteExtractable: factory.extractor.threshold(),
-          chordSelectable: await factory.selector.db,
+          chromaCalculable: f.guitarRange.combFilter(),
+          filters: f.filter.cosineSimilarity(),
+          noteExtractable: f.extractor.threshold(),
+          chordSelectable: await f.selector.db,
           detectableChords: detectableChords,
         ),
     'search tree + comb + ln scale': () async => SearchTreeChordEstimator(
-          chromaCalculable: factory.guitarRange.combFilterWith(
-            magnitudesCalculable:
-                factory.magnitude.stft(scalar: MagnitudeScalar.ln),
+          chromaCalculable: f.guitarRange.combFilter(
+            magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln),
           ),
-          filters: filters,
-          noteExtractable: factory.extractor.threshold(
+          filters: f.filter.cosineSimilarity(isLogScale: true),
+          noteExtractable: f.extractor.threshold(
             scalar: MagnitudeScalar.ln,
           ),
-          chordSelectable: await factory.selector.db,
+          chordSelectable: await f.selector.db,
           detectableChords: detectableChords,
         ),
     'from notes + reassignment comb': () async => FromNotesChordEstimator(
-          chromaCalculable: factory.guitarRange.reassignCombFilter,
-          filters: filters,
-          noteExtractable: factory.extractor.threshold(),
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: f.filter.cosineSimilarity(),
+          noteExtractable: f.extractor.threshold(),
           detectableChords: detectableChords,
         ),
   };

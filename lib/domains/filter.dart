@@ -16,6 +16,9 @@ class ThresholdFilter implements ChromaListFilter {
   final double threshold;
 
   @override
+  String toString() => 'threshold $threshold';
+
+  @override
   List<Chroma> call(List<Chroma> chroma) =>
       chroma.where((e) => e.max >= threshold).toList();
 }
@@ -170,18 +173,6 @@ class TriadChordChangeDetector implements ChromaListFilter {
     slices.add(count);
 
     return _average(chroma, slices);
-  }
-}
-
-class DifferenceByThresholdChordChangeDetector implements ChromaListFilter {
-  const DifferenceByThresholdChordChangeDetector({required this.threshold});
-
-  final double threshold;
-
-  @override
-  List<Chroma> call(List<Chroma> chroma) {
-    // TODO: implement filter
-    throw UnimplementedError();
   }
 }
 

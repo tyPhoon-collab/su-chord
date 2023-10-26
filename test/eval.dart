@@ -56,16 +56,11 @@ Future<void> main() async {
     for (final estimator in [
       for (final chromaCalculable in [
         for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
-          f.guitarRange.reassignmentWith(scalar: scalar),
-          f.guitarRange.combFilterWith(
+          f.guitarRange.reassignment(scalar: scalar),
+          f.guitarRange.combFilter(
             magnitudesCalculable: f.magnitude.stft(scalar: scalar),
           ),
-          f.guitarRange.combFilterWith(
-            magnitudesCalculable: f.magnitude.reassignment(
-              scalar: scalar,
-              overrideChunkSize: 8192,
-            ),
-          ),
+          f.guitarRange.reassignCombFilter(scalar: scalar),
         ]
       ]) ...[
         PatternMatchingChordEstimator(
@@ -77,7 +72,7 @@ Future<void> main() async {
           filters: filter,
           noteExtractable: switch (chromaCalculable) {
             final HasMagnitudes value =>
-                f.extractor.threshold(scalar: value.magnitudeScalar),
+              f.extractor.threshold(scalar: value.magnitudeScalar),
             _ => const ThresholdByMaxRatioExtractor(),
           },
           chordSelectable: db,
@@ -114,7 +109,7 @@ Future<void> main() async {
       _Evaluator(
         header: ['main'],
         estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter,
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
           filters: f.filter.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
@@ -125,7 +120,7 @@ Future<void> main() async {
         _Evaluator(
           header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
-            chromaCalculable: f.guitarRange.reassignCombFilter,
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
             filters: f.filter.eval,
             scalar: const ThirdHarmonicChromaScalar(0.2),
           ),
@@ -136,7 +131,7 @@ Future<void> main() async {
         _Evaluator(
           header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
-            chromaCalculable: f.guitarRange.reassignCombFilter,
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
             filters: f.filter.eval,
             scalar: HarmonicsChromaScalar(),
           ),
@@ -153,7 +148,7 @@ Future<void> main() async {
       _Evaluator(
         header: ['search + comb, $extractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter,
+          chromaCalculable: f.guitarRange.combFilter(),
           filters: f.filter.eval,
           noteExtractable: extractor,
           chordSelectable: await f.selector.db,
@@ -165,9 +160,9 @@ Future<void> main() async {
       _Evaluator(
         header: ['search + log comb, $logExtractor, ${f.context}'],
         estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilterWith(
+          chromaCalculable: f.guitarRange.combFilter(
               magnitudesCalculable:
-              f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
           filters: f.filter.eval,
           noteExtractable: logExtractor,
           chordSelectable: await f.selector.db,
@@ -181,7 +176,7 @@ Future<void> main() async {
 
     test('fold', () {
       final e = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: [f.filter.threshold(20)],
       );
 
@@ -199,7 +194,7 @@ Future<void> main() async {
 
     test('cosine similarity', () {
       final e = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.cosineSimilarity(),
       );
 
@@ -251,9 +246,7 @@ class _LoaderContext {
   factory _LoaderContext.fromFile(String path) {
     final parts = path.split(Platform.pathSeparator); //パスを分解
     final soundSource = parts[parts.length - 2];
-    final songId = parts.last
-        .split('_')
-        .first;
+    final songId = parts.last.split('_').first;
     final loader = SimpleAudioLoader(path: path);
 
     return _LoaderContext(
@@ -297,16 +290,14 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
   });
 
   static Future<Iterable<_EvaluatorContext>> fromFolder(
-      Iterable<String> folderPaths, {
-        Iterable<_SongID>? songIdsFilter,
-        int sampleRate = 22050,
-      }) async {
+    Iterable<String> folderPaths, {
+    Iterable<_SongID>? songIdsFilter,
+    int sampleRate = 22050,
+  }) async {
     final contexts = <_EvaluatorContext>[];
     final corrects = await _getCorrectChords();
     final loaders =
-        folderPaths
-            .map((e) => _LoaderContext.fromFolder(e))
-            .flattened;
+        folderPaths.map((e) => _LoaderContext.fromFolder(e)).flattened;
 
     final loadersMap = loaders
         .where((e) => songIdsFilter?.contains(e.songId) ?? true)
@@ -319,11 +310,10 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
           data: Map.fromIterables(
             value.map((e) => e.soundSource),
             await Future.wait(value.map(
-                  (e) =>
-                  e.loader.load(
-                    duration: 81,
-                    sampleRate: sampleRate,
-                  ),
+              (e) => e.loader.load(
+                duration: 81,
+                sampleRate: sampleRate,
+              ),
             )),
           ),
           corrects: corrects[songId]!,
@@ -340,8 +330,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 
     //ignore header
     return Map.fromEntries(
-      fields.skip(1).map((e) =>
-          MapEntry(
+      fields.skip(1).map((e) => MapEntry(
             e.first.toString(),
             ChordProgression(e.skip(1).map((e) => Chord.parse(e)).toList()),
           )),
@@ -380,9 +369,7 @@ class _Evaluator {
   }
 
   void _evaluate(Iterable<_EvaluatorContext> contexts) {
-    final correctRate = contexts
-        .map(_evaluateOne)
-        .sum / contexts.length;
+    final correctRate = contexts.map(_evaluateOne).sum / contexts.length;
     debugPrint('correct rate: ${(correctRate * 100).toStringAsFixed(3)}%');
   }
 
@@ -401,14 +388,11 @@ class _Evaluator {
       progressions.add(progression);
     });
 
-    return progressions
-        .map((e) => e.consistencyRate(corrects))
-        .sum /
+    return progressions.map((e) => e.consistencyRate(corrects)).sum /
         context.data.length;
   }
 
   void _add(ChordProgression progression, String indexLabel) {
-    _table.add(progression.toCSVRow()
-      ..insert(0, indexLabel));
+    _table.add(progression.toCSVRow()..insert(0, indexLabel));
   }
 }

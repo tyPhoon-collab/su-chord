@@ -14,12 +14,12 @@ void main() {
 
   test('scalar', () async {
     final e1 = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.combFilter,
+      chromaCalculable: f.guitarRange.combFilter(),
       filters: f.filter.eval,
     );
 
     final e2 = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.combFilter,
+      chromaCalculable: f.guitarRange.combFilter(),
       filters: f.filter.eval,
       scalar: const ThirdHarmonicChromaScalar(0.2),
     );

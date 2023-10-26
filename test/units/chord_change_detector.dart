@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filter.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,7 +59,7 @@ Future<void> main() async {
 
     test('estimator', () {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.eval,
       );
       final progress = estimator.estimate(data);
@@ -84,7 +87,7 @@ Future<void> main() async {
 
     test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: base,
       );
       final progression = estimator.estimate(data);
@@ -93,7 +96,7 @@ Future<void> main() async {
 
     test('average', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: [
           ...base,
           const AverageFilter(kernelRadius: 1),
@@ -105,7 +108,7 @@ Future<void> main() async {
 
     test('gaussian', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter,
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: [
           ...base,
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
@@ -116,15 +119,42 @@ Future<void> main() async {
     });
   });
 
-  test('cosine similarity', () async {
-    final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.reassignCombFilter,
-      filters: [
-        const ThresholdFilter(threshold: 20),
-        const CosineSimilarityChordChangeDetector(threshold: 0.75),
-      ],
-    );
-    final progression = estimator.estimate(data);
-    printProgressions(progression, corrects);
+  group('cosine similarity', () {
+    test('0.8', () async {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        filters: [
+          const ThresholdFilter(threshold: 20),
+          const CosineSimilarityChordChangeDetector(threshold: 0.8),
+        ],
+      );
+      final progression = estimator.estimate(data);
+      printProgressions(progression, corrects);
+    });
+
+    test('0.9', () {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        filters: [
+          const ThresholdFilter(threshold: 20),
+          const CosineSimilarityChordChangeDetector(threshold: 0.9),
+        ],
+      );
+      final progression = estimator.estimate(data);
+      printProgressions(progression, corrects);
+    });
+
+    test('log', () {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable:
+            f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+        filters: [
+          ThresholdFilter(threshold: log(15)),
+          const CosineSimilarityChordChangeDetector(threshold: 0.8),
+        ],
+      );
+      final progression = estimator.estimate(data);
+      printProgressions(progression, corrects);
+    });
   });
 }

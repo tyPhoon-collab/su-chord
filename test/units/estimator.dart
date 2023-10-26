@@ -17,7 +17,7 @@ void main() {
 
   test('reassignment', () {
     final e = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.reassignment,
+      chromaCalculable: f.guitarRange.reassignment(),
       filters: f.filter.eval,
     );
 
@@ -28,7 +28,7 @@ void main() {
 
   test('search tree', () async {
     final e = SearchTreeChordEstimator(
-      chromaCalculable: f.guitarRange.reassignment,
+      chromaCalculable: f.guitarRange.reassignment(),
       filters: f.filter.eval,
       chordSelectable: await f.selector.db,
     );
@@ -40,7 +40,7 @@ void main() {
 
   test('from notes', () async {
     final e = FromNotesChordEstimator(
-      chromaCalculable: f.guitarRange.reassignCombFilter,
+      chromaCalculable: f.guitarRange.reassignCombFilter(),
       filters: f.filter.eval,
     );
 
@@ -52,7 +52,7 @@ void main() {
   group('stream', () {
     test('22050 chunk size', () async {
       final e = PatternMatchingChordEstimator(
-        chromaCalculable: factory2048_1024.guitarRange.reassignment,
+        chromaCalculable: factory2048_1024.guitarRange.reassignment(),
         filters: factory2048_1024.filter.eval,
       );
       final data = await AudioLoader.sample.load(
