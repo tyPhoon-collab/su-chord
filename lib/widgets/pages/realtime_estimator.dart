@@ -17,6 +17,7 @@ import '../../service.dart';
 import '../../utils/loaders/audio.dart';
 import '../chord_view.dart';
 import '../config_view.dart';
+import '../plot_view.dart';
 
 class EstimatorPage extends ConsumerStatefulWidget {
   const EstimatorPage({super.key});
@@ -146,33 +147,23 @@ class _EstimatingStreamView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child: Builder(builder: (context) {
-              return StreamBuilder(
-                stream: stream,
-                builder: (_, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox();
+      child: StreamBuilder(
+        stream: stream,
+        builder: (_, snapshot) {
+          if (!snapshot.hasData) return const SizedBox();
 
-                  // log(snapshot.requireData.buffer.take(10).toString());
-                  // log(snapshot.requireData.buffer.length.toString());
+          // log(snapshot.requireData.buffer.take(10).toString());
+          // log(snapshot.requireData.buffer.length.toString());
 
-                  final data =
-                      snapshot.data!.downSample(factoryContext.sampleRate);
+          final data = snapshot.data!.downSample(factoryContext.sampleRate);
 
-                  final progression = estimator.estimate(data, false);
+          final progression = estimator.estimate(data, false);
 
-                  return _EstimatedView(
-                    progression: progression,
-                    estimator: estimator,
-                  );
-                },
-              );
-            }),
-          ),
-        ],
+          return _EstimatedView(
+            progression: progression,
+            estimator: estimator,
+          );
+        },
       ),
     );
   }
@@ -199,7 +190,12 @@ class _EstimatedView extends ConsumerWidget {
                 ? progression.simplify()
                 : progression,
           ),
-          _EstimatorDebugView(estimator: estimator),
+          SingleChildScrollView(
+            child: _EstimatorDebugView(
+              visible: ref.watch(isVisibleDebugProvider),
+              estimator: estimator,
+            ),
+          ),
         ],
       ),
     );
@@ -207,23 +203,41 @@ class _EstimatedView extends ConsumerWidget {
 }
 
 class _EstimatorDebugView extends ConsumerWidget {
-  const _EstimatorDebugView({required this.estimator});
+  const _EstimatorDebugView({
+    required this.visible,
+    required this.estimator,
+  });
 
+  final bool visible;
   final ChordEstimable estimator;
+
+  HasDebugViews get views => estimator as HasDebugViews;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
-      (ref.watch(isVisibleDebugProvider))
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
+      estimator is HasDebugViews
+          ? Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
               children: [
-                Text(estimator.toString()),
-                if (estimator case final HasDebugViews views)
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: views.build(),
-                  )
+                DebugChip(
+                  titleText: 'Estimator Details',
+                  child: Text(estimator.toString()),
+                ),
+                ...views.build(),
+                DebugChip(
+                  titleText: 'Amplitude',
+                  child: StreamBuilder(
+                    stream: ref.watch(globalRecorderProvider).stream,
+                    builder: (_, snapshot) => SizedBox(
+                      height: 64,
+                      child: AmplitudeChart(
+                        data: snapshot.data?.buffer ??
+                            Float64List.fromList(const []),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             )
           : const SizedBox();
