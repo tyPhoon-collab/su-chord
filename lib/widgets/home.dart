@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/realtime_estimator.dart';
+import 'estimator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

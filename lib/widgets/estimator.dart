@@ -7,17 +7,17 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
-import '../../domains/chord_progression.dart';
-import '../../domains/debug.dart';
-import '../../domains/estimator/estimator.dart';
-import '../../domains/factory.dart';
-import '../../recorder_service.dart';
-import '../../recorders/recorder.dart';
-import '../../service.dart';
-import '../../utils/loaders/audio.dart';
-import '../chord_view.dart';
-import '../config_view.dart';
-import '../plot_view.dart';
+import '../domains/chord_progression.dart';
+import '../domains/debug.dart';
+import '../domains/estimator/estimator.dart';
+import '../domains/factory.dart';
+import '../recorder_service.dart';
+import '../recorders/recorder.dart';
+import '../service.dart';
+import '../utils/loaders/audio.dart';
+import 'chord_view.dart';
+import 'config_view.dart';
+import 'plot_view.dart';
 
 class EstimatorPage extends ConsumerStatefulWidget {
   const EstimatorPage({super.key});
@@ -278,7 +278,7 @@ class _EstimatorActionBar extends StatelessWidget {
 
     return ButtonBar(
       alignment: MainAxisAlignment.center,
-      buttonPadding: const EdgeInsets.symmetric(horizontal: 32),
+      buttonPadding: const EdgeInsets.symmetric(horizontal: 24),
       children: [
         IconButton.filledTonal(
           onPressed: isStopped ? onFileLoaded : null,
@@ -286,13 +286,12 @@ class _EstimatorActionBar extends StatelessWidget {
         ),
         IconButton.filled(
           iconSize: 32,
-          padding: const EdgeInsets.all(16),
-          onPressed: () {
+          padding: const EdgeInsets.all(24),
+          onPressed: () async {
             if (isStopped) {
               recorder.start();
             } else {
-              //TODO await
-              recorder.stop();
+              await recorder.stop();
               onStopped?.call();
             }
           },

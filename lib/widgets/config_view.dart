@@ -29,7 +29,7 @@ class ConfigView extends StatelessWidget {
               const ListTile(
                 leading: Icon(Icons.functions_outlined),
                 title: Text('Estimator'),
-                trailing: _ChordEstimatorSelector(),
+                subtitle: _ChordEstimatorSelector(),
               ),
               CheckboxListTile(
                 value: ref.watch(isSimplifyChordProgressionProvider),
@@ -74,7 +74,17 @@ class _ChordSettingsDialog extends ConsumerWidget {
           return AlertDialog(
             icon: const Icon(Icons.music_note_outlined),
             title: const Text('Chord Settings'),
-            content: _SelectableDetectableChords(key: key),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const ListTile(
+                  leading: Icon(Icons.code),
+                  title: Text('Detectable Chords'),
+                  dense: true,
+                ),
+                _SelectableDetectableChords(key: key),
+              ],
+            ),
             actions: [
               TextButton(onPressed: Get.back, child: const Text('Back')),
               ElevatedButton(
@@ -123,53 +133,55 @@ class _SelectableDetectableChordsState
   Widget build(BuildContext context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Divider(),
           Wrap(
             children: List.generate(
               _qualities.length,
-              (i) => ToggleButtons(
-                isSelected: [_isSelected[i]],
-                onPressed: !_notSelectableIndexes.contains(i)
-                    ? (_) {
-                        setState(() {
-                          _isSelected[i] = !_isSelected[i];
-                        });
-                      }
-                    : null,
-                children: [Text(_qualities[i])],
-              ),
+              (i) {
+                final isRequiredChordType = _notSelectableIndexes.contains(i);
+                return ToggleButtons(
+                  disabledColor: isRequiredChordType
+                      ? Get.theme.colorScheme.primary
+                      : null,
+                  disabledBorderColor: isRequiredChordType
+                      ? Get.theme.colorScheme.primary
+                      : null,
+                  isSelected: [_isSelected[i]],
+                  constraints: const BoxConstraints(
+                    minHeight: 32,
+                    minWidth: 52,
+                  ),
+                  onPressed: !isRequiredChordType
+                      ? (_) {
+                          setState(() {
+                            _isSelected[i] = !_isSelected[i];
+                          });
+                        }
+                      : null,
+                  children: [Text(_qualities[i])],
+                );
+              },
             ),
-          ),
-          Row(
-            children: [
-              const Spacer(),
-              Text(
-                'Cannot deselected Major and Minor chord types.',
-                style: TextStyle(color: Get.theme.colorScheme.outline),
-              ),
-            ],
           ),
           ButtonBar(
             children: [
-              OutlinedButton(
+              IconButton.outlined(
                 onPressed: () {
                   setState(() {
                     _isSelected = _filledIsSelected(true);
                   });
                 },
-                child: const Text('Select All'),
+                icon: const Icon(Icons.select_all),
               ),
-              OutlinedButton(
+              IconButton.outlined(
                 onPressed: () {
                   setState(() {
                     _isSelected = _filledIsSelected(false);
                   });
                 },
-                child: const Text('Deselect All'),
+                icon: const Icon(Icons.deselect),
               ),
             ],
           ),
-          const Divider(),
         ],
       );
 }
@@ -221,9 +233,14 @@ class _ChordEstimatorSelector extends ConsumerWidget {
 
     return DropdownButton(
       items: estimators.keys
-          .map((label) => DropdownMenuItem(value: label, child: Text(label)))
+          .map((label) => DropdownMenuItem(
+                value: label,
+                child: Text(label),
+              ))
           .toList(),
       value: selectingEstimatorLabel,
+      itemHeight: null,
+      isExpanded: true,
       onChanged: (String? value) {
         if (value == null) return;
         ref.read(selectingEstimatorLabelProvider.notifier).change(value);

@@ -71,18 +71,17 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final detectableChords = ref.watch(detectableChordsProvider);
 
   return {
-    'matching + reassignment': () async => PatternMatchingChordEstimator(
+    'matching + reassign': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitarRange.reassignment(),
           filters: f.filter.cosineSimilarity(),
           templates: detectableChords,
         ),
-    'matching + reassignment comb': () async => PatternMatchingChordEstimator(
+    'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitarRange.reassignCombFilter(),
           filters: f.filter.cosineSimilarity(),
           templates: detectableChords,
         ),
-    'matching + reassignment comb + ln scale': () async =>
-        PatternMatchingChordEstimator(
+    'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
           filters: f.filter.cosineSimilarity(isLogScale: true),
@@ -93,14 +92,14 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           filters: f.filter.cosineSimilarity(),
           templates: detectableChords,
         ),
-    'search tree + comb': () async => SearchTreeChordEstimator(
+    'search + comb': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitarRange.combFilter(),
           filters: f.filter.cosineSimilarity(),
           noteExtractable: f.extractor.threshold(),
           chordSelectable: await f.selector.db,
           detectableChords: detectableChords,
         ),
-    'search tree + comb + ln scale': () async => SearchTreeChordEstimator(
+    'search + comb + ln': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitarRange.combFilter(
             magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln),
           ),
@@ -111,7 +110,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chordSelectable: await f.selector.db,
           detectableChords: detectableChords,
         ),
-    'from notes + reassignment comb': () async => FromNotesChordEstimator(
+    'notes + reassign comb': () async => FromNotesChordEstimator(
           chromaCalculable: f.guitarRange.reassignCombFilter(),
           filters: f.filter.cosineSimilarity(),
           noteExtractable: f.extractor.threshold(),
@@ -123,7 +122,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => 'matching + reassignment comb';
+  String build() => 'matching + reassign';
 
   //ignore: use_setters_to_change_properties
   void change(String newValue) => state = newValue;
