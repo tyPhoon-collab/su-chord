@@ -151,29 +151,22 @@ class _EstimatingStreamView extends StatelessWidget {
         children: [
           Expanded(
             child: Builder(builder: (context) {
-              var progression = ChordProgression.empty();
               return StreamBuilder(
                 stream: stream,
                 builder: (_, snapshot) {
                   if (!snapshot.hasData) return const SizedBox();
 
                   // log(snapshot.requireData.buffer.take(10).toString());
+                  // log(snapshot.requireData.buffer.length.toString());
 
                   final data =
                       snapshot.data!.downSample(factoryContext.sampleRate);
 
-                  return FutureBuilder(
-                    future: compute(
-                        (data) => estimator.estimate(data, false), data),
-                    builder: (_, snapshot) {
-                      if (snapshot.hasData) {
-                        progression = snapshot.data!;
-                      }
-                      return _EstimatedView(
-                        progression: progression,
-                        estimator: estimator,
-                      );
-                    },
+                  final progression = estimator.estimate(data, false);
+
+                  return _EstimatedView(
+                    progression: progression,
+                    estimator: estimator,
                   );
                 },
               );
