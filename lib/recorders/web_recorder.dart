@@ -4,14 +4,16 @@ library audio_input;
 import 'dart:async';
 import 'dart:js_interop';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../utils/loaders/audio.dart';
 import 'recorder.dart';
+
+Recorder getRecorder() => WebRecorder(1.seconds);
 
 //戻り値はPromise。これをpromiseToFuture関数により変換して使用する
 @JS('start')
@@ -123,8 +125,9 @@ class WebRecorder implements InputDeviceSelectable, Recorder {
   }
 
   @override
-  Future<void> request() async {
+  Future<bool> request() async {
     requestRec();
+    return true;
   }
 
   @override

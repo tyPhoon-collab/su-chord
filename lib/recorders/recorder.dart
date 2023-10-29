@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 import '../utils/loaders/audio.dart';
+import 'stub_recorder.dart'
+    if (dart.library.io) 'mobile_recorder.dart'
+    if (dart.library.html) 'web_recorder.dart';
+
+Recorder initRecorder() => getRecorder();
 
 enum RecorderState {
   // paused,
@@ -19,7 +24,7 @@ abstract interface class Recorder {
 
   Future<void> dispose();
 
-  Future<void> request();
+  Future<bool> request();
 }
 
 abstract interface class InputDeviceSelectable {
@@ -50,9 +55,3 @@ class DeviceInfo {
   final String id;
   final String label;
 }
-
-// //TODO 適切なシグネチャを考える
-// //モバイルアプリ化する場合など。ライブラリに依存するので、今考える必要はない
-// abstract class Recorder {
-//
-// }

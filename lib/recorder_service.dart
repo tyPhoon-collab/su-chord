@@ -1,8 +1,6 @@
-import 'package:get/get.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'recorders/recorder.dart';
-import 'recorders/web_recorder.dart';
 
 part 'recorder_service.g.dart';
 
@@ -13,7 +11,7 @@ class GlobalRecorder extends _$GlobalRecorder {
     ref.onDispose(() {
       state.dispose();
     });
-    return WebRecorder(1.seconds);
+    return initRecorder();
   }
 
   void set(Recorder newValue) {

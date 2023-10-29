@@ -157,6 +157,8 @@ class _EstimatingStreamView extends StatelessWidget {
                 builder: (_, snapshot) {
                   if (!snapshot.hasData) return const SizedBox();
 
+                  // log(snapshot.requireData.buffer.take(10).toString());
+
                   final data =
                       snapshot.data!.downSample(factoryContext.sampleRate);
 

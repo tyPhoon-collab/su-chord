@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  permission_handler: ^10.4.3
+  permission_handler: ^11.0.1
 
   # core
   collection: ^1.17.2
@@ -48,6 +48,7 @@ dependencies:
   # sound
   wav: ^1.2.0
   fftea: ^1.4.0
+  audio_streamer: ^4.0.0
 
   # plot
   fl_chart: ^0.63.0
