@@ -26,52 +26,36 @@ class ConfigView extends StatelessWidget {
                 title: const Text('Show Debug View'),
                 secondary: const Icon(Icons.auto_graph_sharp),
               ),
-              ValueListenableBuilder(
-                valueListenable: recorder.state,
-                builder: (_, value, __) {
-                  final enable = value == RecorderState.stopped;
-
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        enabled: enable,
-                        leading: const Icon(Icons.functions_outlined),
-                        title: const Text('Estimator'),
-                        trailing: _ChordEstimatorSelector(enable: enable),
-                      ),
-                      CheckboxListTile(
-                        value: ref.watch(isSimplifyChordProgressionProvider),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          ref
-                              .read(isSimplifyChordProgressionProvider.notifier)
-                              .toggle();
-                        },
-                        title: const Text('Simplify Chord Progression'),
-                        secondary: const Icon(Icons.short_text_outlined),
-                      ),
-                      if (recorder is InputDeviceSelectable)
-                        ListTile(
-                          enabled: enable,
-                          leading: const Icon(Icons.mic_none_outlined),
-                          title: const Text('Microphone Device'),
-                          trailing: _MicrophoneDeviceSelector(
-                            enable: enable,
-                            recorder: recorder as InputDeviceSelectable,
-                            onRequest: recorder.request,
-                          ),
-                        ),
-                      ListTile(
-                        enabled: enable,
-                        leading: const Icon(Icons.music_note_outlined),
-                        title: const Text('Chord Settings'),
-                        trailing: const Icon(Icons.open_in_new_outlined),
-                        onTap: () => Get.dialog(const _ChordSettingsDialog()),
-                      ),
-                    ],
-                  );
+              const ListTile(
+                leading: Icon(Icons.functions_outlined),
+                title: Text('Estimator'),
+                trailing: _ChordEstimatorSelector(),
+              ),
+              CheckboxListTile(
+                value: ref.watch(isSimplifyChordProgressionProvider),
+                onChanged: (value) {
+                  if (value == null) return;
+                  ref
+                      .read(isSimplifyChordProgressionProvider.notifier)
+                      .toggle();
                 },
+                title: const Text('Simplify Chord Progression'),
+                secondary: const Icon(Icons.short_text_outlined),
+              ),
+              if (recorder is InputDeviceSelectable)
+                ListTile(
+                  leading: const Icon(Icons.mic_none_outlined),
+                  title: const Text('Microphone Device'),
+                  trailing: _MicrophoneDeviceSelector(
+                    recorder: recorder as InputDeviceSelectable,
+                    onRequest: recorder.request,
+                  ),
+                ),
+              ListTile(
+                leading: const Icon(Icons.music_note_outlined),
+                title: const Text('Chord Settings'),
+                trailing: const Icon(Icons.open_in_new_outlined),
+                onTap: () => Get.dialog(const _ChordSettingsDialog()),
               ),
             ],
           );
@@ -192,12 +176,10 @@ class _SelectableDetectableChordsState
 
 class _MicrophoneDeviceSelector extends StatelessWidget {
   const _MicrophoneDeviceSelector({
-    this.enable = true,
     required this.onRequest,
     required this.recorder,
   });
 
-  final bool enable;
   final InputDeviceSelectable recorder;
   final Function onRequest;
 
@@ -221,20 +203,16 @@ class _MicrophoneDeviceSelector extends StatelessWidget {
               .map((d) => DropdownMenuItem(value: d, child: Text(d.label)))
               .toList(),
           value: devices.current,
-          onChanged: enable
-              ? (DeviceInfo? value) async {
-                  if (value == null) return;
-                  await recorder.setDevice(value.id);
-                }
-              : null,
+          onChanged: (DeviceInfo? value) async {
+            if (value == null) return;
+            await recorder.setDevice(value.id);
+          },
         );
       });
 }
 
 class _ChordEstimatorSelector extends ConsumerWidget {
-  const _ChordEstimatorSelector({this.enable = true});
-
-  final bool enable;
+  const _ChordEstimatorSelector();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -246,12 +224,10 @@ class _ChordEstimatorSelector extends ConsumerWidget {
           .map((label) => DropdownMenuItem(value: label, child: Text(label)))
           .toList(),
       value: selectingEstimatorLabel,
-      onChanged: enable
-          ? (String? value) {
-              if (value == null) return;
-              ref.read(selectingEstimatorLabelProvider.notifier).change(value);
-            }
-          : null,
+      onChanged: (String? value) {
+        if (value == null) return;
+        ref.read(selectingEstimatorLabelProvider.notifier).change(value);
+      },
     );
   }
 }
