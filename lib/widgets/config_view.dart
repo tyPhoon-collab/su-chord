@@ -15,10 +15,7 @@ class ConfigView extends StatelessWidget {
         builder: (context, ref, child) {
           final recorder = ref.watch(globalRecorderProvider);
 
-          return ExpansionTile(
-            title: const Text('Config'),
-            leading: const Icon(Icons.settings),
-            shape: Border.all(color: Colors.transparent),
+          return ListView(
             children: [
               CheckboxListTile(
                 value: ref.watch(isVisibleDebugProvider),

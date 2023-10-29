@@ -16,7 +16,7 @@ import '../../recorders/recorder.dart';
 import '../../service.dart';
 import '../../utils/loaders/audio.dart';
 import '../chord_view.dart';
-import '../plot_view.dart';
+import '../config_view.dart';
 
 class EstimatorPage extends ConsumerStatefulWidget {
   const EstimatorPage({super.key});
@@ -27,6 +27,8 @@ class EstimatorPage extends ConsumerStatefulWidget {
 
 class _EstimatorPageState extends ConsumerState<EstimatorPage> {
   ChordProgression _progression = ChordProgression.empty();
+  final surface = Get.theme.colorScheme.surfaceVariant;
+  final onSurface = Get.theme.colorScheme.onSurfaceVariant;
 
   @override
   Widget build(BuildContext context) => Builder(
@@ -44,8 +46,18 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
                 child: Column(
                   children: [
                     Expanded(
-                      child:
-                          value == RecorderState.stopped && _progression.isEmpty
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: surface,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(32),
+                            bottomRight: Radius.circular(32),
+                          ),
+                        ),
+                        child: DefaultTextStyle.merge(
+                          style: TextStyle(color: onSurface),
+                          child: value == RecorderState.stopped &&
+                                  _progression.isEmpty
                               ? const _WelcomeView()
                               : value == RecorderState.stopped
                                   ? _EstimatedView(
@@ -57,33 +69,22 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
                                       estimator: estimator.value!,
                                       factoryContext: context,
                                     ),
+                        ),
+                      ),
                     ),
                     _EstimatorActionBar(
                       recorder: recorder,
+                      recorderState: value,
                       onStopped: () {
                         setState(() {
                           _progression = estimator.value!.flush();
                         });
                       },
                       onFileLoaded: () async {
-                        final color = Get.theme.colorScheme.onSurfaceVariant;
-                        EasyLoading.instance
-                          ..backgroundColor =
-                              Get.theme.colorScheme.surfaceVariant
-                          ..loadingStyle = EasyLoadingStyle.custom
-                          ..indicatorColor = color
-                          ..textColor = color;
-                        EasyLoading.show(
-                          status: 'Estimating...',
-                          indicator: const Icon(Icons.music_note),
-                          maskType: EasyLoadingMaskType.black,
-                          dismissOnTap: false,
-                        );
-                        await _estimateFromFile(
+                        await _estimateFromFileWithLoadingView(
                           context.sampleRate,
                           estimator.value!,
                         );
-                        EasyLoading.dismiss();
                       },
                     ),
                   ],
@@ -93,6 +94,23 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
           );
         },
       );
+
+  Future<void> _estimateFromFileWithLoadingView(
+      int sampleRate, ChordEstimable estimator) async {
+    EasyLoading.instance
+      ..backgroundColor = surface
+      ..loadingStyle = EasyLoadingStyle.custom
+      ..indicatorColor = onSurface
+      ..textColor = onSurface;
+    EasyLoading.show(
+      status: 'Estimating...',
+      indicator: const Icon(Icons.music_note),
+      maskType: EasyLoadingMaskType.black,
+      dismissOnTap: false,
+    );
+    await _estimateFromFile(sampleRate, estimator);
+    EasyLoading.dismiss();
+  }
 
   Future<void> _estimateFromFile(
       int sampleRate, ChordEstimable estimator) async {
@@ -231,81 +249,74 @@ class _WelcomeView extends StatelessWidget {
 class _EstimatorActionBar extends StatelessWidget {
   const _EstimatorActionBar({
     required this.recorder,
+    required this.recorderState,
     this.onStopped,
     this.onFileLoaded,
   });
 
   final Recorder recorder;
+  final RecorderState recorderState;
   final VoidCallback? onStopped;
   final VoidCallback? onFileLoaded;
 
+  bool get isStopped => recorderState == RecorderState.stopped;
+
   @override
-  Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.all(16),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ValueListenableBuilder(
-            valueListenable: recorder.state,
-            builder: (_, value, __) {
-              final crossFadeState = value == RecorderState.stopped
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond;
-              final duration = 200.milliseconds;
+  Widget build(BuildContext context) {
+    final crossFadeState =
+        isStopped ? CrossFadeState.showFirst : CrossFadeState.showSecond;
+    final animationDuration = 200.milliseconds;
 
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (value != RecorderState.stopped)
-                    Expanded(
-                      child: StreamBuilder(
-                        stream: recorder.bufferStream,
-                        builder: (_, snapshot) {
-                          if (!snapshot.hasData) return const SizedBox();
-
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: SizedBox(
-                              height: 46,
-                              child: AmplitudeChart(
-                                data: snapshot.data!,
-                                backgroundColor: Get.theme.colorScheme.surface,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ButtonBar(
-                    buttonPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      IconButton.outlined(
-                        onPressed: value == RecorderState.stopped
-                            ? onFileLoaded
-                            : null,
-                        icon: const Icon(Icons.folder),
-                      ),
-                      IconButton.filledTonal(
-                        onPressed: () {
-                          if (value == RecorderState.stopped) {
-                            recorder.start();
-                          } else {
-                            recorder.stop();
-                            onStopped?.call();
-                          }
-                        },
-                        icon: AnimatedCrossFade(
-                          firstChild: const Icon(Icons.mic),
-                          secondChild: const Icon(Icons.stop),
-                          crossFadeState: crossFadeState,
-                          duration: duration,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+    return ButtonBar(
+      alignment: MainAxisAlignment.center,
+      buttonPadding: const EdgeInsets.symmetric(horizontal: 32),
+      children: [
+        IconButton.filledTonal(
+          onPressed: isStopped ? onFileLoaded : null,
+          icon: const Icon(Icons.folder_outlined),
+        ),
+        IconButton.filled(
+          iconSize: 32,
+          padding: const EdgeInsets.all(16),
+          onPressed: () {
+            if (isStopped) {
+              recorder.start();
+            } else {
+              //TODO await
+              recorder.stop();
+              onStopped?.call();
+            }
+          },
+          icon: AnimatedCrossFade(
+            firstChild: const Icon(Icons.mic_none_outlined),
+            secondChild: const Icon(Icons.stop_outlined),
+            crossFadeState: crossFadeState,
+            duration: animationDuration,
           ),
         ),
-      );
+        IconButton.filledTonal(
+          onPressed: isStopped
+              ? () {
+                  Get.bottomSheet(
+                    const SafeArea(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [CloseButton(), SizedBox(width: 16)],
+                          ),
+                          Expanded(child: ConfigView())
+                        ],
+                      ),
+                    ),
+                    backgroundColor: Get.theme.colorScheme.background,
+                  );
+                }
+              : null,
+          icon: const Icon(Icons.settings_outlined),
+        ),
+      ],
+    );
+  }
 }
