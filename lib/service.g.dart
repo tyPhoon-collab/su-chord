@@ -6,7 +6,7 @@ part of 'service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$factoryContextHash() => r'22a39bbcb2a9548876859c419c983f2742f38cf4';
+String _$factoryContextHash() => r'ed0bc7f214fed7f897eba3792b5752a386bf3e99';
 
 ///サンプルレートやSTFT時のwindowサイズやhop_lengthのサイズを保持する
 ///推定器に必要なデータを全て保持し、EstimatorFactoryに提供する
@@ -40,7 +40,7 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'c0823da4969552b0206dabda3f5e27c3a276dc1b';
+String _$estimatorsHash() => r'168e5a0fea3a1d8a2e0127768935f3ef7a8298b0';
 
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる

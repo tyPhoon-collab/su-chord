@@ -1,4 +1,6 @@
-import 'web_recorder.dart';
+import 'package:flutter/foundation.dart';
+
+import '../utils/loaders/audio.dart';
 
 enum RecorderState {
   // paused,
@@ -6,7 +8,25 @@ enum RecorderState {
   recording,
 }
 
-typedef Recorder = WebRecorder;
+abstract interface class Recorder {
+  Stream<AudioData> get stream;
+
+  ValueNotifier<RecorderState> get state;
+
+  Future<void> start();
+
+  Future<void> stop();
+
+  Future<void> dispose();
+
+  Future<void> request();
+}
+
+abstract interface class InputDeviceSelectable {
+  Stream<Devices> get deviceStream;
+
+  Future<void> setDevice(String id);
+}
 
 class Devices extends Iterable<DeviceInfo> {
   Devices({

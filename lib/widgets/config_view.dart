@@ -51,15 +51,17 @@ class ConfigView extends StatelessWidget {
                         title: const Text('Simplify Chord Progression'),
                         secondary: const Icon(Icons.short_text_outlined),
                       ),
-                      ListTile(
-                        enabled: enable,
-                        leading: const Icon(Icons.mic_none_outlined),
-                        title: const Text('Microphone Device'),
-                        trailing: _MicrophoneDeviceSelector(
-                          enable: enable,
-                          recorder: recorder,
+                      if (recorder is InputDeviceSelectable)
+                        ListTile(
+                          enabled: enable,
+                          leading: const Icon(Icons.mic_none_outlined),
+                          title: const Text('Microphone Device'),
+                          trailing: _MicrophoneDeviceSelector(
+                            enable: enable,
+                            recorder: recorder as InputDeviceSelectable,
+                            onRequest: recorder.request,
+                          ),
                         ),
-                      ),
                       ListTile(
                         enabled: enable,
                         leading: const Icon(Icons.music_note_outlined),
@@ -191,11 +193,13 @@ class _SelectableDetectableChordsState
 class _MicrophoneDeviceSelector extends StatelessWidget {
   const _MicrophoneDeviceSelector({
     this.enable = true,
+    required this.onRequest,
     required this.recorder,
   });
 
   final bool enable;
-  final Recorder recorder;
+  final InputDeviceSelectable recorder;
+  final Function onRequest;
 
   @override
   Widget build(BuildContext context) => StreamBuilder(
@@ -204,7 +208,7 @@ class _MicrophoneDeviceSelector extends StatelessWidget {
         if (!snapshot.hasData) {
           return TextButton(
             onPressed: () {
-              recorder.request();
+              onRequest();
             },
             child: const Text('Please grant mic permission'),
           );
