@@ -6,6 +6,7 @@ import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/service.dart';
@@ -17,6 +18,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 
 import 'util.dart';
 import 'writer.dart';
@@ -26,19 +28,31 @@ typedef _SongID = String;
 typedef _SoundSource = String;
 
 Future<void> main() async {
-  final contexts = await _EvaluatorContext.fromFolder(
-    [
-      'assets/evals/Halion_CleanGuitarVX',
-      'assets/evals/Halion_CleanStratGuitar',
-      'assets/evals/HojoGuitar',
-      'assets/evals/RealStrat',
-    ],
-    // songIdsFilter: ['13'],
-  );
+  late final Iterable<_EvaluatorContext> contexts;
 
-  Table.bypass = true;
-  Measure.logger = null;
-  const writer = DebugPrintWriter();
+  setUpAll(() async {
+    // CSV書き込みをするなら以下をコメント化
+    Table.bypass = true;
+
+    // 計算時間を出力したいなら以下をコメント化
+    Measure.logger = null;
+
+    // コード推定結果を出力したいなら以下をコメント化
+    _Evaluator.progressionWriter = null;
+
+    // コード推定の正解率を出力したいなら以下をコメント化
+    // _Evaluator.correctionWriter = null;
+
+    contexts = await _EvaluatorContext.fromFolder(
+      [
+        'assets/evals/Halion_CleanGuitarVX',
+        'assets/evals/Halion_CleanStratGuitar',
+        'assets/evals/HojoGuitar',
+        'assets/evals/RealStrat',
+      ],
+      // songIdsFilter: ['13'],
+    );
+  });
 
   test('cross validation', () async {
     Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
@@ -51,7 +65,7 @@ Future<void> main() async {
     final folderPath = 'test/outputs/cross_validations/$folderName';
     final directory = await Directory(folderPath).create(recursive: true);
 
-    writer('${f.context} $folderPath');
+    debugPrint('${f.context} $folderPath');
 
     for (final estimator in [
       for (final chromaCalculable in [
@@ -90,20 +104,32 @@ Future<void> main() async {
       ).evaluate(contexts);
 
       table.toCSV('${directory.path}/$fileName.csv');
-
-      for (final row in table.headlessValues) {
-        debugPrint(
-          ChordProgression.fromCSVRow(
-            row.sublist(1),
-            ignoreNotParsable: true,
-          ).toString(),
-        );
-      }
     }
   });
 
   group('prop', () {
-    final f = factory8192_0;
+    final f = factory4096_0;
+
+    test('reassign comb', () async {
+      _Evaluator(
+        header: ['main'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: f.filter.eval,
+        ),
+      ).evaluate(contexts).toCSV('test/outputs/main.csv');
+    });
+
+    test('ln reassign comb', () async {
+      _Evaluator(
+        header: ['main'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable:
+              f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+          filters: f.filter.eval,
+        ),
+      ).evaluate(contexts).toCSV('test/outputs/main.csv');
+    });
 
     test('main', () async {
       _Evaluator(
@@ -137,6 +163,19 @@ Future<void> main() async {
           ),
         ).evaluate(contexts).toCSV('test/outputs/harmonics_scalar.csv');
       });
+    });
+
+    test('pcp scalar', () {
+      _Evaluator(
+        header: ['scalar'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: [
+            f.filter.interval(4.seconds),
+            const CompressionFilter(),
+          ],
+        ),
+      ).evaluate(contexts).toCSV('test/outputs/pcp_compression.csv');
     });
   });
 
@@ -358,6 +397,9 @@ class _Evaluator {
     this.validator,
   }) : _table = Table.empty(header);
 
+  static Writer? progressionWriter = const DebugPrintWriter();
+  static Writer? correctionWriter = const DebugPrintWriter();
+
   final ChordEstimable estimator;
   final Table _table;
   final bool Function(ChordProgression)? validator;
@@ -369,8 +411,11 @@ class _Evaluator {
   }
 
   void _evaluate(Iterable<_EvaluatorContext> contexts) {
-    final correctRate = contexts.map(_evaluateOne).sum / contexts.length;
-    debugPrint('correct rate: ${(correctRate * 100).toStringAsFixed(3)}%');
+    final rate = contexts.map(_evaluateOne).sum / contexts.length;
+    correctionWriter?.call(
+      '${(rate * 100).toStringAsFixed(3)}%',
+      title: 'correct rate',
+    );
   }
 
   double _evaluateOne(_EvaluatorContext context) {
@@ -388,11 +433,12 @@ class _Evaluator {
       progressions.add(progression);
     });
 
-    return progressions.map((e) => e.consistencyRate(corrects)).sum /
+    return progressions.map((e) => e.similarity(corrects)).sum /
         context.data.length;
   }
 
   void _add(ChordProgression progression, String indexLabel) {
+    progressionWriter?.call(progression);
     _table.add(progression.toCSVRow()..insert(0, indexLabel));
   }
 }

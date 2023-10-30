@@ -16,11 +16,9 @@ abstract class ChordProgressionBase<T extends ChordBase> extends Iterable<T?> {
   Iterator<T?> get iterator => _values.iterator;
 
   @override
-  String toString() =>
-      _values.isEmpty
-          ? 'No Chords'
-          : _values.map((e) => e?.toString() ?? noChordLabel).join(
-          chordSeparator);
+  String toString() => _values.isEmpty
+      ? 'No Chords'
+      : _values.map((e) => e?.toString() ?? noChordLabel).join(chordSeparator);
 
   List<String> toCSVRow() =>
       _values.map((e) => e?.toString() ?? noChordLabel).toList();
@@ -52,7 +50,8 @@ class ChordProgression extends ChordProgressionBase<Chord> {
 
   ChordProgression.empty() : super([]);
 
-  factory ChordProgression.fromCSVRow(Row row, {
+  factory ChordProgression.fromCSVRow(
+    Row row, {
     bool ignoreNotParsable = false,
   }) {
     final chords = <Chord?>[];
@@ -70,7 +69,7 @@ class ChordProgression extends ChordProgressionBase<Chord> {
     return ChordProgression(chords);
   }
 
-  double consistencyRate(ChordProgression other) {
+  double similarity(ChordProgression other) {
     final otherValues = other.toList();
     final len = min(otherValues.length, length);
     int count = 0;

@@ -12,7 +12,7 @@ import '../chord_selector.dart';
 import '../chroma.dart';
 import '../chroma_calculators/chroma_calculator.dart';
 import '../debug.dart';
-import '../filter.dart';
+import '../filters/filter.dart';
 
 abstract interface class ChordEstimable {
   ChordProgression estimate(AudioData data, [bool flush = true]);

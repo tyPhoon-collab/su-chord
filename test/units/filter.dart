@@ -1,5 +1,5 @@
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/filter.dart';
+import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/utils/formula.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -104,5 +104,19 @@ void main() {
         cls(-4) * 1 + cls(-3) * 4 + cls(-2) * 9 + cls(-1) * 16 + cls(0) * 25,
       );
     });
+  });
+
+  test('compression', () {
+    final chroma = [
+      Chroma(const [1, 2, 3]),
+      Chroma(const [10, 20, 30]),
+      Chroma(const [100, 200, 300]),
+    ];
+
+    final c = const CompressionFilter().call(chroma);
+
+    expect(c[0].max, 2);
+    expect(c[1].max, 20);
+    expect(c[2].max, 200);
   });
 }

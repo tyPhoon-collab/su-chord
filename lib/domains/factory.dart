@@ -8,7 +8,8 @@ import 'chroma.dart';
 import 'chroma_calculators/chroma_calculator.dart';
 import 'chroma_calculators/comb_filter.dart';
 import 'chroma_calculators/reassignment.dart';
-import 'filter.dart';
+import 'filters/chord_change_detector.dart';
+import 'filters/filter.dart';
 import 'magnitudes_calculator.dart';
 import 'note_extractor.dart';
 
