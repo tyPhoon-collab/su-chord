@@ -28,8 +28,10 @@ class EstimatorPage extends ConsumerStatefulWidget {
 
 class _EstimatorPageState extends ConsumerState<EstimatorPage> {
   ChordProgression _progression = ChordProgression.empty();
-  final surface = Get.theme.colorScheme.surfaceVariant;
-  final onSurface = Get.theme.colorScheme.onSurfaceVariant;
+
+  Color get surface => Get.theme.colorScheme.surfaceVariant;
+
+  Color get onSurface => Get.theme.colorScheme.onSurfaceVariant;
 
   @override
   Widget build(BuildContext context) => Builder(
