@@ -125,11 +125,12 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable reassignCombFilter({
     MagnitudeScalar scalar = MagnitudeScalar.none,
+    int overrideChunkSize = 8192,
   }) =>
       combFilter(
         magnitudesCalculable: magnitude.reassignment(
           scalar: scalar,
-          overrideChunkSize: 8192,
+          overrideChunkSize: overrideChunkSize,
         ),
       );
 

@@ -55,23 +55,24 @@ void main() {
       ]);
     });
 
-    test('_compare', () async {
-      final f = factory4096_0;
-      final chromaCalculators = [
-        f.guitarRange.reassignCombFilter(),
-        f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
-      ];
+    test('compare', () async {
+      final factories = [factory8192_0, factory4096_0];
+      final data = await const SimpleAudioLoader(
+              path:
+                  'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
+          .load(sampleRate: 22050, duration: 4.1, offset: 12);
 
-      await Future.wait(
-        chromaCalculators.map((cc) => writer(
-              f.filter
-                  .interval(4.seconds)
-                  .call(cc.call(data_G))
-                  .first
-                  .normalized,
+      await Future.wait([
+        for (final f in factories)
+          for (final cc in [
+            f.guitarRange.reassignCombFilter(),
+            f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+          ])
+            writer(
+              f.filter.interval(4.seconds).call(cc.call(data)).first.normalized,
               title: 'pcp of G $cc ${f.context}',
-            )),
-      );
+            )
+      ]);
     });
 
     group('power point example', () {

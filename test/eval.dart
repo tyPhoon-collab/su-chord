@@ -46,9 +46,9 @@ Future<void> main() async {
     contexts = await _EvaluatorContext.fromFolder(
       [
         'assets/evals/Halion_CleanGuitarVX',
-        'assets/evals/Halion_CleanStratGuitar',
-        'assets/evals/HojoGuitar',
-        'assets/evals/RealStrat',
+        // 'assets/evals/Halion_CleanStratGuitar',
+        // 'assets/evals/HojoGuitar',
+        // 'assets/evals/RealStrat',
       ],
       // songIdsFilter: ['13'],
     );
@@ -234,14 +234,14 @@ Future<void> main() async {
     test('cosine similarity', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
-        filters: f.filter.cosineSimilarity(),
+        filters: f.filter.cosineSimilarity(similarityThreshold: .85),
       );
 
       for (final context in contexts) {
         printProgression('corrects', context.corrects);
         for (final data in context.data.values) {
           final progression = e.estimate(data);
-          printProgression('predicts', progression);
+          printProgression('predicts', progression.simplify());
         }
         printSeparation();
       }

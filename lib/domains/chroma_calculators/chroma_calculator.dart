@@ -44,7 +44,8 @@ class ReassignmentCalculator extends STFTCalculator {
     this.isReassignTimeDimension = false,
     this.isReassignFrequencyDimension = true,
     this.scalar = MagnitudeScalar.none,
-  }) : super.hanning() {
+  })  : assert(isReassignFrequencyDimension || isReassignTimeDimension),
+        super.hanning() {
     if (isReassignFrequencyDimension) {
       final windowD = Float64List.fromList(
         window
