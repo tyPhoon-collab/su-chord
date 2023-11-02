@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
@@ -68,9 +67,20 @@ Future<void> main() async {
     });
   });
 
+  test('threshold', () {
+    final estimator = PatternMatchingChordEstimator(
+      chromaCalculable: f.guitarRange.reassignCombFilter(),
+      filters: [
+        const ThresholdChordChangeDetector(threshold: 15),
+      ],
+    );
+    final progress = estimator.estimate(data);
+    expect(progress.length, 20);
+  });
+
   test('triad', () async {
     final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: ReassignmentChromaCalculator(),
+      chromaCalculable: f.guitarRange.reassignCombFilter(),
       filters: [
         const ThresholdFilter(threshold: 100),
         TriadChordChangeDetector(),

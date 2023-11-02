@@ -6,6 +6,7 @@ import '../chroma.dart';
 import '../equal_temperament.dart';
 import 'filter.dart';
 
+///秒数によってコード区間を設定する
 class IntervalChordChangeDetector implements ChromaListFilter {
   IntervalChordChangeDetector({required this.interval, required this.dt}) {
     _intervalSeconds = interval.inMicroseconds / 1000000;
@@ -13,6 +14,9 @@ class IntervalChordChangeDetector implements ChromaListFilter {
       debugPrint('Interval is less than dt. This filter will be ignored');
     }
   }
+
+  @override
+  String toString() => 'interval HCDF $interval';
 
   final double dt;
   final Duration interval;
@@ -42,6 +46,42 @@ class IntervalChordChangeDetector implements ChromaListFilter {
   }
 }
 
+///無音区間があれば、そこをコード区間の区切りとする
+class ThresholdChordChangeDetector implements ChromaListFilter {
+  const ThresholdChordChangeDetector({required this.threshold});
+
+  final double threshold;
+
+  @override
+  String toString() => 'threshold HCDF $threshold';
+
+  @override
+  List<Chroma> call(List<Chroma> chroma) {
+    if (chroma.isEmpty) return [];
+
+    final filteredChromas = Map.fromEntries(
+        chroma.asMap().entries.where((e) => e.value.max >= threshold));
+
+    final indexes = filteredChromas.keys;
+    int count = 1;
+    int preIndex = indexes.first;
+    final slices = <int>[];
+
+    for (final index in indexes.skip(1)) {
+      if (index - 1 != preIndex) {
+        slices.add(count);
+        count = 0;
+      }
+      preIndex = index;
+      count++;
+    }
+
+    slices.add(count);
+
+    return average(filteredChromas.values.toList(), slices);
+  }
+}
+
 ///少ないコードタイプで推定することで、コード区間を概算する
 class TriadChordChangeDetector implements ChromaListFilter {
   // TriadChordChangeDetector({this.lookaheadSize = 5});
@@ -53,6 +93,9 @@ class TriadChordChangeDetector implements ChromaListFilter {
   ];
 
   // final int lookaheadSize;
+
+  @override
+  String toString() => 'triad HCDF';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
@@ -81,11 +124,15 @@ class TriadChordChangeDetector implements ChromaListFilter {
   }
 }
 
+///フレーム間のコサイン類似度を元にコード区間を推定する
 class CosineSimilarityChordChangeDetector implements ChromaListFilter {
   const CosineSimilarityChordChangeDetector({required this.threshold})
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]');
 
   final double threshold;
+
+  @override
+  String toString() => 'cosine similarity HCDF $threshold';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {

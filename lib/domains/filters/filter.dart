@@ -49,6 +49,9 @@ class AverageFilter implements ChromaListFilter {
   final int kernelRadius;
 
   @override
+  String toString() => 'average $kernelRadius';
+
+  @override
   List<Chroma> call(List<Chroma> chroma) {
     if (chroma.isEmpty) return const [];
     final filteredChroma = List.generate(chroma.length, (index) {
@@ -98,6 +101,9 @@ class GaussianFilter implements ChromaListFilter {
     );
   }
 
+  @override
+  String toString() => 'gaussian $kernelRadius';
+
   final double stdDevIndex;
   final int kernelRadius;
   late final List<double> _kernel;
@@ -123,6 +129,9 @@ class GaussianFilter implements ChromaListFilter {
 
 class CompressionFilter implements ChromaListFilter {
   const CompressionFilter();
+
+  @override
+  String toString() => 'compression';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {

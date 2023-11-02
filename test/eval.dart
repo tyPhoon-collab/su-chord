@@ -216,7 +216,7 @@ Future<void> main() async {
     test('fold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
-        filters: [f.filter.threshold(20)],
+        filters: [f.filter.powerThreshold(20)],
       );
 
       for (final context in contexts) {
@@ -225,6 +225,24 @@ Future<void> main() async {
         for (final data in context.data.values) {
           final progression = e.estimate(data);
           printProgression('predicts', progression.simplify());
+        }
+
+        printSeparation();
+      }
+    });
+
+    test('threshold', () {
+      final e = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        filters: f.filter.threshold(15),
+      );
+
+      for (final context in contexts) {
+        printProgression('corrects', context.corrects);
+
+        for (final data in context.data.values) {
+          final progression = e.estimate(data);
+          printProgression('predicts', progression);
         }
 
         printSeparation();

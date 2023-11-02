@@ -163,25 +163,29 @@ final class FilterFactory {
       ];
 
   Filters get triad => [
-        threshold(20),
+        powerThreshold(20),
         TriadChordChangeDetector(),
       ];
 
+  Filters threshold(double threshold) => [
+        ThresholdChordChangeDetector(threshold: threshold),
+      ];
+
   Filters cosineSimilarity({
-    double powerThreshold = 20,
+    double threshold = 20,
     double similarityThreshold = 0.8,
     bool isLogScale = false,
   }) =>
       [
-        threshold(isLogScale ? log(powerThreshold) : powerThreshold),
+        powerThreshold(isLogScale ? log(threshold) : threshold),
         CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
       ];
 
   ChromaListFilter interval(Duration duration) =>
       IntervalChordChangeDetector(interval: duration, dt: context.dt);
 
-  ChromaListFilter threshold(double powerThreshold) =>
-      ThresholdFilter(threshold: powerThreshold);
+  ChromaListFilter powerThreshold(double threshold) =>
+      ThresholdFilter(threshold: threshold);
 }
 
 final class ChordSelectorFactory {
