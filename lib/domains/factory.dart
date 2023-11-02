@@ -158,8 +158,24 @@ final class FilterFactory {
 
   final EstimatorFactoryContext context;
 
+  ///評価音源のための簡易的なクロマフィルタ
   Filters get eval => [
         interval(4.seconds),
+      ];
+
+  ///リアルタイム向きのクロマフィルタ
+  ///無音検知
+  ///類似度
+  Filters realtime({
+    double threshold = 20,
+    double similarityThreshold = 0.8,
+    bool isLogScale = false,
+  }) =>
+      [
+        ThresholdChordChangeDetector(
+          threshold: isLogScale ? log(threshold) : threshold,
+        ),
+        CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
       ];
 
   Filters get triad => [

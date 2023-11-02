@@ -1,7 +1,6 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
-import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -11,27 +10,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
-import '../writer.dart';
-
 void main() {
   late final AudioData sampleData;
-  late final AudioData noteC3Data;
   late final AudioData chordCData;
-  late final Writer writer;
 
   setUpAll(() async {
     sampleData = await AudioLoader.sample.load(sampleRate: 22050);
-    noteC3Data =
-        await const SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav')
-            .load(sampleRate: 22050);
     chordCData =
         await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
             .load(sampleRate: 22050);
-    writer = const PCPChartWriter();
   });
 
   group('base', () {
-    test('norm', () async {
+    test('l1norm', () async {
+      final c1 = Chroma(const [1, 1, 1, 1]);
+      expect(c1.l1norm, 4);
+
+      final c2 = Chroma(const [-1, -1, -1, -1]);
+      expect(c2.l1norm, 4);
+    });
+
+    test('l2norm', () async {
       final c1 = Chroma(const [1, 1, 1, 1]);
       expect(c1.l2norm, 2);
 
@@ -56,107 +55,10 @@ void main() {
     });
   });
 
-  group('reassignment', () {
-    test('one note', () async {
-      final chroma = ReassignmentChromaCalculator()(noteC3Data).first;
-
-      debugPrint(chroma.toString());
-      expect(chroma.maxIndex, 0);
-    });
-
-    test('chord', () async {
-      final chroma = ReassignmentChromaCalculator()(chordCData).first;
-
-      expect(chroma.maxIndex, 0);
-    });
-
-    test('long duration', () async {
-      final chromas = ReassignmentChromaCalculator()(sampleData);
-
-      expect(chromas, isNotEmpty);
-    });
-
-    test('normalized', () async {
-      final chromas =
-          ReassignmentChromaCalculator()(sampleData.cut(duration: 4));
-      final chroma = chromas[0].normalized;
-
-      expect(chroma, isNotNull);
-    });
-  });
-
-  group('comb filter', () {
-    test('one note', () async {
-      final chroma = CombFilterChromaCalculator(
-              magnitudesCalculable: MagnitudesCalculator())(noteC3Data)
-          .first;
-
-      debugPrint(chroma.toString());
-      expect(chroma.maxIndex, 0);
-    });
-
-    test('chord', () async {
-      final chroma = CombFilterChromaCalculator(
-              magnitudesCalculable: MagnitudesCalculator())(chordCData)
-          .first;
-
-      expect(chroma, isNotNull);
-    });
-
-    test('std dev coef', () async {
-      final f = factory8192_0;
-      final data = sampleData.cut(duration: 4);
-
-      const contexts = [
-        CombFilterContext(hzStdDevCoefficient: 1 / 24),
-        CombFilterContext(hzStdDevCoefficient: 1 / 48),
-        // ignore: avoid_redundant_argument_values
-        CombFilterContext(hzStdDevCoefficient: 1 / 72),
-        CombFilterContext(hzStdDevCoefficient: 1 / 96),
-      ];
-
-      for (final c in contexts) {
-        final chroma = f.filter
-            .interval(4.seconds)(
-              CombFilterChromaCalculator(
-                magnitudesCalculable: f.magnitude.stft(),
-                context: c,
-              ).call(data),
-            )
-            .first
-            .normalized;
-
-        writer(chroma, title: c.toString());
-      }
-    });
-
-    test('log vs normal', () async {
-      final data = sampleData.cut(duration: 4);
-
-      final filter = factory8192_0.filter.interval(4.seconds);
-
-      debugPrint(filter(
-        factory8192_0.bigRange.combFilter().call(data),
-      ).first.normalized.toString());
-
-      debugPrint(filter(
-        factory8192_0.bigRange
-            .combFilter(
-                magnitudesCalculable: factory8192_0.magnitude.stft(
-              scalar: MagnitudeScalar.ln,
-            ))
-            .call(data),
-      ).first.normalized.toString());
-    });
-
-    test('guitar tuning', () async {
-      final ccd = factory8192_0.filter.interval(3.seconds);
-      final chromas = ccd(factory8192_0.guitarRange
-          .combFilter()
-          .call(sampleData.cut(duration: 4)));
-
-      expect(chromas[0], isNotNull);
-    });
+  test('tonal centroid', () {
+    final pcp = PCP(const [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0]);
+    final tc = TonalCentroid.fromPCP(pcp);
+    debugPrint(tc.toString());
   });
 
   test('cosine similarity', () {
@@ -167,7 +69,7 @@ void main() {
 
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
     final template = PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized;
-    writer(pcp.cosineSimilarity(template));
+    debugPrint(pcp.cosineSimilarity(template).toString());
   });
 
   test('compare cosine similarity', () async {
@@ -225,7 +127,7 @@ void main() {
 
     for (final c in cs) {
       final chroma = filter(c(data)).first.normalized;
-      writer(chroma, title: c.toString());
+      debugPrint(chroma.toString());
     }
   });
 }

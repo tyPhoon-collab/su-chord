@@ -42,8 +42,9 @@ class Chroma extends Iterable<double> {
       _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
   late final normalized = l2norm == 0
-      ? Chroma.zero(12)
+      ? Chroma.zero(_values.length)
       : Chroma(_values.map((e) => e / l2norm).toList());
+  late final l1norm = _values.fold(0.0, (sum, e) => sum + e.abs());
   late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
@@ -119,6 +120,36 @@ class PCP extends Chroma {
   }
 
   static final zero = PCP(List.filled(12, 0));
+}
+
+///based; Detecting Harmonic Change In Musical Audio
+@immutable
+class TonalCentroid extends Chroma {
+  TonalCentroid(super.values) : assert(values.length == 6);
+
+  factory TonalCentroid.fromPCP(
+    PCP pcp, {
+    double r1 = 1,
+    double r2 = 1,
+    double r3 = 0.5,
+  }) {
+    Iterable<double> calcCentroid(double r, double phase) {
+      return [
+        pcp.reduceIndexed((i, v, e) => v + e * r * sin(i * phase)),
+        pcp.reduceIndexed((i, v, e) => v + e * r * cos(i * phase)),
+      ];
+    }
+
+    final List<double> centroids = [
+      ...calcCentroid(r1, 7 * pi / 6),
+      ...calcCentroid(r2, 3 * pi / 2),
+      ...calcCentroid(r3, 2 * pi / 3),
+    ];
+
+    final scaledCentroid = centroids.map((e) => e / pcp.l1norm).toList();
+
+    return TonalCentroid(scaledCentroid);
+  }
 }
 
 @immutable
