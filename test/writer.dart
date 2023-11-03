@@ -4,44 +4,24 @@ import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
-void _debugPrintIfNotEmpty(dynamic output) {
-  if (output is String && output.isNotEmpty) {
-    debugPrint(output);
-  } else {
-    debugPrint(output);
-  }
-}
+typedef LogTest = void Function(Object e, {String? title});
 
-abstract interface class Writer {
-  static const debugPrint = DebugPrintWriter();
-
-  Future<void> call(dynamic e, {String? title});
-}
-
-class DebugPrintWriter implements Writer {
-  const DebugPrintWriter();
-
-  @override
-  Future<void> call(e, {String? title}) async {
-    debugPrint('[${title ?? 'log'}] $e');
-  }
+//develop.logはtestモードでは機能しない
+//logのような機能をdebugPrintで代用した関数
+void logTest(Object e, {String? title}) {
+  debugPrint('[${title ?? 'log'}] $e');
 }
 
 //TODO Writer to ChartWriter?
-class BarChartWriter implements Writer {
+class BarChartWriter {
   const BarChartWriter();
 
-  @override
-  Future<void> call(e, {String? title}) async {
-    if (e is! Iterable) {
-      Writer.debugPrint(e, title: title);
-      return;
-    }
+  Future<void> call(Iterable<num> data, {String? title}) async {
     final result = await Process.run(
       'python3',
       [
         'python/plots/bar.py',
-        ...e.map((e) => e.toString()),
+        ...data.map((e) => e.toString()),
         if (title != null) ...[
           '--title',
           title,
@@ -58,20 +38,15 @@ class BarChartWriter implements Writer {
   }
 }
 
-class PCPChartWriter implements Writer {
+class PCPChartWriter {
   const PCPChartWriter();
 
-  @override
-  Future<void> call(e, {String? title}) async {
-    if (e is! Iterable) {
-      Writer.debugPrint(e, title: title);
-      return;
-    }
+  Future<void> call(Iterable<num> data, {String? title}) async {
     final result = await Process.run(
       'python3',
       [
         'python/plots/bar.py',
-        ...e.map((e) => e.toString()),
+        ...data.map((e) => e.toString()),
         if (title != null) ...[
           '--title',
           title,
@@ -89,55 +64,49 @@ class PCPChartWriter implements Writer {
   }
 }
 
-abstract class UsingTempCSVFileChartWriter implements Writer {
-  const UsingTempCSVFileChartWriter();
-
-  @override
-  Future<void> call(e, {String? title}) async {
-    if (e is! Iterable<Iterable>) {
-      Writer.debugPrint(e, title: title);
-      return;
-    }
-    final data = (e as List<Iterable>)
-        .map((e) => e.map((e) => e.toString()).toList())
-        .toList();
-
+mixin class _UsingTempCSVFileChartWriter {
+  Future<void> runWithTempCSVFile(
+    List<List<String>> data,
+    Future<ProcessResult> Function(String filePath) run,
+  ) async {
     final fileName = const Uuid().v4();
     final file = Table(data).toCSV('test/outputs/$fileName.csv');
-    debugPrint('created: ${file.path}');
+    final filePath = file.path;
+    debugPrint('created: $filePath');
 
-    final result = await run(e, title, file);
+    final result = await run(filePath);
     _debugPrintIfNotEmpty(result.stdout);
     _debugPrintIfNotEmpty(result.stderr);
 
     await file.delete();
-    debugPrint('deleted: ${file.path}');
+    debugPrint('deleted: $filePath');
   }
-
-  @protected
-  Future<ProcessResult> run(e, String? title, File file);
 }
 
-class LineChartWriter extends UsingTempCSVFileChartWriter {
+class LineChartWriter with _UsingTempCSVFileChartWriter {
   const LineChartWriter();
 
-  @override
-  Future<ProcessResult> run(e, String? title, File file) => Process.run(
-        'python3',
-        [
-          'python/plots/line.py',
-          file.path,
-          if (title != null) ...[
-            '--title',
-            title,
-            '--output',
-            'test/outputs/plots/$title.png',
-          ]
-        ],
+  Future<void> call(Iterable<Iterable<num>> data, {String? title}) async =>
+      runWithTempCSVFile(
+        data.map((e) => e.map((e) => e.toString()).toList()).toList(),
+        (filePath) => Process.run(
+          'python3',
+          [
+            'python/plots/line.py',
+            filePath,
+            if (title != null) ...[
+              '--title',
+              title,
+              '--output',
+              'test/outputs/plots/$title.png',
+            ]
+          ],
+        ),
       );
 }
 
-class SpecChartWriter extends UsingTempCSVFileChartWriter {
+/// LibROSA based
+class SpecChartWriter with _UsingTempCSVFileChartWriter {
   const SpecChartWriter({
     required this.sampleRate,
     required this.chunkSize,
@@ -156,25 +125,34 @@ class SpecChartWriter extends UsingTempCSVFileChartWriter {
   final int chunkStride;
   final String? yAxis;
 
-  @override
-  Future<ProcessResult> run(e, String? title, File file) => Process.run(
-        'python3',
-        [
-          'python/plots/spec.py',
-          file.path,
-          sampleRate.toString(),
-          chunkSize.toString(),
-          chunkStride.toString(),
-          if (title != null) ...[
-            '--title',
-            title,
-            '--output',
-            'test/outputs/plots/$title.png',
+  Future<void> call(Iterable<Iterable<num>> data, {String? title}) async =>
+      runWithTempCSVFile(
+        data.map((e) => e.map((e) => e.toString()).toList()).toList(),
+        (filePath) => Process.run(
+          'python3',
+          [
+            'python/plots/spec.py',
+            filePath,
+            sampleRate.toString(),
+            chunkSize.toString(),
+            chunkStride.toString(),
+            if (title != null) ...[
+              '--title',
+              title,
+              '--output',
+              'test/outputs/plots/$title.png',
+            ],
+            if (yAxis case final String yAxis) ...[
+              '--y_axis',
+              yAxis,
+            ]
           ],
-          if (yAxis case final String yAxis) ...[
-            '--y_axis',
-            yAxis,
-          ]
-        ],
+        ),
       );
+}
+
+void _debugPrintIfNotEmpty(dynamic output) {
+  if (output is String && output.isNotEmpty) {
+    debugPrint(output);
+  }
 }

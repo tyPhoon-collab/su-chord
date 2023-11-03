@@ -124,7 +124,7 @@ void main() {
       chunkStride: f.context.chunkStride,
     );
 
-    test('stft vs reassignment', () async {
+    test('scalar, stft vs reassignment', () async {
       const scalar = MagnitudeScalar.dB;
       final data = await DataSet().nutcrackerShort;
 
@@ -137,19 +137,19 @@ void main() {
       ]);
     });
 
-    // test('stft vs reassignment', () async {
-    //   final data = await DataSet().sample;
-    //
-    //   final mags1 = f.magnitude.stft().call(data);
-    //   final mags2 = f.magnitude
-    //       .reassignment(overrideChunkSize: 8192)
-    //       .call(data.cut(duration: 16));
-    //
-    //   await Future.wait([
-    //     writer(mags1, title: 'mags ${f.context}'),
-    //     writer(mags2, title: 'reassignment ${f.context}'),
-    //   ]);
-    // });
+    test('mags, stft vs reassignment', () async {
+      final data = await DataSet().sample;
+
+      final mags1 = f.magnitude.stft().call(data);
+      final mags2 = f.magnitude
+          .reassignment(overrideChunkSize: 8192)
+          .call(data.cut(duration: 16));
+
+      await Future.wait([
+        writer(mags1, title: 'mags ${f.context}'),
+        writer(mags2, title: 'reassignment ${f.context}'),
+      ]);
+    });
   });
 
   group('chromagram', () {

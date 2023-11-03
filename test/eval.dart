@@ -415,8 +415,8 @@ class _Evaluator {
     this.validator,
   }) : _table = Table.empty(header);
 
-  static Writer? progressionWriter = const DebugPrintWriter();
-  static Writer? correctionWriter = const DebugPrintWriter();
+  static LogTest? progressionWriter = logTest;
+  static LogTest? correctionWriter = logTest;
 
   final ChordEstimable estimator;
   final Table _table;
