@@ -5,23 +5,19 @@ import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../data_set.dart';
 import '../util.dart';
 
 void main() {
-  late final AudioData data;
   final f = factory2048_1024;
 
-  setUpAll(() async {
-    data = await AudioLoader.sample.load(sampleRate: f.context.sampleRate);
-  });
-
-  test('reassignment', () {
+  test('reassignment', () async {
     final e = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.reassignment(),
       filters: f.filter.eval,
     );
 
-    final chords = e.estimate(data);
+    final chords = e.estimate(await DataSet().sample);
 
     expect(chords.length, 20);
   });
@@ -33,7 +29,7 @@ void main() {
       chordSelectable: await f.selector.db,
     );
 
-    final chords = e.estimate(data);
+    final chords = e.estimate(await DataSet().sample);
 
     expect(chords.length, 20);
   });
@@ -44,7 +40,7 @@ void main() {
       filters: f.filter.eval,
     );
 
-    final chords = e.estimate(data);
+    final chords = e.estimate(await DataSet().sample);
 
     expect(chords.length, 20);
   });

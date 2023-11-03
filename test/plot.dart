@@ -9,29 +9,10 @@ import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
+import 'data_set.dart';
 import 'writer.dart';
 
 void main() {
-  late final AudioData data;
-  late final AudioData data_G; // ignore: non_constant_identifier_names
-  late final AudioData data_C; // ignore: non_constant_identifier_names
-  late final AudioData data_G_Em_Bm_C; // ignore: non_constant_identifier_names
-  late final AudioData nutcrackerData;
-
-  setUpAll(() async {
-    data = await AudioLoader.sample.load(sampleRate: 22050);
-    data_G = data.cut(duration: 4.1);
-    data_C = data.cut(duration: 4, offset: 12.1);
-    data_G_Em_Bm_C = data.cut(duration: 16.1);
-
-    nutcrackerData = await const SimpleAudioLoader(
-      path: 'assets/evals/nutcracker.wav',
-    ).load(
-      duration: 30,
-      sampleRate: 22050,
-    );
-  });
-
   group('pcp bar chart', () {
     const writer = PCPChartWriter();
 
@@ -49,7 +30,11 @@ void main() {
             f.guitarRange.reassignCombFilter(),
           ])
             writer(
-              f.filter.interval(4.seconds).call(cc(data_G)).first.normalized,
+              f.filter
+                  .interval(4.seconds)
+                  .call(cc(await DataSet().G))
+                  .first
+                  .normalized,
               title: 'pcp of G, ${f.context} $cc',
             )
       ]);
@@ -79,7 +64,8 @@ void main() {
       final f = factory8192_0;
 
       test('PCP of G', () async {
-        final chromas = f.guitarRange.reassignCombFilter().call(data_G);
+        final chromas =
+            f.guitarRange.reassignCombFilter().call(await DataSet().G);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of G');
@@ -93,7 +79,8 @@ void main() {
       });
 
       test('PCP of C', () async {
-        final chromas = f.guitarRange.reassignCombFilter().call(data_C);
+        final chromas =
+            f.guitarRange.reassignCombFilter().call(await DataSet().C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.normalized, title: 'PCP of C');
@@ -138,10 +125,10 @@ void main() {
 
     test('stft vs reassignment', () async {
       const scalar = MagnitudeScalar.dB;
+      final data = await DataSet().nutcrackerShort;
 
-      final mags1 = f.magnitude.stft(scalar: scalar).call(nutcrackerData);
-      final mags2 =
-          f.magnitude.reassignment(scalar: scalar).call(nutcrackerData);
+      final mags1 = f.magnitude.stft(scalar: scalar).call(data);
+      final mags2 = f.magnitude.reassignment(scalar: scalar).call(data);
 
       await Future.wait([
         writer(mags1, title: '${scalar.name} mags ${f.context}'),
@@ -150,6 +137,8 @@ void main() {
     });
 
     test('stft vs reassignment', () async {
+      final data = await DataSet().sample;
+
       final mags1 = f.magnitude.stft().call(data);
       final mags2 = f.magnitude
           .reassignment(overrideChunkSize: 8192)
@@ -178,22 +167,23 @@ void main() {
       ];
 
       await Future.wait(
-        estimators.map((e) => writer(
-              e.call(data_G_Em_Bm_C),
+        estimators.map((e) async => writer(
+              e.call(await DataSet().G_Em_Bm_C),
               title: 'chromagram $e ${f.context}',
             )),
       );
     });
 
     test('common', () async {
-      final chromas = f.guitarRange.reassignCombFilter().call(data_G_Em_Bm_C);
+      final chromas =
+          f.guitarRange.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
     });
 
     test('log scaled', () async {
       final chromas = f.guitarRange
           .reassignCombFilter(scalar: MagnitudeScalar.ln)
-          .call(data.cut(duration: 12));
+          .call(await DataSet().G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
     });
 
@@ -204,7 +194,7 @@ void main() {
           // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
         ];
         final cc = f.guitarRange.reassignCombFilter();
-        var chromas = cc(data.cut(duration: 12));
+        var chromas = cc(await DataSet().G_Em_Bm_C);
         await writer(chromas, title: 'chromagram 0 $cc');
 
         int count = 0;
@@ -221,7 +211,7 @@ void main() {
           // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
         ];
         final cc = f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln);
-        var chromas = cc(data.cut(duration: 12));
+        var chromas = cc(await DataSet().G_Em_Bm_C);
         await writer(chromas, title: 'chromagram 0 $cc');
 
         int count = 0;

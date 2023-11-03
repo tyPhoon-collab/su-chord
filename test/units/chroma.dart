@@ -4,23 +4,14 @@ import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
-import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
+import '../data_set.dart';
+
 void main() {
-  late final AudioData sampleData;
-  late final AudioData chordCData;
-
-  setUpAll(() async {
-    sampleData = await AudioLoader.sample.load(sampleRate: 22050);
-    chordCData =
-        await const SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav')
-            .load(sampleRate: 22050);
-  });
-
   group('base', () {
     test('l1norm', () async {
       final c1 = Chroma(const [1, 1, 1, 1]);
@@ -61,11 +52,11 @@ void main() {
     debugPrint(tc.toString());
   });
 
-  test('cosine similarity', () {
+  test('cosine similarity', () async {
     final f = factory8192_0;
     final chromas = f.guitarRange
         .reassignCombFilter()
-        .call(sampleData.cut(duration: 4, offset: 12));
+        .call(await DataSet().G_Em_Bm_C);
 
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
     final template = PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized;
@@ -101,7 +92,7 @@ void main() {
     ];
 
     for (final c in calculator) {
-      final chroma = ccd(c(chordCData)).first;
+      final chroma = ccd(c(await DataSet().osawa.C)).first;
       debugPrint('chroma: ${chroma.normalized}');
       for (final value in templates) {
         debugPrint(
@@ -112,7 +103,6 @@ void main() {
   });
 
   test('compare chroma', () async {
-    final data = sampleData.cut(duration: 4);
     final f = factory8192_0;
     final cs = [
       for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
@@ -126,7 +116,7 @@ void main() {
     final filter = f.filter.interval(4.seconds);
 
     for (final c in cs) {
-      final chroma = filter(c(data)).first.normalized;
+      final chroma = filter(c(await DataSet().G)).first.normalized;
       debugPrint(chroma.toString());
     }
   });

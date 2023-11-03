@@ -1,44 +1,36 @@
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
-import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
-  late final AudioData data;
-  late final EstimatorFactory factory;
+import '../data_set.dart';
 
-  setUpAll(() async {
-    data = await AudioLoader.sample.load(
-      duration: 4,
-      sampleRate: 22050,
-    );
-    factory = factory8192_0;
-  });
+void main() {
+  late final f = factory8192_0;
 
   test('stft', () async {
-    final c = factory.magnitude.stft();
-    final mags = c(data);
+    final c = f.magnitude.stft();
+    final mags = c(await DataSet().G);
     expect(mags, isNotEmpty);
   });
 
   test('reassignment', () async {
-    final c = factory.magnitude.reassignment();
-    final mags = c(data);
+    final c = f.magnitude.reassignment();
+    final mags = c(await DataSet().G);
     debugPrint(mags.first.length.toString());
     expect(mags, isNotEmpty);
   });
 
   test('keep resolution reassignment', () async {
     final c = factory2048_1024.magnitude.reassignment(overrideChunkSize: 8192);
-    final mags = c(data);
+    final mags = c(await DataSet().G);
     debugPrint(mags.first.length.toString());
     expect(mags, isNotEmpty);
   });
 
   test('reassignment dB', () async {
-    final c = factory.magnitude.reassignment(scalar: MagnitudeScalar.dB);
-    final mags = c(data);
+    final c = f.magnitude.reassignment(scalar: MagnitudeScalar.dB);
+    final mags = c(await DataSet().G);
     expect(mags, isNotEmpty);
   });
 

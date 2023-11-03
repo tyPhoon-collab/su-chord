@@ -7,23 +7,18 @@ import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
-import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
+import '../data_set.dart';
 import '../util.dart';
 
 Future<void> main() async {
   final f = factory8192_0;
-  late final AudioData data;
   late final ChordProgression corrects;
 
   setUpAll(() async {
-    data = await AudioLoader.sample.load(
-      sampleRate: f.context.sampleRate,
-      duration: 80,
-    );
     corrects = ChordProgression.fromCSVRow(
       (await CSVLoader.corrects.load())[1]
           .skip(1)
@@ -57,24 +52,24 @@ Future<void> main() async {
       expect(ccd(chromas).length, 4); // same as chromas.length
     });
 
-    test('estimator', () {
+    test('estimator', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.eval,
       );
-      final progress = estimator.estimate(data);
+      final progress = estimator.estimate(await DataSet().sample);
       expect(progress.length, 20);
     });
   });
 
-  test('threshold', () {
+  test('threshold', () async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.reassignCombFilter(),
       filters: [
         const ThresholdChordChangeDetector(threshold: 15),
       ],
     );
-    final progress = estimator.estimate(data);
+    final progress = estimator.estimate(await DataSet().sample);
     expect(progress.length, 20);
   });
 
@@ -86,7 +81,7 @@ Future<void> main() async {
         TriadChordChangeDetector(),
       ],
     );
-    final progress = estimator.estimate(data);
+    final progress = estimator.estimate(await DataSet().sample);
     expect(progress.length, 20);
   });
 
@@ -101,7 +96,7 @@ Future<void> main() async {
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: base,
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
 
@@ -113,7 +108,7 @@ Future<void> main() async {
           const AverageFilter(kernelRadius: 1),
         ],
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
 
@@ -125,7 +120,7 @@ Future<void> main() async {
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
         ],
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
   });
@@ -139,11 +134,11 @@ Future<void> main() async {
           const CosineSimilarityChordChangeDetector(threshold: 0.8),
         ],
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
 
-    test('0.9', () {
+    test('0.9', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: [
@@ -151,11 +146,11 @@ Future<void> main() async {
           const CosineSimilarityChordChangeDetector(threshold: 0.9),
         ],
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
 
-    test('log', () {
+    test('log', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable:
             f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
@@ -164,7 +159,7 @@ Future<void> main() async {
           const CosineSimilarityChordChangeDetector(threshold: 0.8),
         ],
       );
-      final progression = estimator.estimate(data);
+      final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
     });
   });
