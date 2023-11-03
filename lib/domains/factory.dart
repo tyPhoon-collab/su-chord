@@ -172,10 +172,10 @@ final class FilterFactory {
     bool isLogScale = false,
   }) =>
       [
-        ThresholdChordChangeDetector(
+        PowerThresholdChordChangeDetector(
           threshold: isLogScale ? log(threshold) : threshold,
         ),
-        CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
+        PreFrameCheckChordChangeDetector.cosineSimilarity(similarityThreshold),
       ];
 
   Filters get triad => [
@@ -184,7 +184,7 @@ final class FilterFactory {
       ];
 
   Filters threshold(double threshold) => [
-        ThresholdChordChangeDetector(threshold: threshold),
+        PowerThresholdChordChangeDetector(threshold: threshold),
       ];
 
   Filters cosineSimilarity({
@@ -194,7 +194,7 @@ final class FilterFactory {
   }) =>
       [
         powerThreshold(isLogScale ? log(threshold) : threshold),
-        CosineSimilarityChordChangeDetector(threshold: similarityThreshold),
+        PreFrameCheckChordChangeDetector.cosineSimilarity(similarityThreshold),
       ];
 
   ChromaListFilter interval(Duration duration) =>

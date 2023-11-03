@@ -66,7 +66,7 @@ Future<void> main() async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.reassignCombFilter(),
       filters: [
-        const ThresholdChordChangeDetector(threshold: 15),
+        const PowerThresholdChordChangeDetector(threshold: 15),
       ],
     );
     final progress = estimator.estimate(await DataSet().sample);
@@ -125,42 +125,72 @@ Future<void> main() async {
     });
   });
 
-  group('cosine similarity', () {
-    test('0.8', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
-        filters: [
-          const ThresholdFilter(threshold: 20),
-          const CosineSimilarityChordChangeDetector(threshold: 0.8),
-        ],
-      );
-      final progression = estimator.estimate(await DataSet().sample);
-      printProgressions(progression, corrects);
+  group('pre frame', () {
+
+    group('cosine similarity', () {
+      test('0.8', () async {
+        final estimator = PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: [
+            const ThresholdFilter(threshold: 20),
+            const PreFrameCheckChordChangeDetector.cosineSimilarity( 0.8),
+          ],
+        );
+        final progression = estimator.estimate(await DataSet().sample);
+        printProgressions(progression, corrects);
+      });
+
+      test('0.9', () async {
+        final estimator = PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: [
+            const ThresholdFilter(threshold: 20),
+            const PreFrameCheckChordChangeDetector.cosineSimilarity(0.9),
+          ],
+        );
+        final progression = estimator.estimate(await DataSet().sample);
+        printProgressions(progression, corrects);
+      });
+
+      test('log', () async {
+        final estimator = PatternMatchingChordEstimator(
+          chromaCalculable:
+          f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+          filters: [
+            ThresholdFilter(threshold: log(15)),
+            const PreFrameCheckChordChangeDetector.cosineSimilarity(0.8),
+          ],
+        );
+        final progression = estimator.estimate(await DataSet().sample);
+        printProgressions(progression, corrects);
+      });
     });
 
-    test('0.9', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
-        filters: [
-          const ThresholdFilter(threshold: 20),
-          const CosineSimilarityChordChangeDetector(threshold: 0.9),
-        ],
-      );
-      final progression = estimator.estimate(await DataSet().sample);
-      printProgressions(progression, corrects);
-    });
+    group('tonal centroid', () {
+      test('0.8', () async {
+        final estimator = PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: [
+            const ThresholdFilter(threshold: 20),
+            const PreFrameCheckChordChangeDetector.tonalCentroid( 0.8),
+          ],
+        );
+        final progression = estimator.estimate(await DataSet().sample);
+        printProgressions(progression, corrects);
+      });
 
-    test('log', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable:
-            f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
-        filters: [
-          ThresholdFilter(threshold: log(15)),
-          const CosineSimilarityChordChangeDetector(threshold: 0.8),
-        ],
-      );
-      final progression = estimator.estimate(await DataSet().sample);
-      printProgressions(progression, corrects);
+      test('0.9', () async {
+        final estimator = PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          filters: [
+            const ThresholdFilter(threshold: 20),
+            const PreFrameCheckChordChangeDetector.tonalCentroid(0.9),
+          ],
+        );
+        final progression = estimator.estimate(await DataSet().sample);
+        printProgressions(progression, corrects);
+      });
     });
   });
+
 }

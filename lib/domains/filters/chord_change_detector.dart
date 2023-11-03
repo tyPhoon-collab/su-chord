@@ -47,8 +47,8 @@ class IntervalChordChangeDetector implements ChromaListFilter {
 }
 
 ///無音区間があれば、そこをコード区間の区切りとする
-class ThresholdChordChangeDetector implements ChromaListFilter {
-  const ThresholdChordChangeDetector({required this.threshold});
+class PowerThresholdChordChangeDetector implements ChromaListFilter {
+  const PowerThresholdChordChangeDetector({required this.threshold});
 
   final double threshold;
 
@@ -124,15 +124,59 @@ class TriadChordChangeDetector implements ChromaListFilter {
   }
 }
 
-///フレーム間のコサイン類似度を元にコード区間を推定する
-class CosineSimilarityChordChangeDetector implements ChromaListFilter {
-  const CosineSimilarityChordChangeDetector({required this.threshold})
-      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]');
+abstract interface class ScoreCalculable {
+  double call(Chroma current, Chroma pre);
+}
 
-  final double threshold;
+final class CosineSimilarityScore implements ScoreCalculable {
+  const CosineSimilarityScore();
 
   @override
-  String toString() => 'cosine similarity HCDF $threshold';
+  String toString() => 'cosine similarity';
+
+  @override
+  double call(Chroma current, Chroma pre) => current.cosineSimilarity(pre);
+}
+
+final class TonalCentroidScore implements ScoreCalculable {
+  const TonalCentroidScore({
+    this.r1 = 1,
+    this.r2 = 1,
+    this.r3 = .5,
+  });
+
+  final double r1;
+  final double r2;
+  final double r3;
+
+  @override
+  String toString() => 'tonal centroid';
+
+  @override
+  double call(Chroma current, Chroma pre) =>
+      TonalCentroid.fromPCP(PCP(current.toList()))
+          .cosineSimilarity(TonalCentroid.fromPCP(PCP(pre.toList())));
+}
+
+class PreFrameCheckChordChangeDetector implements ChromaListFilter {
+  const PreFrameCheckChordChangeDetector({
+    required this.scoreCalculate,
+    required this.threshold,
+  });
+
+  const PreFrameCheckChordChangeDetector.cosineSimilarity(this.threshold)
+      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
+        scoreCalculate = const CosineSimilarityScore();
+
+  const PreFrameCheckChordChangeDetector.tonalCentroid(this.threshold)
+      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
+        scoreCalculate = const TonalCentroidScore();
+
+  final double threshold;
+  final ScoreCalculable scoreCalculate;
+
+  @override
+  String toString() => '$scoreCalculate HCDF $threshold';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
@@ -143,8 +187,8 @@ class CosineSimilarityChordChangeDetector implements ChromaListFilter {
     Chroma preChroma = chroma.first;
     int count = 1;
     for (final value in chroma.skip(1)) {
-      final score = value.cosineSimilarity(preChroma);
-      // debugPrint(score.toStringAsFixed(3));
+      final score = scoreCalculate(value, preChroma);
+      debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {
         slices.add(count);

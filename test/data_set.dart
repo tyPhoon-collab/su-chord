@@ -32,7 +32,7 @@ class DataSet {
 }
 
 class CacheableAudioLoader {
-  CacheableAudioLoader({required this.sampleRate}) : _cache = const {};
+  CacheableAudioLoader({required this.sampleRate}) : _cache = {};
 
   final int sampleRate;
   final Map<String, AudioData> _cache;
