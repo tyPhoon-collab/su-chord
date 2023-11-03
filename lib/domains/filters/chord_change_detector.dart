@@ -160,23 +160,23 @@ final class TonalCentroidScore implements ScoreCalculable {
 
 class PreFrameCheckChordChangeDetector implements ChromaListFilter {
   const PreFrameCheckChordChangeDetector({
-    required this.scoreCalculate,
+    required this.scoreCalculable,
     required this.threshold,
   });
 
   const PreFrameCheckChordChangeDetector.cosineSimilarity(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculate = const CosineSimilarityScore();
+        scoreCalculable = const CosineSimilarityScore();
 
   const PreFrameCheckChordChangeDetector.tonalCentroid(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculate = const TonalCentroidScore();
+        scoreCalculable = const TonalCentroidScore();
 
   final double threshold;
-  final ScoreCalculable scoreCalculate;
+  final ScoreCalculable scoreCalculable;
 
   @override
-  String toString() => '$scoreCalculate HCDF $threshold';
+  String toString() => '$scoreCalculable HCDF $threshold';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
@@ -187,7 +187,7 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
     Chroma preChroma = chroma.first;
     int count = 1;
     for (final value in chroma.skip(1)) {
-      final score = scoreCalculate(value, preChroma);
+      final score = scoreCalculable(value, preChroma);
       debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {

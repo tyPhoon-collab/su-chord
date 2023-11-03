@@ -4,6 +4,14 @@ import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+void _debugPrintIfNotEmpty(dynamic output) {
+  if (output is String && output.isNotEmpty) {
+    debugPrint(output);
+  } else {
+    debugPrint(output);
+  }
+}
+
 abstract interface class Writer {
   static const debugPrint = DebugPrintWriter();
 
@@ -46,7 +54,7 @@ class BarChartWriter implements Writer {
         '0',
       ],
     );
-    debugPrint(result.stderr);
+    _debugPrintIfNotEmpty(result.stderr);
   }
 }
 
@@ -77,20 +85,12 @@ class PCPChartWriter implements Writer {
         '--pcp',
       ],
     );
-    debugPrint(result.stderr);
+    _debugPrintIfNotEmpty(result.stderr);
   }
 }
 
 abstract class UsingTempCSVFileChartWriter implements Writer {
   const UsingTempCSVFileChartWriter();
-
-  void _debugPrintIfNotEmpty(dynamic output) {
-    if (output is String && output.isNotEmpty) {
-      debugPrint(output);
-    } else {
-      debugPrint(output);
-    }
-  }
 
   @override
   Future<void> call(e, {String? title}) async {
@@ -116,6 +116,25 @@ abstract class UsingTempCSVFileChartWriter implements Writer {
 
   @protected
   Future<ProcessResult> run(e, String? title, File file);
+}
+
+class LineChartWriter extends UsingTempCSVFileChartWriter {
+  const LineChartWriter();
+
+  @override
+  Future<ProcessResult> run(e, String? title, File file) => Process.run(
+        'python3',
+        [
+          'python/plots/line.py',
+          file.path,
+          if (title != null) ...[
+            '--title',
+            title,
+            '--output',
+            'test/outputs/plots/$title.png',
+          ]
+        ],
+      );
 }
 
 class SpecChartWriter extends UsingTempCSVFileChartWriter {

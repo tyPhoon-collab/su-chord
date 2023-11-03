@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
@@ -136,19 +137,19 @@ void main() {
       ]);
     });
 
-    test('stft vs reassignment', () async {
-      final data = await DataSet().sample;
-
-      final mags1 = f.magnitude.stft().call(data);
-      final mags2 = f.magnitude
-          .reassignment(overrideChunkSize: 8192)
-          .call(data.cut(duration: 16));
-
-      await Future.wait([
-        writer(mags1, title: 'mags ${f.context}'),
-        writer(mags2, title: 'reassignment ${f.context}'),
-      ]);
-    });
+    // test('stft vs reassignment', () async {
+    //   final data = await DataSet().sample;
+    //
+    //   final mags1 = f.magnitude.stft().call(data);
+    //   final mags2 = f.magnitude
+    //       .reassignment(overrideChunkSize: 8192)
+    //       .call(data.cut(duration: 16));
+    //
+    //   await Future.wait([
+    //     writer(mags1, title: 'mags ${f.context}'),
+    //     writer(mags2, title: 'reassignment ${f.context}'),
+    //   ]);
+    // });
   });
 
   group('chromagram', () {
@@ -221,6 +222,64 @@ void main() {
           await writer(chromas, title: 'chromagram $count $filter $cc');
         }
       });
+    });
+  });
+
+  group('line', () {
+    // final f = factory8192_0;
+    final f = factory4096_0;
+    const writer = LineChartWriter();
+
+    List<Iterable<double>> getScoreWithTime(
+      List<Chroma> chroma,
+      ScoreCalculable scoreCalculable, {
+      double? nanTo,
+      double Function(double)? mapper,
+    }) {
+      Iterable<double> scores = List.generate(
+          chroma.length - 1, (i) => scoreCalculable(chroma[i + 1], chroma[i]));
+
+      if (nanTo != null) {
+        scores = scores.map((e) => e.isNaN ? nanTo : e);
+      }
+      if (mapper != null) {
+        scores = scores.map(mapper);
+      }
+
+      final times =
+          List.generate(chroma.length - 1, (i) => f.context.dt * (i + 1));
+
+      return [times, scores];
+    }
+
+    test('cosine similarity', () async {
+      final chroma =
+          f.guitarRange.reassignCombFilter().call(await DataSet().sample);
+      const scoreCalculable = CosineSimilarityScore();
+
+      await writer(
+        getScoreWithTime(
+          chroma,
+          scoreCalculable,
+          mapper: (e) => e == 0 ? 1 : e,
+        ),
+        title: 'cosine similarity HCDF',
+      );
+    });
+
+    test('tonal centroid', () async {
+      final chroma =
+          f.guitarRange.reassignCombFilter().call(await DataSet().sample);
+      const scoreCalculable = TonalCentroidScore();
+
+      await writer(
+        getScoreWithTime(
+          chroma,
+          scoreCalculable,
+          nanTo: 1,
+        ),
+        title: 'tonal centroid HCDF',
+      );
     });
   });
 }

@@ -29,7 +29,7 @@ class Table extends Iterable<Row> {
     assert(path.endsWith('.csv'));
     if (bypass) return File(path);
 
-    final file = File(path);
+    final file = File(path)..create(recursive: true);
     final contents = const ListToCsvConverter().convert(_values);
     file.writeAsString(contents);
 

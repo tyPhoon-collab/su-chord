@@ -5,24 +5,18 @@ import pandas as pd
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str, help="Path to the CSV file")
-parser.add_argument("--title", type=str, help="Title for the plot")
+parser.add_argument("--title", type=str, help="Title for the graph")
 parser.add_argument("--output", type=str, help="Output file path")
 args = parser.parse_args()
 
-df = pd.read_csv(args.path)
+df = pd.read_csv(args.path, header=None)
 
-if len(df.columns) != 3:
-    raise ValueError("The CSV file must contain 3 columns: x, y, and c")
+data = df.to_numpy()
 
-x_data = df["x"].to_numpy()
-y_data = df["y"].to_numpy()
-c_data = df["c"].to_numpy()
-
-plt.scatter(x_data, y_data, c=c_data)
+plt.plot(data[0], data[1], marker="o")
 
 if args.title:
     plt.title(args.title)
-
 
 if args.output:
     plt.savefig(args.output)
