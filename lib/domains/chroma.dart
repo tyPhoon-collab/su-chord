@@ -39,19 +39,25 @@ class Chroma extends Iterable<double> {
   double get max => _values[maxIndex];
 
   late final Iterable<int> maxSortedIndexes =
-      _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
+  _values.sorted((a, b) => b.compareTo(a)).map((e) => _values.indexOf(e));
 
-  late final normalized = l2norm == 0
+  late final l1normalized = l1norm == 0
+      ? Chroma.zero(_values.length)
+      : Chroma(_values.map((e) => e / l1norm).toList());
+
+  late final l2normalized = l2norm == 0
       ? Chroma.zero(_values.length)
       : Chroma(_values.map((e) => e / l2norm).toList());
+
   late final l1norm = _values.fold(0.0, (sum, e) => sum + e.abs());
+
   late final l2norm = sqrt(_values.fold(0.0, (sum, e) => sum + e * e));
 
   double cosineSimilarity(Chroma other) {
     assert(_values.length == other._values.length);
     double sum = 0;
     for (int i = 0; i < _values.length; ++i) {
-      sum += normalized[i] * other.normalized[i];
+      sum += l2normalized[i] * other.l2normalized[i];
     }
     return sum;
   }
@@ -67,7 +73,7 @@ class Chroma extends Iterable<double> {
 
   Chroma operator +(Chroma other) {
     assert(_values.length == other._values.length,
-        'source: ${_values.length}, other: ${other._values.length}');
+    'source: ${_values.length}, other: ${other._values.length}');
     return Chroma(
         List.generate(_values.length, (i) => _values[i] + other._values[i]));
   }
@@ -127,8 +133,7 @@ class PCP extends Chroma {
 class TonalCentroid extends Chroma {
   TonalCentroid(super.values) : assert(values.length == 6);
 
-  factory TonalCentroid.fromPCP(
-    PCP pcp, {
+  factory TonalCentroid.fromPCP(PCP pcp, {
     double r1 = 1,
     double r2 = 1,
     double r3 = 0.5,

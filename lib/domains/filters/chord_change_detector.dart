@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../chord.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
+import '../score_calculator.dart';
 import 'filter.dart';
 
 ///秒数によってコード区間を設定する
@@ -102,7 +103,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
     if (chroma.isEmpty) return [];
 
     final chords = chroma
-        .map((e) => maxBy(_templates, (t) => e.cosineSimilarity(t.pcp))!)
+        .map((e) => maxBy(_templates, (t) => e.cosineSimilarity(t.unitPcp))!)
         .toList();
 
     Chord preChord = chords.first;
@@ -122,40 +123,6 @@ class TriadChordChangeDetector implements ChromaListFilter {
 
     return average(chroma, slices);
   }
-}
-
-abstract interface class ScoreCalculable {
-  double call(Chroma current, Chroma pre);
-}
-
-final class CosineSimilarityScore implements ScoreCalculable {
-  const CosineSimilarityScore();
-
-  @override
-  String toString() => 'cosine similarity';
-
-  @override
-  double call(Chroma current, Chroma pre) => current.cosineSimilarity(pre);
-}
-
-final class TonalCentroidScore implements ScoreCalculable {
-  const TonalCentroidScore({
-    this.r1 = 1,
-    this.r2 = 1,
-    this.r3 = .5,
-  });
-
-  final double r1;
-  final double r2;
-  final double r3;
-
-  @override
-  String toString() => 'tonal centroid';
-
-  @override
-  double call(Chroma current, Chroma pre) =>
-      TonalCentroid.fromPCP(PCP(current.toList()))
-          .cosineSimilarity(TonalCentroid.fromPCP(PCP(pre.toList())));
 }
 
 class PreFrameCheckChordChangeDetector implements ChromaListFilter {

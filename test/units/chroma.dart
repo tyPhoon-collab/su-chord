@@ -31,10 +31,10 @@ void main() {
 
     test('normalized', () async {
       final c1 = Chroma(const [1, 1, 1, 1]);
-      expect(c1.normalized, [0.5, 0.5, 0.5, 0.5]);
+      expect(c1.l2normalized, [0.5, 0.5, 0.5, 0.5]);
 
       final c2 = Chroma(const [-1, -1, -1, -1]);
-      expect(c2.normalized, [-0.5, -0.5, -0.5, -0.5]);
+      expect(c2.l2normalized, [-0.5, -0.5, -0.5, -0.5]);
     });
 
     test('cosine similarity', () async {
@@ -54,12 +54,12 @@ void main() {
 
   test('cosine similarity', () async {
     final f = factory8192_0;
-    final chromas = f.guitarRange
-        .reassignCombFilter()
-        .call(await DataSet().G_Em_Bm_C);
+    final chromas =
+        f.guitarRange.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
 
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
-    final template = PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized;
+    final template =
+        PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).l2normalized;
     debugPrint(pcp.cosineSimilarity(template).toString());
   });
 
@@ -93,10 +93,10 @@ void main() {
 
     for (final c in calculator) {
       final chroma = ccd(c(await DataSet().osawa.C)).first;
-      debugPrint('chroma: ${chroma.normalized}');
+      debugPrint('chroma: ${chroma.l2normalized}');
       for (final value in templates) {
         debugPrint(
-            'cosine similarity: ${chroma.cosineSimilarity(value.pcp).toStringAsFixed(3)} of $value');
+            'cosine similarity: ${chroma.cosineSimilarity(value.unitPcp).toStringAsFixed(3)} of $value');
       }
       debugPrint('');
     }
@@ -116,7 +116,7 @@ void main() {
     final filter = f.filter.interval(4.seconds);
 
     for (final c in cs) {
-      final chroma = filter(c(await DataSet().G)).first.normalized;
+      final chroma = filter(c(await DataSet().G)).first.l2normalized;
       debugPrint(chroma.toString());
     }
   });

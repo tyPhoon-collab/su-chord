@@ -3,9 +3,9 @@ import 'dart:math';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
-import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -35,7 +35,7 @@ void main() {
                   .interval(4.seconds)
                   .call(cc(await DataSet().G))
                   .first
-                  .normalized,
+                  .l2normalized,
               title: 'pcp of G, ${f.context} $cc',
             )
       ]);
@@ -55,7 +55,11 @@ void main() {
             f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
           ])
             writer(
-              f.filter.interval(4.seconds).call(cc.call(data)).first.normalized,
+              f.filter
+                  .interval(4.seconds)
+                  .call(cc.call(data))
+                  .first
+                  .l2normalized,
               title: 'pcp of G $cc ${f.context}',
             )
       ]);
@@ -69,12 +73,12 @@ void main() {
             f.guitarRange.reassignCombFilter().call(await DataSet().G);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
-        await writer(pcp.normalized, title: 'PCP of G');
+        await writer(pcp.l2normalized, title: 'PCP of G');
       });
 
       test('template of G', () async {
         await writer(
-          PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).normalized,
+          PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).l2normalized,
           title: 'Template of G',
         );
       });
@@ -84,12 +88,12 @@ void main() {
             f.guitarRange.reassignCombFilter().call(await DataSet().C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
-        await writer(pcp.normalized, title: 'PCP of C');
+        await writer(pcp.l2normalized, title: 'PCP of C');
       });
 
       test('template of C', () async {
         await writer(
-          PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).normalized,
+          PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).l2normalized,
           title: 'Template of C',
         );
       });
@@ -100,7 +104,7 @@ void main() {
         await writer(
           const ThirdHarmonicChromaScalar(0.2)
               .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-              .normalized,
+              .l2normalized,
           title: 'third scaled template of C',
         );
       });
@@ -109,7 +113,7 @@ void main() {
         await writer(
           HarmonicsChromaScalar()
               .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-              .normalized,
+              .l2normalized,
           title: 'harmonics scaled template of C',
         );
       });

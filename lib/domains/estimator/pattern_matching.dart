@@ -74,7 +74,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
 
   late final templateChromas = groupBy(
     templates,
-    (p0) => scalar?.call(p0.pcp) ?? p0.pcp,
+    (p0) => scalar?.call(p0.unitPcp) ?? p0.unitPcp,
   );
 
   @override

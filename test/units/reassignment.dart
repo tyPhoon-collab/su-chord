@@ -28,7 +28,7 @@ void main() {
 
   test('normalized', () async {
     final chromas = ReassignmentChromaCalculator()(await DataSet().G);
-    final chroma = chromas[0].normalized;
+    final chroma = chromas[0].l2normalized;
 
     expect(chroma, isNotNull);
   });

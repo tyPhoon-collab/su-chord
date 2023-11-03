@@ -22,7 +22,7 @@ class Chromagram extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final values = chromas.map((e) => e.normalized).flattened.toList();
+    final values = chromas.map((e) => e.l2normalized).flattened.toList();
     final color = this.color ?? Get.theme.colorScheme.primary;
 
     return values.isEmpty

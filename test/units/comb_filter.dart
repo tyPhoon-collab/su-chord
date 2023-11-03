@@ -46,7 +46,7 @@ void main() {
             ).call(await DataSet().G),
           )
           .first
-          .normalized;
+          .l2normalized;
 
       debugPrint(chroma.toString());
     }
@@ -58,7 +58,7 @@ void main() {
 
     debugPrint(filter(
       factory8192_0.bigRange.combFilter().call(data),
-    ).first.normalized.toString());
+    ).first.l2normalized.toString());
 
     debugPrint(filter(
       factory8192_0.bigRange
@@ -67,7 +67,7 @@ void main() {
             scalar: MagnitudeScalar.ln,
           ))
           .call(data),
-    ).first.normalized.toString());
+    ).first.l2normalized.toString());
   });
 
   test('guitar tuning', () async {

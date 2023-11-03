@@ -13,7 +13,7 @@ void main() {
 
   test('major pcp', () {
     expect(
-      Chord.fromType(type: ChordType.major, root: Note.D).pcp,
+      Chord.fromType(type: ChordType.major, root: Note.D).unitPcp,
       [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
     );
   });
