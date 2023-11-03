@@ -4,14 +4,11 @@ import 'package:collection/collection.dart';
 
 import '../chord.dart';
 import '../chroma.dart';
+import '../score_calculator.dart';
 import 'estimator.dart';
 
-abstract interface class ChromaScalable {
-  Chroma call(Chroma c);
-}
-
 ///３倍音のみ考慮する
-class ThirdHarmonicChromaScalar implements ChromaScalable {
+class ThirdHarmonicChromaScalar implements ChromaMappable {
   const ThirdHarmonicChromaScalar(this.factor);
 
   final double factor;
@@ -28,7 +25,7 @@ class ThirdHarmonicChromaScalar implements ChromaScalable {
 ///Chord recognition by fitting rescaled chroma vectors to chord templates
 ///指数的に倍音をたたみ込む
 ///s^(i-1)に従う : i倍音
-class HarmonicsChromaScalar implements ChromaScalable {
+class HarmonicsChromaScalar implements ChromaMappable {
   HarmonicsChromaScalar({
     this.baseFactor = 0.6,
     this.until = 4,
@@ -64,28 +61,30 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     required super.chromaCalculable,
     super.chordSelectable,
     super.filters,
-    this.scalar,
+    this.templateScalar,
+    this.scoreCalculator = const ScoreCalculator.cosine(),
     Set<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
         templates = templates ?? ChromaChordEstimator.defaultDetectableChords;
 
   final Set<Chord> templates;
-  final ChromaScalable? scalar;
+  final ScoreCalculator scoreCalculator;
+  final ChromaMappable? templateScalar;
 
   late final templateChromas = groupBy(
     templates,
-    (p0) => scalar?.call(p0.unitPcp) ?? p0.unitPcp,
+    (p0) => templateScalar?.call(p0.unitPCP) ?? p0.unitPCP,
   );
 
   @override
   String toString() =>
-      'matching ${scalar ?? 'none'} template scaled, ${super.toString()}';
+      '$scoreCalculator matching ${templateScalar ?? 'none'} template scaled, ${super.toString()}';
 
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
     return maxBy(
       templateChromas.entries,
-      (entry) => chroma.cosineSimilarity(entry.key),
+      (entry) => scoreCalculator(chroma, entry.key),
     )!
         .value;
   }

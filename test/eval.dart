@@ -9,6 +9,7 @@ import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
+import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
@@ -43,6 +44,7 @@ Future<void> main() async {
     // コード推定の正解率を出力したいなら以下をコメント化
     // _Evaluator.correctionWriter = null;
 
+    // 使用する音源はフォルダごとに管理されている
     contexts = await _EvaluatorContext.fromFolder(
       [
         'assets/evals/Halion_CleanGuitarVX',
@@ -120,6 +122,20 @@ Future<void> main() async {
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
 
+    test('tonal centroid comb', () async {
+      _Evaluator(
+        header: ['main'],
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          scoreCalculator: const ScoreCalculator(
+            CosineSimilarity(),
+            mapper: ToTonalCentroid(),
+          ),
+          filters: f.filter.eval,
+        ),
+      ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
+    });
+
     test('ln reassign comb', () async {
       _Evaluator(
         header: ['main'],
@@ -148,7 +164,7 @@ Future<void> main() async {
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
             filters: f.filter.eval,
-            scalar: const ThirdHarmonicChromaScalar(0.2),
+            templateScalar: const ThirdHarmonicChromaScalar(0.2),
           ),
         ).evaluate(contexts).toCSV('test/outputs/third_scalar.csv');
       });
@@ -159,7 +175,7 @@ Future<void> main() async {
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
             filters: f.filter.eval,
-            scalar: HarmonicsChromaScalar(),
+            templateScalar: HarmonicsChromaScalar(),
           ),
         ).evaluate(contexts).toCSV('test/outputs/harmonics_scalar.csv');
       });

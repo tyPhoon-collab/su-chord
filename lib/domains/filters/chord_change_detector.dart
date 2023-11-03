@@ -85,13 +85,18 @@ class PowerThresholdChordChangeDetector implements ChromaListFilter {
 
 ///少ないコードタイプで推定することで、コード区間を概算する
 class TriadChordChangeDetector implements ChromaListFilter {
-  // TriadChordChangeDetector({this.lookaheadSize = 5});
+  TriadChordChangeDetector({
+    // this.lookaheadSize = 5,
+    this.scoreCalculator = const ScoreCalculator.cosine(),
+  });
 
   final _templates = [
     for (final root in Note.values)
       for (final type in ChordType.triads)
         Chord.fromType(type: type, root: root)
   ];
+
+  final ScoreCalculator scoreCalculator;
 
   // final int lookaheadSize;
 
@@ -103,7 +108,7 @@ class TriadChordChangeDetector implements ChromaListFilter {
     if (chroma.isEmpty) return [];
 
     final chords = chroma
-        .map((e) => maxBy(_templates, (t) => e.cosineSimilarity(t.unitPcp))!)
+        .map((e) => maxBy(_templates, (t) => scoreCalculator(e, t.unitPCP))!)
         .toList();
 
     Chord preChord = chords.first;
@@ -127,23 +132,26 @@ class TriadChordChangeDetector implements ChromaListFilter {
 
 class PreFrameCheckChordChangeDetector implements ChromaListFilter {
   const PreFrameCheckChordChangeDetector({
-    required this.scoreCalculable,
+    required this.scoreCalculator,
     required this.threshold,
   });
 
   const PreFrameCheckChordChangeDetector.cosineSimilarity(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculable = const CosineSimilarityScore();
+        scoreCalculator = const ScoreCalculator.cosine();
 
   const PreFrameCheckChordChangeDetector.tonalCentroid(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculable = const TonalCentroidScore();
+        scoreCalculator = const ScoreCalculator(
+          CosineSimilarity(),
+          mapper: ToTonalCentroid(),
+        );
 
   final double threshold;
-  final ScoreCalculable scoreCalculable;
+  final ScoreCalculator scoreCalculator;
 
   @override
-  String toString() => '$scoreCalculable HCDF $threshold';
+  String toString() => '$scoreCalculator HCDF $threshold';
 
   @override
   List<Chroma> call(List<Chroma> chroma) {
@@ -154,7 +162,7 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
     Chroma preChroma = chroma.first;
     int count = 1;
     for (final value in chroma.skip(1)) {
-      final score = scoreCalculable(value, preChroma);
+      final score = scoreCalculator(value, preChroma);
       debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {

@@ -234,14 +234,14 @@ void main() {
     final f = factory4096_0;
     const writer = LineChartWriter();
 
-    List<Iterable<double>> getScoreWithTime(
+    Iterable<Iterable<double>> getScoreWithTime(
       List<Chroma> chroma,
-      ScoreCalculable scoreCalculable, {
+      ScoreCalculator scoreCalculator, {
       double? nanTo,
       double Function(double)? mapper,
     }) {
       Iterable<double> scores = List.generate(
-          chroma.length - 1, (i) => scoreCalculable(chroma[i + 1], chroma[i]));
+          chroma.length - 1, (i) => scoreCalculator(chroma[i + 1], chroma[i]));
 
       if (nanTo != null) {
         scores = scores.map((e) => e.isNaN ? nanTo : e);
@@ -259,12 +259,12 @@ void main() {
     test('cosine similarity', () async {
       final chroma =
           f.guitarRange.reassignCombFilter().call(await DataSet().sample);
-      const scoreCalculable = CosineSimilarityScore();
+      const scoreCalculator = ScoreCalculator.cosine();
 
       await writer(
         getScoreWithTime(
           chroma,
-          scoreCalculable,
+          scoreCalculator,
           mapper: (e) => e == 0 ? 1 : e,
         ),
         title: 'cosine similarity HCDF',
@@ -274,12 +274,15 @@ void main() {
     test('tonal centroid', () async {
       final chroma =
           f.guitarRange.reassignCombFilter().call(await DataSet().sample);
-      const scoreCalculable = TonalCentroidScore();
+      const scoreCalculator = ScoreCalculator(
+        CosineSimilarity(),
+        mapper: ToTonalCentroid(),
+      );
 
       await writer(
         getScoreWithTime(
           chroma,
-          scoreCalculable,
+          scoreCalculator,
           nanTo: 1,
         ),
         title: 'tonal centroid HCDF',

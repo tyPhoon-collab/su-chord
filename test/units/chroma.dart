@@ -4,6 +4,7 @@ import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,20 +37,6 @@ void main() {
       final c2 = Chroma(const [-1, -1, -1, -1]);
       expect(c2.l2normalized, [-0.5, -0.5, -0.5, -0.5]);
     });
-
-    test('cosine similarity', () async {
-      final c1 = Chroma(const [1, 1, 1, 1]);
-      expect(c1.cosineSimilarity(c1), 1);
-
-      final c2 = Chroma(const [-1, -1, -1, -1]);
-      expect(c1.cosineSimilarity(c2), -1);
-    });
-  });
-
-  test('tonal centroid', () {
-    final pcp = PCP(const [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0]);
-    final tc = TonalCentroid.fromPCP(pcp);
-    debugPrint(tc.toString());
   });
 
   test('cosine similarity', () async {
@@ -60,7 +47,7 @@ void main() {
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
     final template =
         PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).l2normalized;
-    debugPrint(pcp.cosineSimilarity(template).toString());
+    debugPrint(const CosineSimilarity().call(pcp, template).toString());
   });
 
   test('compare cosine similarity', () async {
@@ -95,8 +82,8 @@ void main() {
       final chroma = ccd(c(await DataSet().osawa.C)).first;
       debugPrint('chroma: ${chroma.l2normalized}');
       for (final value in templates) {
-        debugPrint(
-            'cosine similarity: ${chroma.cosineSimilarity(value.unitPcp).toStringAsFixed(3)} of $value');
+        final cs = const CosineSimilarity().call(chroma, value.unitPCP);
+        debugPrint('cos sim: ${cs.toStringAsFixed(3)} of $value');
       }
       debugPrint('');
     }

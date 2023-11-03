@@ -392,7 +392,7 @@ class Chord extends ChordBase {
         .where((record) => record.type.validate(record.qualities));
   }
 
-  late final PCP unitPcp = PCP.fromNotes(notes);
+  late final PCP unitPCP = PCP.fromNotes(notes);
 
   final Note root;
   final Notes notes;

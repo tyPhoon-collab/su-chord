@@ -19,13 +19,13 @@ void main() {
     final e2 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.combFilter(),
       filters: f.filter.eval,
-      scalar: const ThirdHarmonicChromaScalar(0.2),
+      templateScalar: const ThirdHarmonicChromaScalar(0.2),
     );
 
     final e3 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitarRange.combFilter(),
       filters: f.filter.eval,
-      scalar: HarmonicsChromaScalar(),
+      templateScalar: HarmonicsChromaScalar(),
     );
 
     final progression1 = e1.estimate(data);
