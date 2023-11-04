@@ -147,6 +147,13 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
           mapper: ToTonalCentroid(),
         );
 
+  const PreFrameCheckChordChangeDetector.tonalIntervalVector(this.threshold)
+      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
+        scoreCalculator = const ScoreCalculator(
+          CosineSimilarity(),
+          mapper: ToTonalIntervalVector.musical(),
+        );
+
   final double threshold;
   final ScoreCalculator scoreCalculator;
 
@@ -163,7 +170,7 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
     int count = 1;
     for (final value in chroma.skip(1)) {
       final score = scoreCalculator(value, preChroma);
-      debugPrint(score.toStringAsFixed(3));
+      // debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {
         slices.add(count);

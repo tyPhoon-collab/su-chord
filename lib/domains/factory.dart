@@ -12,6 +12,7 @@ import 'filters/chord_change_detector.dart';
 import 'filters/filter.dart';
 import 'magnitudes_calculator.dart';
 import 'note_extractor.dart';
+import 'score_calculator.dart';
 
 typedef Filters = List<ChromaListFilter>;
 
@@ -187,14 +188,18 @@ final class FilterFactory {
         PowerThresholdChordChangeDetector(threshold: threshold),
       ];
 
-  Filters cosineSimilarity({
+  Filters preFrameCheck({
     double threshold = 20,
-    double similarityThreshold = 0.8,
+    ScoreCalculator scoreCalculator = const ScoreCalculator(CosineSimilarity()),
+    double scoreThreshold = 0.8,
     bool isLogScale = false,
   }) =>
       [
         powerThreshold(isLogScale ? log(threshold) : threshold),
-        PreFrameCheckChordChangeDetector.cosineSimilarity(similarityThreshold),
+        PreFrameCheckChordChangeDetector(
+          scoreCalculator: scoreCalculator,
+          threshold: scoreThreshold,
+        ),
       ];
 
   ChromaListFilter interval(Duration duration) =>

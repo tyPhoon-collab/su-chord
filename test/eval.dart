@@ -48,9 +48,9 @@ Future<void> main() async {
     contexts = await _EvaluatorContext.fromFolder(
       [
         'assets/evals/Halion_CleanGuitarVX',
-        // 'assets/evals/Halion_CleanStratGuitar',
-        // 'assets/evals/HojoGuitar',
-        // 'assets/evals/RealStrat',
+        'assets/evals/Halion_CleanStratGuitar',
+        'assets/evals/HojoGuitar',
+        'assets/evals/RealStrat',
       ],
       // songIdsFilter: ['13'],
     );
@@ -122,18 +122,62 @@ Future<void> main() async {
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
 
-    test('tonal centroid comb', () async {
-      _Evaluator(
-        header: ['main'],
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
-          scoreCalculator: const ScoreCalculator(
-            CosineSimilarity(),
-            mapper: ToTonalCentroid(),
+    group('tonal', () {
+      test('tonal centroid comb', () async {
+        _Evaluator(
+          header: ['main'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
+            scoreCalculator: const ScoreCalculator(
+              CosineSimilarity(),
+              mapper: ToTonalCentroid(),
+            ),
+            filters: f.filter.eval,
           ),
-          filters: f.filter.eval,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
+        ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
+      });
+
+      test('tonal interval space comb musical weight', () async {
+        _Evaluator(
+          header: ['main'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
+            scoreCalculator: const ScoreCalculator(
+              CosineSimilarity(),
+              mapper: ToTonalIntervalVector.musical(),
+            ),
+            filters: f.filter.eval,
+          ),
+        ).evaluate(contexts).toCSV('test/outputs/tiv_musical.csv');
+      });
+
+      test('tonal interval space comb symbolic weight', () async {
+        _Evaluator(
+          header: ['main'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
+            scoreCalculator: const ScoreCalculator(
+              CosineSimilarity(),
+              mapper: ToTonalIntervalVector.symbolic(),
+            ),
+            filters: f.filter.eval,
+          ),
+        ).evaluate(contexts).toCSV('test/outputs/tiv_symbolic.csv');
+      });
+
+      test('tonal interval space comb harte weight', () async {
+        _Evaluator(
+          header: ['main'],
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitarRange.reassignCombFilter(),
+            scoreCalculator: const ScoreCalculator(
+              CosineSimilarity(),
+              mapper: ToTonalIntervalVector.harte(),
+            ),
+            filters: f.filter.eval,
+          ),
+        ).evaluate(contexts).toCSV('test/outputs/tiv_harte.csv');
+      });
     });
 
     test('ln reassign comb', () async {
@@ -229,7 +273,7 @@ Future<void> main() async {
   group('HCDF', () {
     final f = factory8192_0;
 
-    test('fold', () {
+    test('HCDF fold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: [f.filter.powerThreshold(20)],
@@ -247,7 +291,7 @@ Future<void> main() async {
       }
     });
 
-    test('threshold', () {
+    test('HCDF threshold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.threshold(15),
@@ -265,10 +309,10 @@ Future<void> main() async {
       }
     });
 
-    test('cosine similarity', () {
+    test('HCDF cosine similarity', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
-        filters: f.filter.cosineSimilarity(similarityThreshold: .85),
+        filters: f.filter.preFrameCheck(scoreThreshold: .9),
       );
 
       for (final context in contexts) {
@@ -276,6 +320,50 @@ Future<void> main() async {
         for (final data in context.data.values) {
           final progression = e.estimate(data);
           printProgression('predicts', progression.simplify());
+        }
+        printSeparation();
+      }
+    });
+
+    test('HCDF tonal', () {
+      final e = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        filters: f.filter.preFrameCheck(
+          scoreCalculator: const ScoreCalculator(
+            CosineSimilarity(),
+            mapper: ToTonalCentroid(),
+          ),
+          scoreThreshold: .9,
+        ),
+      );
+
+      for (final context in contexts) {
+        printProgression('corrects', context.corrects);
+        for (final data in context.data.values) {
+          final progression = e.estimate(data);
+          printProgression('predicts', progression);
+        }
+        printSeparation();
+      }
+    });
+
+    test('HCDF TIV', () {
+      final e = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        filters: f.filter.preFrameCheck(
+          scoreCalculator: const ScoreCalculator(
+            CosineSimilarity(),
+            mapper: ToTonalIntervalVector.musical(),
+          ),
+          scoreThreshold: .9,
+        ),
+      );
+
+      for (final context in contexts) {
+        printProgression('corrects', context.corrects);
+        for (final data in context.data.values) {
+          final progression = e.estimate(data);
+          printProgression('predicts', progression);
         }
         printSeparation();
       }

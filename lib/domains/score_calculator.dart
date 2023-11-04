@@ -46,8 +46,17 @@ abstract interface class ChromaMappable {
   Chroma call(Chroma c);
 }
 
+mixin class _CalculateCentroid {
+  Iterable<double> calcCentroid(Chroma c, double r, double phase) {
+    return [
+      c.reduceIndexed((i, v, e) => v + e * r * sin(i * phase)),
+      c.reduceIndexed((i, v, e) => v + e * r * cos(i * phase)),
+    ];
+  }
+}
+
 ///based; Detecting Harmonic Change In Musical Audio
-final class ToTonalCentroid implements ChromaMappable {
+final class ToTonalCentroid with _CalculateCentroid implements ChromaMappable {
   const ToTonalCentroid({
     this.r1 = 1,
     this.r2 = 1,
@@ -65,22 +74,48 @@ final class ToTonalCentroid implements ChromaMappable {
   Chroma call(Chroma c) {
     assert(c.length == 12);
 
-    Iterable<double> calcCentroid(double r, double phase) {
-      return [
-        c.reduceIndexed((i, v, e) => v + e * r * sin(i * phase)),
-        c.reduceIndexed((i, v, e) => v + e * r * cos(i * phase)),
-      ];
-    }
-
     final List<double> centroids = [
-      ...calcCentroid(r1, 7 * pi / 6),
-      ...calcCentroid(r2, 3 * pi / 2),
-      ...calcCentroid(r3, 2 * pi / 3),
+      ...calcCentroid(c, r1, 7 * pi / 6),
+      ...calcCentroid(c, r2, 3 * pi / 2),
+      ...calcCentroid(c, r3, 2 * pi / 3),
     ];
 
     final scaledCentroid = centroids.map((e) => e / c.l1norm).toList();
 
     assert(scaledCentroid.length == 6);
+
+    return Chroma(scaledCentroid);
+  }
+}
+
+final class ToTonalIntervalVector
+    with _CalculateCentroid
+    implements ChromaMappable {
+  const ToTonalIntervalVector({required this.weights})
+      : assert(weights.length == 6);
+
+  const ToTonalIntervalVector.musical()
+      : weights = const [3, 8, 11.5, 15, 14.5, 7.5];
+
+  const ToTonalIntervalVector.symbolic()
+      : weights = const [2, 11, 17, 16, 19, 7];
+
+  const ToTonalIntervalVector.harte() : weights = const [0, 0, 1, 0.5, 1, 0];
+
+  final List<double> weights;
+
+  @override
+  Chroma call(Chroma c) {
+    assert(c.length == 12);
+
+    final centroids = [
+      for (int i = 0; i < 6; ++i)
+        ...calcCentroid(c, weights[i], (i + 1) * pi / 6)
+    ];
+
+    final scaledCentroid = centroids.map((e) => e / c.l1norm).toList();
+
+    assert(scaledCentroid.length == 12);
 
     return Chroma(scaledCentroid);
   }
