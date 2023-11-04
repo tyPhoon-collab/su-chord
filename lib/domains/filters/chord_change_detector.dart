@@ -142,16 +142,12 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
 
   const PreFrameCheckChordChangeDetector.cosineTonalCentroid(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculator = const ScoreCalculator(
-          CosineSimilarity(),
-          mapper: ToTonalCentroid(),
-        );
+        scoreCalculator = const ScoreCalculator.cosine(ToTonalCentroid());
 
   const PreFrameCheckChordChangeDetector.cosineTIV(this.threshold)
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculator = const ScoreCalculator(
-          CosineSimilarity(),
-          mapper: ToTonalIntervalVector.musical(),
+        scoreCalculator = const ScoreCalculator.cosine(
+          ToTonalIntervalVector.musical(),
         );
 
   final double threshold;

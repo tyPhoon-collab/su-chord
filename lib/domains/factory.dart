@@ -190,7 +190,7 @@ final class FilterFactory {
 
   Filters preFrameCheck({
     double threshold = 20,
-    ScoreCalculator scoreCalculator = const ScoreCalculator(CosineSimilarity()),
+    ScoreCalculator scoreCalculator = const ScoreCalculator.cosine(),
     double scoreThreshold = 0.8,
     bool isLogScale = false,
   }) =>

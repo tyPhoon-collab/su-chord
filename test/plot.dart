@@ -274,10 +274,7 @@ void main() {
     test('tonal centroid', () async {
       final chroma =
           f.guitarRange.reassignCombFilter().call(await DataSet().sample);
-      const scoreCalculator = ScoreCalculator(
-        CosineSimilarity(),
-        mapper: ToTonalCentroid(),
-      );
+      const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
 
       await writer(
         getScoreWithTime(

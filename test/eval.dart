@@ -144,10 +144,7 @@ Future<void> main() async {
           header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
-            scoreCalculator: const ScoreCalculator(
-              CosineSimilarity(),
-              mapper: ToTonalCentroid(),
-            ),
+            scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
             filters: f.filter.eval,
           ),
         ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
@@ -158,9 +155,8 @@ Future<void> main() async {
           header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
-            scoreCalculator: const ScoreCalculator(
-              CosineSimilarity(),
-              mapper: ToTonalIntervalVector.musical(),
+            scoreCalculator: const ScoreCalculator.cosine(
+              ToTonalIntervalVector.musical(),
             ),
             filters: f.filter.eval,
           ),
@@ -172,9 +168,8 @@ Future<void> main() async {
           header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
-            scoreCalculator: const ScoreCalculator(
-              CosineSimilarity(),
-              mapper: ToTonalIntervalVector.symbolic(),
+            scoreCalculator: const ScoreCalculator.cosine(
+              ToTonalIntervalVector.symbolic(),
             ),
             filters: f.filter.eval,
           ),
@@ -186,9 +181,8 @@ Future<void> main() async {
           header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitarRange.reassignCombFilter(),
-            scoreCalculator: const ScoreCalculator(
-              CosineSimilarity(),
-              mapper: ToTonalIntervalVector.harte(),
+            scoreCalculator: const ScoreCalculator.cosine(
+              ToTonalIntervalVector.harte(),
             ),
             filters: f.filter.eval,
           ),
@@ -314,10 +308,7 @@ Future<void> main() async {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.preFrameCheck(
-          scoreCalculator: const ScoreCalculator(
-            CosineSimilarity(),
-            mapper: ToTonalCentroid(),
-          ),
+          scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
           scoreThreshold: .8,
         ),
       );
@@ -336,9 +327,8 @@ Future<void> main() async {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitarRange.reassignCombFilter(),
         filters: f.filter.preFrameCheck(
-          scoreCalculator: const ScoreCalculator(
-            CosineSimilarity(),
-            mapper: ToTonalIntervalVector.musical(),
+          scoreCalculator: const ScoreCalculator.cosine(
+            ToTonalIntervalVector.musical(),
           ),
           scoreThreshold: .8,
         ),
