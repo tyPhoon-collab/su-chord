@@ -61,7 +61,10 @@ class PowerThresholdChordChangeDetector implements ChromaListFilter {
     if (chroma.isEmpty) return [];
 
     final filteredChromas = Map.fromEntries(
-        chroma.asMap().entries.where((e) => e.value.max >= threshold));
+      chroma.asMap().entries.where((e) => e.value.max >= threshold),
+    );
+
+    if (filteredChromas.isEmpty) return [];
 
     final indexes = filteredChromas.keys;
     int count = 1;

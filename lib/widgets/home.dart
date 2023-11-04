@@ -27,7 +27,15 @@ class _HomeDrawer extends StatelessWidget {
       child: ListView(
         children: const [
           DrawerHeader(child: Text('Chord')),
-          AboutListTile(icon: Icon(Icons.library_books_outlined)),
+          AboutListTile(
+            icon: Icon(Icons.library_books_outlined),
+            applicationLegalese: '\u{a9} 2023 Hiroaki Osawa',
+            applicationVersion: '2023/11/5',
+            aboutBoxChildren: [
+              SizedBox(height: 24),
+              Text('This app estimates chords in real time from guitar audio'),
+            ],
+          ),
         ],
       ),
     );
