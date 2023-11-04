@@ -176,7 +176,12 @@ final class FilterFactory {
         PowerThresholdChordChangeDetector(
           threshold: isLogScale ? log(threshold) : threshold,
         ),
-        PreFrameCheckChordChangeDetector.cosine(similarityThreshold),
+        PreFrameCheckChordChangeDetector(
+          scoreCalculator: const ScoreCalculator.cosine(
+            ToTonalIntervalVector.musical(),
+          ),
+          threshold: similarityThreshold,
+        ),
       ];
 
   Filters get triad => [

@@ -84,7 +84,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          filters: f.filter.realtime(isLogScale: true),
+          filters: f.filter.realtime(threshold: 8, isLogScale: true),
           templates: detectableChords,
         ),
     'matching + comb': () async => PatternMatchingChordEstimator(
@@ -122,7 +122,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => 'matching + reassign';
+  String build() => 'matching + reassign comb + ln';
 
   //ignore: use_setters_to_change_properties
   void change(String newValue) => state = newValue;
