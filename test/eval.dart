@@ -109,6 +109,22 @@ Future<void> main() async {
     }
   });
 
+  test('conv', () async {
+    final f = factory8192_0;
+    final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
+
+    _Evaluator(
+      header: ['search + log comb, $logExtractor, ${f.context}'],
+      estimator: SearchTreeChordEstimator(
+        chromaCalculable: f.guitarRange.combFilter(
+            magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+        filters: f.filter.eval,
+        noteExtractable: logExtractor,
+        chordSelectable: await f.selector.db,
+      ),
+    ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
+  });
+
   group('prop', () {
     final f = factory4096_0;
 
@@ -239,37 +255,6 @@ Future<void> main() async {
     });
   });
 
-  group('conv', () {
-    final f = factory2048_1024;
-    final extractor = f.extractor.threshold();
-    final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
-    test('search + comb', () async {
-      _Evaluator(
-        header: ['search + comb, $extractor, ${f.context}'],
-        estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter(),
-          filters: f.filter.eval,
-          noteExtractable: extractor,
-          chordSelectable: await f.selector.db,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb.csv');
-    });
-
-    test('search + log comb', () async {
-      _Evaluator(
-        header: ['search + log comb, $logExtractor, ${f.context}'],
-        estimator: SearchTreeChordEstimator(
-          chromaCalculable: f.guitarRange.combFilter(
-              magnitudesCalculable:
-                  f.magnitude.stft(scalar: MagnitudeScalar.ln)),
-          filters: f.filter.eval,
-          noteExtractable: logExtractor,
-          chordSelectable: await f.selector.db,
-        ),
-      ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
-    });
-  });
-
   group('HCDF', () {
     final f = factory8192_0;
 
@@ -333,7 +318,7 @@ Future<void> main() async {
             CosineSimilarity(),
             mapper: ToTonalCentroid(),
           ),
-          scoreThreshold: .9,
+          scoreThreshold: .8,
         ),
       );
 
@@ -355,7 +340,7 @@ Future<void> main() async {
             CosineSimilarity(),
             mapper: ToTonalIntervalVector.musical(),
           ),
-          scoreThreshold: .9,
+          scoreThreshold: .8,
         ),
       );
 

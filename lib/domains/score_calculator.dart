@@ -110,7 +110,7 @@ final class ToTonalIntervalVector
 
     final centroids = [
       for (int i = 0; i < 6; ++i)
-        ...calcCentroid(c, weights[i], (i + 1) * pi / 6)
+        ...calcCentroid(c, weights[i], -(i + 1) * pi / 6)
     ];
 
     final scaledCentroid = centroids.map((e) => e / c.l1norm).toList();

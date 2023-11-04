@@ -176,7 +176,7 @@ final class FilterFactory {
         PowerThresholdChordChangeDetector(
           threshold: isLogScale ? log(threshold) : threshold,
         ),
-        PreFrameCheckChordChangeDetector.cosineSimilarity(similarityThreshold),
+        PreFrameCheckChordChangeDetector.cosine(similarityThreshold),
       ];
 
   Filters get triad => [
