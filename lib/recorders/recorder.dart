@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../utils/loaders/audio.dart';
 import 'stub_recorder.dart'
     if (dart.library.io) 'mobile_recorder.dart'
-    if (dart.library.html) 'web_recorder.dart';
+// if (dart.library.html) 'web_recorder.dart';
+    if (dart.library.html) 'record_recorder.dart';
 
 Recorder initRecorder() => getRecorder();
 

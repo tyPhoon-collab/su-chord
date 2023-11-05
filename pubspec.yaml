@@ -49,6 +49,7 @@ dependencies:
   wav: ^1.2.0
   fftea: ^1.4.0
   audio_streamer: ^4.0.0
+  record: ^5.0.1
 
   # plot
   fl_chart: ^0.63.0
