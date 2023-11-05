@@ -224,12 +224,12 @@ class _EstimatorDebugView extends ConsumerWidget {
               children: [
                 DebugChip(
                   titleText: 'Estimator Details',
-                  child: Text(estimator.toString()),
+                  builder: (_) => Text(estimator.toString()),
                 ),
                 ...views.build(),
                 DebugChip(
                   titleText: 'Amplitude',
-                  child: StreamBuilder(
+                  builder: (_) => StreamBuilder(
                     stream: ref.watch(globalRecorderProvider).stream,
                     builder: (_, snapshot) => SizedBox(
                       height: 64,

@@ -197,7 +197,7 @@ Future<void> main() async {
           chromaCalculable: f.guitarRange.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineTIV(0.8),
+            const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.8),
           ],
         );
         final progression = estimator.estimate(await DataSet().sample);
@@ -209,7 +209,7 @@ Future<void> main() async {
           chromaCalculable: f.guitarRange.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineTIV(0.9),
+            const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.9),
           ],
         );
         final progression = estimator.estimate(await DataSet().sample);

@@ -78,14 +78,14 @@ abstract class ChromaChordEstimator
   List<DebugChip> build() => [
         DebugChip(
           titleText: 'Chromagram',
-          child: Chromagram(chromas: _filteredChromas),
+          builder: (_) => Chromagram(chromas: _filteredChromas),
         ),
         // if (chromaCalculable case final HasMagnitudes hasMagnitudes)
         //   if (hasMagnitudes.cachedMagnitudes case final Magnitudes mag)
         //     SpectrogramChart(magnitudes: mag),
         DebugChip(
           titleText: 'Chroma List Size',
-          child: Column(
+          builder: (_) => Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +96,7 @@ abstract class ChromaChordEstimator
         ),
         DebugChip(
           titleText: 'Calculate Times',
-          child: CalculateTimeTableView(table: calculateTimes),
+          builder: (_) => CalculateTimeTableView(table: calculateTimes),
         )
       ];
 }

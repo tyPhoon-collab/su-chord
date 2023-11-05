@@ -5,29 +5,57 @@ abstract interface class HasDebugViews {
   List<DebugChip> build();
 }
 
-class DebugChip extends StatelessWidget {
+class DebugChip extends StatefulWidget {
   const DebugChip({
     super.key,
     required this.titleText,
-    required this.child,
+    required this.builder,
   });
 
   final String titleText;
-  final Widget child;
+  final Widget Function(BuildContext) builder;
 
   @override
-  Widget build(BuildContext context) => Chip(
-        label: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              titleText,
-              style: Get.textTheme.titleMedium,
-            ),
-            child,
-          ],
+  State<DebugChip> createState() => _DebugChipState();
+}
+
+class _DebugChipState extends State<DebugChip> {
+  bool isVisible = true;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        elevation: 0,
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isVisible = !isVisible;
+                      });
+                    },
+                    child: const Icon(Icons.crop_square),
+                  ),
+                  Text(
+                    widget.titleText,
+                    style: Get.textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              if (isVisible) ...[
+                const SizedBox(height: 8),
+                widget.builder(context),
+              ] else
+                const SizedBox(),
+            ],
+          ),
         ),
-        padding: const EdgeInsets.all(8),
       );
 }
