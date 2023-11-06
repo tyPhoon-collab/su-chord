@@ -57,7 +57,7 @@ final class EstimatorFactoryContext {
 
   @override
   String toString() =>
-      'chunkSize: $chunkSize, chunkStride: $chunkStride, sampleRate: $sampleRate';
+      'chunkSize $chunkSize, chunkStride $chunkStride, sampleRate $sampleRate';
 }
 
 ///必要な情報をContextに閉じ込めることによって、DIを簡単にするためのファクトリ

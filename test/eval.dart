@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
@@ -59,12 +61,14 @@ Future<void> main() async {
   test('cross validation', () async {
     Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
 
+    const folderName = 'harmonics template scalar';
+
     final f = factory4096_0;
-    final db = await f.selector.db;
     final filter = f.filter.eval;
 
-    final folderName = f.context.sanitize();
-    final folderPath = 'test/outputs/cross_validations/$folderName';
+    final folderPath =
+        'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
+
     final directory = await Directory(folderPath).create(recursive: true);
 
     debugPrint('${f.context} $folderPath');
@@ -82,6 +86,7 @@ Future<void> main() async {
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           filters: filter,
+          templateScalar: HarmonicsChromaScalar(),
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,
@@ -91,7 +96,7 @@ Future<void> main() async {
               f.extractor.threshold(scalar: value.magnitudeScalar),
             _ => const ThresholdByMaxRatioExtractor(),
           },
-          chordSelectable: db,
+          chordSelectable: await f.selector.db,
         ),
       ]
     ]) {
@@ -227,7 +232,8 @@ Future<void> main() async {
         _Evaluator(
           header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
-            chromaCalculable: f.guitar.reassignCombFilter(),
+            chromaCalculable:
+                f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
             filters: f.filter.eval,
             templateScalar: HarmonicsChromaScalar(),
           ),

@@ -47,6 +47,6 @@ void printSeparation() {
 extension Sanitize on Object {
   String sanitize() => toString()
       .replaceAll(RegExp(r'\s+'), '_')
-      .replaceAll(',', '__')
+      .replaceAll(',', '_')
       .replaceAll(':', '-');
 }
