@@ -57,11 +57,11 @@ void main() {
     final data = await DataSet().G;
 
     debugPrint(filter(
-      factory8192_0.bigRange.combFilter().call(data),
+      factory8192_0.big.combFilter().call(data),
     ).first.l2normalized.toString());
 
     debugPrint(filter(
-      factory8192_0.bigRange
+      factory8192_0.big
           .combFilter(
               magnitudesCalculable: factory8192_0.magnitude.stft(
             scalar: MagnitudeScalar.ln,
@@ -73,7 +73,7 @@ void main() {
   test('guitar tuning', () async {
     final ccd = factory8192_0.filter.interval(3.seconds);
     final chromas =
-        ccd(factory8192_0.guitarRange.combFilter().call(await DataSet().G));
+        ccd(factory8192_0.guitar.combFilter().call(await DataSet().G));
 
     expect(chromas[0], isNotNull);
   });

@@ -54,7 +54,7 @@ Future<void> main() async {
 
     test('estimator', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        chromaCalculable: f.guitar.reassignCombFilter(),
         filters: f.filter.eval,
       );
       final progress = estimator.estimate(await DataSet().sample);
@@ -64,7 +64,7 @@ Future<void> main() async {
 
   test('threshold', () async {
     final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.reassignCombFilter(),
+      chromaCalculable: f.guitar.reassignCombFilter(),
       filters: [
         const PowerThresholdChordChangeDetector(threshold: 15),
       ],
@@ -75,7 +75,7 @@ Future<void> main() async {
 
   test('triad', () async {
     final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.reassignCombFilter(),
+      chromaCalculable: f.guitar.reassignCombFilter(),
       filters: [
         const ThresholdFilter(threshold: 100),
         TriadChordChangeDetector(),
@@ -93,7 +93,7 @@ Future<void> main() async {
 
     test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        chromaCalculable: f.guitar.reassignCombFilter(),
         filters: base,
       );
       final progression = estimator.estimate(await DataSet().sample);
@@ -102,7 +102,7 @@ Future<void> main() async {
 
     test('average', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        chromaCalculable: f.guitar.reassignCombFilter(),
         filters: [
           ...base,
           const AverageFilter(kernelRadius: 1),
@@ -114,7 +114,7 @@ Future<void> main() async {
 
     test('gaussian', () async {
       final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitarRange.reassignCombFilter(),
+        chromaCalculable: f.guitar.reassignCombFilter(),
         filters: [
           ...base,
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
@@ -129,7 +129,7 @@ Future<void> main() async {
     group('cosine similarity', () {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosine(0.8),
@@ -141,7 +141,7 @@ Future<void> main() async {
 
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosine(0.9),
@@ -154,7 +154,7 @@ Future<void> main() async {
       test('log', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable:
-              f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+              f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
           filters: [
             ThresholdFilter(threshold: log(15)),
             const PreFrameCheckChordChangeDetector.cosine(0.8),
@@ -168,7 +168,7 @@ Future<void> main() async {
     group('tonal centroid', () {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosineTonalCentroid(0.8),
@@ -180,7 +180,7 @@ Future<void> main() async {
 
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosineTonalCentroid(0.9),
@@ -194,7 +194,7 @@ Future<void> main() async {
     group('TIV', () {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.8),
@@ -206,7 +206,7 @@ Future<void> main() async {
 
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitarRange.reassignCombFilter(),
+          chromaCalculable: f.guitar.reassignCombFilter(),
           filters: [
             const ThresholdFilter(threshold: 20),
             const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.9),

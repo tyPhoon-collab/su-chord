@@ -71,12 +71,12 @@ final class EstimatorFactory {
   late final selector = ChordSelectorFactory();
   late final extractor = NoteExtractorFactory();
 
-  late final guitarRange = ChromaCalculatorFactory(
+  late final guitar = ChromaCalculatorFactory(
     context,
     magnitude: magnitude,
     chromaContext: ChromaContext.guitar,
   );
-  late final bigRange = ChromaCalculatorFactory(
+  late final big = ChromaCalculatorFactory(
     context,
     magnitude: magnitude,
     chromaContext: ChromaContext.big,

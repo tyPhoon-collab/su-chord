@@ -12,18 +12,18 @@ void main() {
     final data = await DataSet().sample;
 
     final e1 = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.combFilter(),
+      chromaCalculable: f.guitar.combFilter(),
       filters: f.filter.eval,
     );
 
     final e2 = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.combFilter(),
+      chromaCalculable: f.guitar.combFilter(),
       filters: f.filter.eval,
       templateScalar: const ThirdHarmonicChromaScalar(0.2),
     );
 
     final e3 = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitarRange.combFilter(),
+      chromaCalculable: f.guitar.combFilter(),
       filters: f.filter.eval,
       templateScalar: HarmonicsChromaScalar(),
     );

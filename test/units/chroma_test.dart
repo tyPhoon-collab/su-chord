@@ -42,7 +42,7 @@ void main() {
   test('cosine similarity', () async {
     final f = factory8192_0;
     final chromas =
-        f.guitarRange.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
+        f.guitar.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
 
     final pcp = f.filter.interval(4.seconds).call(chromas).first;
     final template =
@@ -56,17 +56,17 @@ void main() {
     Measure.logger = null;
 
     final calculator = [
-      factory8192_0.guitarRange.combFilter(),
-      factory8192_0.guitarRange.combFilter(
+      factory8192_0.guitar.combFilter(),
+      factory8192_0.guitar.combFilter(
         combFilterContext: const CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ),
-      factory8192_0.guitarRange.combFilter(
+      factory8192_0.guitar.combFilter(
         magnitudesCalculable:
             factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln),
       ),
       // factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
-      factory8192_0.guitarRange.reassignment(),
-      factory8192_0.guitarRange.reassignment(scalar: MagnitudeScalar.ln),
+      factory8192_0.guitar.reassignment(),
+      factory8192_0.guitar.reassignment(scalar: MagnitudeScalar.ln),
     ];
 
     final templates = [
@@ -93,11 +93,11 @@ void main() {
     final f = factory8192_0;
     final cs = [
       for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
-        f.guitarRange
+        f.guitar
             .combFilter(magnitudesCalculable: f.magnitude.stft(scalar: scalar)),
-        f.guitarRange.combFilter(
+        f.guitar.combFilter(
             magnitudesCalculable: f.magnitude.reassignment(scalar: scalar)),
-        f.guitarRange.reassignment(scalar: scalar),
+        f.guitar.reassignment(scalar: scalar),
       ]
     ];
     final filter = f.filter.interval(4.seconds);

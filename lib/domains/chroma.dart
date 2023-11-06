@@ -126,9 +126,14 @@ class ChromaContext {
     required this.perOctave,
   });
 
-  static const guitar = ChromaContext(
+  static const konoki = ChromaContext(
     lowest: MusicalScale.E2,
     perOctave: 6,
+  );
+
+  static const guitar = ChromaContext(
+    lowest: MusicalScale.E2,
+    perOctave: 4,
   );
 
   static const big = ChromaContext(

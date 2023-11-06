@@ -27,8 +27,8 @@ void main() {
       await Future.wait([
         for (final f in factories)
           for (final cc in [
-            f.guitarRange.combFilter(),
-            f.guitarRange.reassignCombFilter(),
+            f.guitar.combFilter(),
+            f.guitar.reassignCombFilter(),
           ])
             writer(
               f.filter
@@ -51,8 +51,8 @@ void main() {
       await Future.wait([
         for (final f in factories)
           for (final cc in [
-            f.guitarRange.reassignCombFilter(),
-            f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln),
+            f.guitar.reassignCombFilter(),
+            f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
           ])
             writer(
               f.filter
@@ -69,8 +69,7 @@ void main() {
       final f = factory8192_0;
 
       test('PCP of G', () async {
-        final chromas =
-            f.guitarRange.reassignCombFilter().call(await DataSet().G);
+        final chromas = f.guitar.reassignCombFilter().call(await DataSet().G);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.l2normalized, title: 'PCP of G');
@@ -84,8 +83,7 @@ void main() {
       });
 
       test('PCP of C', () async {
-        final chromas =
-            f.guitarRange.reassignCombFilter().call(await DataSet().C);
+        final chromas = f.guitar.reassignCombFilter().call(await DataSet().C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.l2normalized, title: 'PCP of C');
@@ -166,9 +164,9 @@ void main() {
 
     test('compare', () async {
       final estimators = [
-        f.guitarRange.combFilter(),
-        f.guitarRange.reassignCombFilter(),
-        f.guitarRange.reassignment(),
+        f.guitar.combFilter(),
+        f.guitar.reassignCombFilter(),
+        f.guitar.reassignment(),
       ];
 
       await Future.wait(
@@ -181,12 +179,12 @@ void main() {
 
     test('common', () async {
       final chromas =
-          f.guitarRange.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
+          f.guitar.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
     });
 
     test('log scaled', () async {
-      final chromas = f.guitarRange
+      final chromas = f.guitar
           .reassignCombFilter(scalar: MagnitudeScalar.ln)
           .call(await DataSet().G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
@@ -198,7 +196,7 @@ void main() {
           const ThresholdFilter(threshold: 20),
           // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
         ];
-        final cc = f.guitarRange.reassignCombFilter();
+        final cc = f.guitar.reassignCombFilter();
         var chromas = cc(await DataSet().G_Em_Bm_C);
         await writer(chromas, title: 'chromagram 0 $cc');
 
@@ -215,7 +213,7 @@ void main() {
           ThresholdFilter(threshold: log(20)),
           // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
         ];
-        final cc = f.guitarRange.reassignCombFilter(scalar: MagnitudeScalar.ln);
+        final cc = f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln);
         var chromas = cc(await DataSet().G_Em_Bm_C);
         await writer(chromas, title: 'chromagram 0 $cc');
 
@@ -257,8 +255,7 @@ void main() {
     }
 
     test('cosine similarity', () async {
-      final chroma =
-          f.guitarRange.reassignCombFilter().call(await DataSet().sample);
+      final chroma = f.guitar.reassignCombFilter().call(await DataSet().sample);
       const scoreCalculator = ScoreCalculator.cosine();
 
       await writer(
@@ -272,8 +269,7 @@ void main() {
     });
 
     test('tonal centroid', () async {
-      final chroma =
-          f.guitarRange.reassignCombFilter().call(await DataSet().sample);
+      final chroma = f.guitar.reassignCombFilter().call(await DataSet().sample);
       const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
 
       await writer(
