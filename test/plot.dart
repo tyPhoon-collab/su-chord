@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
@@ -17,7 +18,7 @@ void main() {
   group('pcp bar chart', () {
     const writer = PCPChartWriter();
 
-    test('compare by change window size', () async {
+    test('different window size', () async {
       final factories = [
         factory8192_0,
         factory2048_0,
@@ -41,12 +42,16 @@ void main() {
       ]);
     });
 
-    test('compare', () async {
+    test('spot compare', () async {
       final factories = [factory8192_0, factory4096_0];
       final data = await const SimpleAudioLoader(
               path:
                   'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
-          .load(sampleRate: 22050, duration: 4.1, offset: 12);
+          .load(
+        sampleRate: 22050,
+        duration: 4.1,
+        offset: 12,
+      );
 
       await Future.wait([
         for (final f in factories)
@@ -65,8 +70,48 @@ void main() {
       ]);
     });
 
-    group('power point example', () {
-      final f = factory8192_0;
+    group('template', () {
+      test('template', () async {
+        final chord = Chord.parse('C');
+        await writer(chord.unitPCP.l2normalized, title: 'Template of $chord');
+      });
+
+      group('scalar', () {
+        test('third scaled template of C', () async {
+          final chord = Chord.parse('C');
+
+          await writer(
+            const ThirdHarmonicChromaScalar(0.2)
+                .call(chord.unitPCP)
+                .l2normalized,
+            title: 'third scaled template of $chord',
+          );
+        });
+
+        group('harmonics scaled', () {
+          test('4th', () async {
+            final chord = Chord.parse('C');
+
+            await writer(
+              HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
+              title: '4 harmonics scaled template of $chord',
+            );
+          });
+
+          test('6th', () async {
+            final chord = Chord.parse('C');
+
+            await writer(
+              HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized,
+              title: '6 harmonics scaled template of $chord',
+            );
+          });
+        });
+      });
+    });
+
+    group('real data', () {
+      final f = factory4096_0;
 
       test('PCP of G', () async {
         final chromas = f.guitar.reassignCombFilter().call(await DataSet().G);
@@ -75,62 +120,17 @@ void main() {
         await writer(pcp.l2normalized, title: 'PCP of G');
       });
 
-      test('template of G', () async {
-        await writer(
-          PCP(const [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]).l2normalized,
-          title: 'Template of G',
-        );
-      });
-
       test('PCP of C', () async {
         final chromas = f.guitar.reassignCombFilter().call(await DataSet().C);
 
         final pcp = f.filter.interval(4.seconds).call(chromas).first;
         await writer(pcp.l2normalized, title: 'PCP of C');
       });
-
-      test('template of C', () async {
-        await writer(
-          PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).l2normalized,
-          title: 'Template of C',
-        );
-      });
-    });
-
-    group('scalar', () {
-      test('third scaled template of C', () async {
-        await writer(
-          const ThirdHarmonicChromaScalar(0.2)
-              .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-              .l2normalized,
-          title: 'third scaled template of C',
-        );
-      });
-
-      group('harmonics scaled', () {
-        test('4th C', () async {
-          await writer(
-            HarmonicsChromaScalar()
-                .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-                .l2normalized,
-            title: '4 harmonics scaled template of C',
-          );
-        });
-
-        test('6th C', () async {
-          await writer(
-            HarmonicsChromaScalar(until: 6)
-                .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-                .l2normalized,
-            title: '6 harmonics scaled template of C',
-          );
-        });
-      });
     });
   });
 
   group('spec', () {
-    final f = factory2048_1024;
+    final f = factory4096_0;
     final writer = SpecChartWriter(
       sampleRate: f.context.sampleRate,
       chunkSize: f.context.chunkSize,
@@ -151,12 +151,10 @@ void main() {
     });
 
     test('mags, stft vs reassignment', () async {
-      final data = await DataSet().sample;
+      final data = await DataSet().G_Em_Bm_C;
 
       final mags1 = f.magnitude.stft().call(data);
-      final mags2 = f.magnitude
-          .reassignment(overrideChunkSize: 8192)
-          .call(data.cut(duration: 16));
+      final mags2 = f.magnitude.reassignment().call(data);
 
       await Future.wait([
         writer(mags1, title: 'mags ${f.context}'),
@@ -166,14 +164,14 @@ void main() {
   });
 
   group('chromagram', () {
-    final f = factory8192_0;
+    final f = factory4096_0;
     final writer = SpecChartWriter.chroma(
       sampleRate: f.context.sampleRate,
       chunkSize: f.context.chunkSize,
       chunkStride: f.context.chunkStride,
     );
 
-    test('compare', () async {
+    test('chromagram compare', () async {
       final estimators = [
         f.guitar.combFilter(),
         f.guitar.reassignCombFilter(),
@@ -221,7 +219,7 @@ void main() {
 
       test('threshold log', () async {
         final filters = [
-          ThresholdFilter(threshold: log(20)),
+          ThresholdFilter(threshold: log(10)),
           // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
         ];
         final cc = f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln);
@@ -233,6 +231,7 @@ void main() {
           count++;
           chromas = filter(chromas);
           await writer(chromas, title: 'chromagram $count $filter $cc');
+          // await writer(chromas);
         }
       });
     });
@@ -242,6 +241,10 @@ void main() {
     // final f = factory8192_0;
     final f = factory4096_0;
     const writer = LineChartWriter();
+
+    List<Chroma> cc(AudioData data) => f.filter
+        .powerThreshold(log(10))
+        .call(f.guitar.reassignCombFilter().call(data));
 
     Iterable<Iterable<double>> getScoreWithTime(
       List<Chroma> chroma,
@@ -266,7 +269,7 @@ void main() {
     }
 
     test('cosine similarity', () async {
-      final chroma = f.guitar.reassignCombFilter().call(await DataSet().sample);
+      final chroma = cc(await DataSet().sample);
       const scoreCalculator = ScoreCalculator.cosine();
 
       await writer(
@@ -280,7 +283,7 @@ void main() {
     });
 
     test('tonal centroid', () async {
-      final chroma = f.guitar.reassignCombFilter().call(await DataSet().sample);
+      final chroma = cc(await DataSet().sample);
       const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
 
       await writer(
@@ -290,6 +293,20 @@ void main() {
           nanTo: 1,
         ),
         title: 'tonal centroid HCDF',
+      );
+    });
+    test('tonal interval vector', () async {
+      final chroma = cc(await DataSet().sample);
+      const scoreCalculator =
+          ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+
+      await writer(
+        getScoreWithTime(
+          chroma,
+          scoreCalculator,
+          nanTo: 1,
+        ),
+        title: 'tonal interval vector HCDF',
       );
     });
   });

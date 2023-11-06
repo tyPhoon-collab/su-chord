@@ -99,7 +99,7 @@ final class MagnitudesFactory {
 
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
-    int? overrideChunkSize,
+    int? overrideChunkSize = 8192,
   }) =>
       ReassignmentMagnitudesCalculator(
         chunkSize: context.chunkSize,

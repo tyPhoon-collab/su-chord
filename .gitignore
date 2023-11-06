@@ -45,6 +45,7 @@ app.*.map.json
 
 /assets/evals
 ~$*.xlsx
+/test/outputs/tmp.xlsx
 
 .vscode
 
