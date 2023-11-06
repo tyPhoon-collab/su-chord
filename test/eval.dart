@@ -61,7 +61,7 @@ Future<void> main() async {
   test('cross validation', () async {
     Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
 
-    const folderName = 'harmonics template scalar';
+    const folderName = 'temp';
 
     final f = factory4096_0;
     final filter = f.filter.eval;
@@ -86,7 +86,7 @@ Future<void> main() async {
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           filters: filter,
-          templateScalar: HarmonicsChromaScalar(),
+          // templateScalar: HarmonicsChromaScalar(until: 6),
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,

@@ -107,13 +107,24 @@ void main() {
         );
       });
 
-      test('harmonics scaled template of C', () async {
-        await writer(
-          HarmonicsChromaScalar()
-              .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
-              .l2normalized,
-          title: 'harmonics scaled template of C',
-        );
+      group('harmonics scaled', () {
+        test('4th C', () async {
+          await writer(
+            HarmonicsChromaScalar()
+                .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
+                .l2normalized,
+            title: '4 harmonics scaled template of C',
+          );
+        });
+
+        test('6th C', () async {
+          await writer(
+            HarmonicsChromaScalar(until: 6)
+                .call(PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]))
+                .l2normalized,
+            title: '6 harmonics scaled template of C',
+          );
+        });
       });
     });
   });
