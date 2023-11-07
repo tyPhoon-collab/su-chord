@@ -224,7 +224,7 @@ Future<void> main() async {
     const bufferChunkSize = 4096;
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      filters: f.filter.realtime(isLogScale: true),
+      filters: f.filter.realtime(threshold: 20),
       templateScalar: HarmonicsChromaScalar(until: 6),
     );
     final data = await DataSet().sample;

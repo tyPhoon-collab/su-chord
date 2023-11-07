@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:get/get.dart';
 
 import '../utils/loaders/csv.dart';
@@ -168,14 +166,11 @@ final class FilterFactory {
   ///無音検知
   ///類似度
   Filters realtime({
-    double threshold = 20,
+    required double threshold,
     double similarityThreshold = 0.9,
-    bool isLogScale = false,
   }) =>
       [
-        PowerThresholdChordChangeDetector(
-          threshold: isLogScale ? log(threshold) : threshold,
-        ),
+        PowerThresholdChordChangeDetector(threshold: threshold),
         PreFrameCheckChordChangeDetector(
           scoreCalculator: const ScoreCalculator.cosine(
             ToTonalIntervalVector.musical(),
@@ -194,13 +189,12 @@ final class FilterFactory {
       ];
 
   Filters preFrameCheck({
-    double threshold = 20,
+    required double threshold,
     ScoreCalculator scoreCalculator = const ScoreCalculator.cosine(),
     double scoreThreshold = 0.8,
-    bool isLogScale = false,
   }) =>
       [
-        powerThreshold(isLogScale ? log(threshold) : threshold),
+        powerThreshold(threshold),
         PreFrameCheckChordChangeDetector(
           scoreCalculator: scoreCalculator,
           threshold: scoreThreshold,

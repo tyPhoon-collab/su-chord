@@ -297,7 +297,7 @@ Future<void> main() async {
     test('HCDF cosine similarity', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.preFrameCheck(scoreThreshold: .9),
+        filters: f.filter.preFrameCheck(threshold: 15, scoreThreshold: .9),
       );
 
       for (final context in contexts) {
@@ -314,6 +314,7 @@ Future<void> main() async {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
         filters: f.filter.preFrameCheck(
+          threshold: 15,
           scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
           scoreThreshold: .8,
         ),
@@ -333,6 +334,7 @@ Future<void> main() async {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
         filters: f.filter.preFrameCheck(
+          threshold: 15,
           scoreCalculator: const ScoreCalculator.cosine(
             ToTonalIntervalVector.musical(),
           ),

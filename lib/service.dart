@@ -71,49 +71,33 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final detectableChords = ref.watch(detectableChordsProvider);
 
   return {
-    'matching + reassign': () async => PatternMatchingChordEstimator(
+    'matching + reassign ln + template scaled': () async =>
+        PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(),
-          filters: f.filter.realtime(),
+          filters: f.filter.realtime(threshold: 20),
+          templateScalar: HarmonicsChromaScalar(until: 6),
           templates: detectableChords,
         ),
     'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.realtime(),
+          filters: f.filter.realtime(threshold: 15),
           templates: detectableChords,
         ),
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          filters: f.filter.realtime(threshold: 8, isLogScale: true),
+          filters: f.filter.realtime(threshold: 3),
           templates: detectableChords,
-        ),
-    'matching + comb': () async => PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.combFilter(),
-          filters: f.filter.realtime(),
-          templates: detectableChords,
-        ),
-    'search + comb': () async => SearchTreeChordEstimator(
-          chromaCalculable: f.guitar.combFilter(),
-          filters: f.filter.realtime(),
-          noteExtractable: f.extractor.threshold(),
-          chordSelectable: await f.selector.db,
-          detectableChords: detectableChords,
         ),
     'search + comb + ln': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.combFilter(
             magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln),
           ),
-          filters: f.filter.realtime(isLogScale: true),
+          filters: f.filter.realtime(threshold: 3),
           noteExtractable: f.extractor.threshold(
             scalar: MagnitudeScalar.ln,
           ),
           chordSelectable: await f.selector.db,
-          detectableChords: detectableChords,
-        ),
-    'notes + reassign comb': () async => FromNotesChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.realtime(),
-          noteExtractable: f.extractor.threshold(),
           detectableChords: detectableChords,
         ),
   };
