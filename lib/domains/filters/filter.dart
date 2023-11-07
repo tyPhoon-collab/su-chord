@@ -40,7 +40,7 @@ class ThresholdFilter implements ChromaListFilter {
 
   @override
   List<Chroma> call(List<Chroma> chroma) =>
-      chroma.where((e) => e.max >= threshold).toList();
+      chroma.where((e) => e.l2norm >= threshold).toList();
 }
 
 class AverageFilter implements ChromaListFilter {

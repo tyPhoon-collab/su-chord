@@ -61,12 +61,7 @@ void main() {
     ).first.l2normalized.toString());
 
     debugPrint(filter(
-      factory8192_0.big
-          .combFilter(
-              magnitudesCalculable: factory8192_0.magnitude.stft(
-            scalar: MagnitudeScalar.ln,
-          ))
-          .call(data),
+      factory8192_0.big.stftCombFilter(scalar: MagnitudeScalar.ln).call(data),
     ).first.l2normalized.toString());
   });
 

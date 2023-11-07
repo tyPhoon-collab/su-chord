@@ -74,13 +74,13 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
     'matching + reassign ln + template scaled': () async =>
         PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(),
-          filters: f.filter.realtime(threshold: 20),
+          filters: f.filter.realtime(threshold: 30),
           templateScalar: HarmonicsChromaScalar(until: 6),
           templates: detectableChords,
         ),
     'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.realtime(threshold: 15),
+          filters: f.filter.realtime(threshold: 10),
           templates: detectableChords,
         ),
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
@@ -90,9 +90,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           templates: detectableChords,
         ),
     'search + comb + ln': () async => SearchTreeChordEstimator(
-          chromaCalculable: f.guitar.combFilter(
-            magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln),
-          ),
+          chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
           filters: f.filter.realtime(threshold: 3),
           noteExtractable: f.extractor.threshold(
             scalar: MagnitudeScalar.ln,

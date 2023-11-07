@@ -60,10 +60,7 @@ void main() {
       factory8192_0.guitar.combFilter(
         combFilterContext: const CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ),
-      factory8192_0.guitar.combFilter(
-        magnitudesCalculable:
-            factory8192_0.magnitude.stft(scalar: MagnitudeScalar.ln),
-      ),
+      factory8192_0.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
       // factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
       factory8192_0.guitar.reassignment(),
       factory8192_0.guitar.reassignment(scalar: MagnitudeScalar.ln),
@@ -93,10 +90,8 @@ void main() {
     final f = factory8192_0;
     final cs = [
       for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
-        f.guitar
-            .combFilter(magnitudesCalculable: f.magnitude.stft(scalar: scalar)),
-        f.guitar.combFilter(
-            magnitudesCalculable: f.magnitude.reassignment(scalar: scalar)),
+        f.guitar.stftCombFilter(scalar: scalar),
+        f.guitar.reassignCombFilter(scalar: scalar),
         f.guitar.reassignment(scalar: scalar),
       ]
     ];

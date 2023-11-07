@@ -1,7 +1,12 @@
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/filter.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/formula.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../data_set.dart';
 
 void main() {
   test('threshold', () {
@@ -118,5 +123,26 @@ void main() {
     expect(c[0].max, 2);
     expect(c[1].max, 20);
     expect(c[2].max, 200);
+  });
+
+  //処理系によって用いるべき閾値は異なる
+  //調査するための関数
+  test('threshold checker', () async {
+    final f = factory4096_0;
+    final cc = [
+      // f.guitar.reassignment(), // about 100
+      // f.guitar.reassignment(scalar: MagnitudeScalar.ln), // about 30
+      // f.guitar.reassignCombFilter(), // about 10
+      // f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln), // about 3
+      // f.guitar.stftCombFilter(), // about 8
+      f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln), // about 2
+    ].first;
+
+    debugPrint(cc.toString());
+
+    final chromas = cc.call(await DataSet().G_Em_Bm_C);
+
+    final powers = chromas.map((e) => e.l2norm);
+    debugPrint(powers.toList().toString());
   });
 }

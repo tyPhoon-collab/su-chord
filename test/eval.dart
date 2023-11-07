@@ -77,9 +77,7 @@ Future<void> main() async {
       for (final chromaCalculable in [
         for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
           f.guitar.reassignment(scalar: scalar),
-          f.guitar.combFilter(
-            magnitudesCalculable: f.magnitude.stft(scalar: scalar),
-          ),
+          f.guitar.stftCombFilter(scalar: scalar),
           f.guitar.reassignCombFilter(scalar: scalar),
         ]
       ]) ...[
@@ -121,8 +119,7 @@ Future<void> main() async {
     _Evaluator(
       header: ['search + log comb, $logExtractor, ${f.context}'],
       estimator: SearchTreeChordEstimator(
-        chromaCalculable: f.guitar.combFilter(
-            magnitudesCalculable: f.magnitude.stft(scalar: MagnitudeScalar.ln)),
+        chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
         filters: f.filter.eval,
         noteExtractable: logExtractor,
         chordSelectable: await f.selector.db,
