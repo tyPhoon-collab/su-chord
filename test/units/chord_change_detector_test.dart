@@ -8,6 +8,7 @@ import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/utils/loaders/csv.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
@@ -216,5 +217,32 @@ Future<void> main() async {
         printProgressions(progression, corrects);
       });
     });
+  });
+
+  test('stream', () async {
+    final f = factory4096_0;
+    const bufferChunkSize = 4096;
+    final estimator = PatternMatchingChordEstimator(
+      chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+      filters: f.filter.realtime(isLogScale: true),
+      templateScalar: HarmonicsChromaScalar(until: 6),
+    );
+    final data = await DataSet().sample;
+
+    debugPrint('Stream emulating...');
+    int count = 0;
+
+    await for (final progression in const AudioStreamEmulator(
+      bufferChunkSize: bufferChunkSize,
+      sleepDuration: Duration(milliseconds: 100),
+    ).stream(data).map((data) => estimator.estimate(data, false))) {
+      count++;
+      printSeparation();
+      debugPrint('count: $count');
+      debugPrint('seek : ${bufferChunkSize * count / f.context.sampleRate}');
+      debugPrint(progression.toString());
+    }
+    printSeparation();
+    debugPrint(estimator.flush().toString());
   });
 }

@@ -169,7 +169,7 @@ final class FilterFactory {
   ///類似度
   Filters realtime({
     double threshold = 20,
-    double similarityThreshold = 0.8,
+    double similarityThreshold = 0.9,
     bool isLogScale = false,
   }) =>
       [
