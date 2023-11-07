@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_calculators/reassignment.dart';
+import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/factory.dart';
@@ -191,11 +191,17 @@ void main() {
     });
 
     test('parts of reassignment', () async {
-      final mags = ReassignmentEqualTemperamentBinCalculator(
+      const writer = Hist2DChartWriter();
+      final (points, mags) = ReassignmentCalculator.hanning(
         chunkSize: f.context.chunkSize,
         chunkStride: f.context.chunkStride,
-      ).calculateMagnitudes(await DataSet().G);
-      await writer(mags, title: 'parts of reassignment');
+      ).reassign(await DataSet().G);
+      await writer(
+        points,
+        xBin: List.generate(mags.length, (i) => i * f.context.dt),
+        yBin: ChromaContext.guitar.toEqualTemperamentBin(),
+        title: 'parts of reassignment',
+      );
     });
   });
 

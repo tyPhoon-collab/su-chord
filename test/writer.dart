@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chord/utils/histogram.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
@@ -63,10 +64,14 @@ class PCPChartWriter {
 mixin class _UsingTempCSVFileChartWriter {
   Future<void> runWithTempCSVFile(
     List<List<String>> data,
-    Future<ProcessResult> Function(String filePath) run,
-  ) async {
+    Future<ProcessResult> Function(String filePath) run, {
+    Header? header,
+  }) async {
     final fileName = const Uuid().v4();
-    final file = Table(data).toCSV('test/outputs/$fileName.csv');
+    final file = Table(
+      data,
+      header: header,
+    ).toCSV('test/outputs/$fileName.csv');
     final filePath = file.path;
     debugPrint('created: $filePath');
 
@@ -144,6 +149,65 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
             ]
           ],
         ),
+      );
+}
+
+class ScatterChartWriter with _UsingTempCSVFileChartWriter {
+  const ScatterChartWriter();
+
+  Future<void> call(Iterable<Point> data, {String? title}) async =>
+      runWithTempCSVFile(
+        data
+            .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
+            .toList(),
+        (filePath) => Process.run(
+          'python3',
+          [
+            'python/plots/scatter.py',
+            filePath,
+            if (title != null) ...[
+              '--title',
+              title,
+              '--output',
+              'test/outputs/plots/$title.png',
+            ]
+          ],
+        ),
+        header: ['x', 'y', 'c'],
+      );
+}
+
+class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
+  const Hist2DChartWriter();
+
+  Future<void> call(
+    Iterable<Point> data, {
+    required Bin xBin,
+    required Bin yBin,
+    String? title,
+  }) async =>
+      runWithTempCSVFile(
+        data
+            .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
+            .toList(),
+        (filePath) => Process.run(
+          'python3',
+          [
+            'python/plots/hist2d.py',
+            filePath,
+            '--x_bin',
+            ...xBin.map((e) => e.toString()),
+            '--y_bin',
+            ...yBin.map((e) => e.toString()),
+            if (title != null) ...[
+              '--title',
+              title,
+              '--output',
+              'test/outputs/plots/$title.png',
+            ]
+          ],
+        ),
+        header: ['x', 'y', 'c'],
       );
 }
 

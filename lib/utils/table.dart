@@ -6,19 +6,17 @@ typedef Row = List<String>;
 typedef Header = Row;
 
 class Table extends Iterable<Row> {
-  const Table(this._values);
+  const Table(this._values, {this.header});
 
-  Table.empty(Header? header) : _values = [if (header != null) header];
+  Table.empty(this.header) : _values = [];
 
   static bool bypass = false;
 
   final List<Row> _values;
+  final Header? header;
 
-  void clear([remainingHeader = true]) {
-    final header = _values.firstOrNull;
+  void clear() {
     _values.clear();
-
-    if (remainingHeader && header != null) add(header);
   }
 
   void add(Row row) {
@@ -30,7 +28,10 @@ class Table extends Iterable<Row> {
     if (bypass) return File(path);
 
     final file = File(path)..create(recursive: true);
-    final contents = const ListToCsvConverter().convert(_values);
+    final contents = const ListToCsvConverter().convert([
+      if (header != null) header,
+      ..._values,
+    ]);
     file.writeAsString(contents);
 
     return file;
@@ -38,6 +39,4 @@ class Table extends Iterable<Row> {
 
   @override
   Iterator<Row> get iterator => _values.iterator;
-
-  List<Row> get headlessValues => _values.sublist(1);
 }

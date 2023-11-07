@@ -23,7 +23,6 @@ plt.scatter(x_data, y_data, c=c_data)
 if args.title:
     plt.title(args.title)
 
-
 if args.output:
     plt.savefig(args.output)
 else:

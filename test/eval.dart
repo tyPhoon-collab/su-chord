@@ -495,7 +495,7 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
 class _Evaluator {
   _Evaluator({
     required this.estimator,
-    Row? header = const ['no title'],
+    Header header = const ['no title'],
     this.validator,
   }) : _table = Table.empty(header);
 
