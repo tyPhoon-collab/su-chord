@@ -1,4 +1,5 @@
 import 'package:chord/domains/equal_temperament.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -75,6 +76,7 @@ void main() {
       const lowest = MusicalScale.E2;
       const highest = MusicalScale(Note.Ds, 8);
       final bin = equalTemperamentBin(lowest, highest);
+      debugPrint(bin.toString());
       expect(bin.first, lessThan(lowest.toHz()));
       expect(lowest.transpose(1).toHz(), greaterThan(bin.first));
       expect(bin.last, greaterThan(highest.toHz()));

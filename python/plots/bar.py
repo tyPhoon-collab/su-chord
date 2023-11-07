@@ -9,7 +9,7 @@ def __get_x_labels(is_pcp: bool) -> list[str]:
     if is_pcp:
         return X_LABELS
     else:
-        return list(map(str, range(len(X_LABELS))))
+        return list(map(str, range(len(args.values))))
 
 
 # Command-line argument parsing

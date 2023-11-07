@@ -8,12 +8,11 @@ import '../equal_temperament.dart';
 import '../magnitudes_calculator.dart';
 import 'chroma_calculator.dart';
 
-///再割り当て法を元にクロマを算出する
-///時間軸方向の再割り当てはリアルタイム処理の場合、先読みが必要になるので一旦しない前提
-class ReassignmentChromaCalculator extends ReassignmentCalculator
+///再割り当て後、平均律に従って重み付きヒストグラムをかける
+class ReassignmentEqualTemperamentBinCalculator extends ReassignmentCalculator
     with MagnitudesCacheManager
-    implements ChromaCalculable, HasMagnitudes {
-  ReassignmentChromaCalculator({
+    implements HasMagnitudes {
+  ReassignmentEqualTemperamentBinCalculator({
     super.chunkSize,
     super.chunkStride,
     super.isReassignFrequencyDimension,
@@ -29,13 +28,9 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
   late final _hzList = chromaContext.toHzList();
 
   @override
-  String toString() => 'sparse ${scalar.name} scaled, $chromaContext';
-
-  @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
-  @override
-  List<Chroma> call(AudioData data, [bool flush = true]) {
+  Magnitudes calculateMagnitudes(AudioData data, [bool flush = true]) {
     final (points, magnitudes) = reassign(data, flush);
     final binX = List.generate(
         magnitudes.length + 1, (i) => i * deltaTime(data.sampleRate));
@@ -45,9 +40,46 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
       binY: _binY,
     );
 
-    updateCacheMagnitudes(histogram2d!.values, flush);
+    final mags = histogram2d!.values;
 
-    return histogram2d!.values.map(_fold).toList();
+    updateCacheMagnitudes(mags, flush);
+
+    return mags;
+  }
+
+  @override
+  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
+
+  @override
+  double frequency(int index, int sampleRate) => _hzList[index];
+
+  @override
+  double indexOfFrequency(double freq, int sampleRate) {
+    final deltaList = _hzList.map((e) => (e - freq).abs()).toList();
+    return deltaList.indexOf(deltaList.min).toDouble();
+  }
+}
+
+class ReassignmentChromaCalculator
+    extends ReassignmentEqualTemperamentBinCalculator
+    with MagnitudesCacheManager
+    implements ChromaCalculable, HasMagnitudes {
+  ReassignmentChromaCalculator({
+    super.chunkSize,
+    super.chunkStride,
+    super.isReassignFrequencyDimension,
+    super.isReassignTimeDimension,
+    super.chromaContext,
+    super.scalar,
+  }) : super();
+
+  @override
+  String toString() => 'sparse ${scalar.name} scaled, $chromaContext';
+
+  @override
+  List<Chroma> call(AudioData data, [bool flush = true]) {
+    final mags = calculateMagnitudes(data, flush);
+    return mags.map(_fold).toList();
   }
 
   Chroma _fold(Magnitude value) {
@@ -61,17 +93,5 @@ class ReassignmentChromaCalculator extends ReassignmentCalculator
       }
       return sum;
     })).shift(-chromaContext.lowest.note.degreeTo(Note.C));
-  }
-
-  @override
-  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
-
-  @override
-  double frequency(int index, int sampleRate) => _hzList[index];
-
-  @override
-  double indexOfFrequency(double freq, int sampleRate) {
-    final deltaList = _hzList.map((e) => (e - freq).abs()).toList();
-    return deltaList.indexOf(deltaList.min).toDouble();
   }
 }

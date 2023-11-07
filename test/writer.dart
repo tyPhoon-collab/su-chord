@@ -28,10 +28,6 @@ class BarChartWriter {
           '--output',
           'test/outputs/plots/$title.png',
         ],
-        '--ymax',
-        '1',
-        '--ymin',
-        '0',
       ],
     );
     _debugPrintIfNotEmpty(result.stderr);
