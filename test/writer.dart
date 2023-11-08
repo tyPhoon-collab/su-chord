@@ -50,9 +50,9 @@ class PCPChartWriter {
           '--output',
           'test/outputs/plots/$title.png',
         ],
-        '--ymax',
+        '--y_max',
         '1',
-        '--ymin',
+        '--y_min',
         '0',
         '--pcp',
       ],
@@ -126,7 +126,12 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
   final int chunkStride;
   final String? yAxis;
 
-  Future<void> call(Iterable<Iterable<num>> data, {String? title}) async =>
+  Future<void> call(
+    Iterable<Iterable<num>> data, {
+    String? title,
+    double? yMin,
+    double? yMax,
+  }) async =>
       runWithTempCSVFile(
         data.map((e) => e.map((e) => e.toString()).toList()).toList(),
         (filePath) => Process.run(
@@ -146,7 +151,15 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
             if (yAxis case final String yAxis) ...[
               '--y_axis',
               yAxis,
-            ]
+            ],
+            if (yMin != null) ...[
+              '--y_min',
+              yMin.toString(),
+            ],
+            if (yMax != null) ...[
+              '--y_max',
+              yMax.toString(),
+            ],
           ],
         ),
       );

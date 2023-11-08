@@ -173,8 +173,16 @@ void main() {
       final mags2 = f.magnitude.reassignment(scalar: scalar).call(data);
 
       await Future.wait([
-        writer(mags1, title: '${scalar.name} mags ${f.context}'),
-        writer(mags2, title: '${scalar.name} reassignment ${f.context}'),
+        writer(
+          mags1,
+          title: '${scalar.name} mags ${f.context}',
+          yMax: 2200,
+        ),
+        writer(
+          mags2,
+          title: '${scalar.name} reassignment ${f.context}',
+          yMax: 2200,
+        ),
       ]);
     });
 
