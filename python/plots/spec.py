@@ -30,7 +30,8 @@ librosa.display.specshow(
 if args.title:
     plt.title(args.title)
 
-plt.ylabel("Frequency")
+if args.y_axis == "log":
+    plt.ylabel("Frequency")
 
 if args.output:
     plt.savefig(args.output)
