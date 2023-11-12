@@ -7,14 +7,14 @@ import '../domains/chord_progression.dart';
 class ChordProgressionView extends StatelessWidget {
   const ChordProgressionView({super.key, required this.progression});
 
-  final ChordProgression progression;
+  final ChordProgression<Chord> progression;
 
   @override
   Widget build(BuildContext context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(progression.toString()),
-          ChordView(chord: progression.lastOrNull),
+          ChordView(chord: progression.lastOrNull?.chord),
         ],
       );
 }

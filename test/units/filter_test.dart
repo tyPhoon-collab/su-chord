@@ -1,7 +1,6 @@
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/filter.dart';
-import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:chord/utils/formula.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,16 +8,16 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
-  test('threshold', () {
-    final chroma = [
-      Chroma(const [1, 1, 1]),
-      Chroma(const [10, 10, 10]),
-      Chroma(const [100, 100, 100]),
-    ];
-
-    final c = const ThresholdFilter(threshold: 10).call(chroma);
-    expect(c.length, 2);
-  });
+  // test('threshold', () {
+  //   final chroma = [
+  //     Chroma(const [1, 1, 1]),
+  //     Chroma(const [10, 10, 10]),
+  //     Chroma(const [100, 100, 100]),
+  //   ];
+  //
+  //   final c = const ThresholdFilter(threshold: 10).call(chroma);
+  //   expect(c.length, 2);
+  // });
 
   test('average', () {
     final chroma = List.generate(5, (index) => 1 + index.toDouble())
@@ -132,10 +131,10 @@ void main() {
     final cc = [
       // f.guitar.reassignment(), // about 100
       // f.guitar.reassignment(scalar: MagnitudeScalar.ln), // about 30
-      // f.guitar.reassignCombFilter(), // about 10
+      f.guitar.reassignCombFilter(), // about 10
       // f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln), // about 3
       // f.guitar.stftCombFilter(), // about 8
-      f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln), // about 2
+      // f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln), // about 2
     ].first;
 
     debugPrint(cc.toString());

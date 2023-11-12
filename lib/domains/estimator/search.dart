@@ -10,6 +10,7 @@ import 'estimator.dart';
 class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   SearchTreeChordEstimator({
     required super.chromaCalculable,
+    super.chordChangeDetectable,
     super.chordSelectable,
     super.filters,
     this.noteExtractable = const ThresholdByMaxRatioExtractor(),
@@ -40,6 +41,7 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
 class FromNotesChordEstimator extends SelectableChromaChordEstimator {
   FromNotesChordEstimator({
     required super.chromaCalculable,
+    super.chordChangeDetectable,
     super.chordSelectable,
     super.filters,
     this.noteExtractable = const ThresholdByMaxRatioExtractor(),

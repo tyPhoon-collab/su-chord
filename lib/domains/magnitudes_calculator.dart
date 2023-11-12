@@ -18,9 +18,9 @@ abstract interface class HasMagnitudes {
 
   Magnitudes get cachedMagnitudes; // for debug view
 
-  double indexOfFrequency(double freq, int sampleRate);
+  double deltaTime(int sampleRate);
 
-  double time(int index, int sampleRate);
+  double indexOfFrequency(double freq, int sampleRate);
 
   double frequency(int index, int sampleRate);
 }
@@ -81,9 +81,6 @@ class MagnitudesCalculator extends STFTCalculator
 
     return magnitudes;
   }
-
-  @override
-  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
 
   @override
   double frequency(int index, int sampleRate) =>
@@ -154,9 +151,6 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
 
     return reassignedMagnitudes;
   }
-
-  @override
-  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
 
   @override
   double frequency(int index, int sampleRate) =>

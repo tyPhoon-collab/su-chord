@@ -1,5 +1,7 @@
-import 'package:chord/domains/factory.dart';
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 

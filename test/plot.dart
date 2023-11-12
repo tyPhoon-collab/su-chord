@@ -5,14 +5,14 @@ import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 
 import 'data_set.dart';
 import 'writer.dart';
@@ -57,11 +57,7 @@ void main() {
               f.guitar.reassignCombFilter(),
             ])
               writer(
-                f.filter
-                    .interval(4.seconds)
-                    .call(cc(await DataSet().G))
-                    .first
-                    .l2normalized,
+                average(cc(await DataSet().G)).first.l2normalized,
                 title: 'pcp of G, ${f.context} $cc',
               )
         ]);
@@ -85,11 +81,7 @@ void main() {
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
             ])
               writer(
-                f.filter
-                    .interval(4.seconds)
-                    .call(cc.call(data))
-                    .first
-                    .l2normalized,
+                average(cc.call(data)).first.l2normalized,
                 title: 'pcp of G $cc ${f.context}',
               )
         ]);
@@ -143,14 +135,14 @@ void main() {
         test('PCP of G', () async {
           final chromas = f.guitar.reassignCombFilter().call(await DataSet().G);
 
-          final pcp = f.filter.interval(4.seconds).call(chromas).first;
+          final pcp = average(chromas).first;
           await writer(pcp.l2normalized, title: 'PCP of G');
         });
 
         test('PCP of C', () async {
           final chromas = f.guitar.reassignCombFilter().call(await DataSet().C);
 
-          final pcp = f.filter.interval(4.seconds).call(chromas).first;
+          final pcp = average(chromas).first;
           await writer(pcp.l2normalized, title: 'PCP of C');
         });
       });
@@ -252,8 +244,7 @@ void main() {
     group('filter', () {
       test('threshold 20', () async {
         final filters = [
-          const ThresholdFilter(threshold: 20),
-          // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
+          const AverageFilter(kernelRadius: 2),
         ];
         final cc = f.guitar.reassignCombFilter();
         var chromas = cc(await DataSet().G_Em_Bm_C);
@@ -266,24 +257,6 @@ void main() {
           await writer(chromas, title: 'chromagram $count $filter $cc');
         }
       });
-
-      test('threshold log', () async {
-        final filters = [
-          ThresholdFilter(threshold: log(10)),
-          // GaussianFilter.dt(stdDev: 0.2, dt: f.context.dt),
-        ];
-        final cc = f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln);
-        var chromas = cc(await DataSet().G_Em_Bm_C);
-        await writer(chromas, title: 'chromagram 0 $cc');
-
-        int count = 0;
-        for (final filter in filters) {
-          count++;
-          chromas = filter(chromas);
-          await writer(chromas, title: 'chromagram $count $filter $cc');
-          // await writer(chromas);
-        }
-      });
     });
   });
 
@@ -292,9 +265,10 @@ void main() {
     final f = factory4096_0;
     const writer = LineChartWriter();
 
-    List<Chroma> cc(AudioData data) => f.filter
-        .powerThreshold(log(10))
-        .call(f.guitar.reassignCombFilter().call(data));
+    List<Chroma> cc(AudioData data) {
+      final chroma = f.guitar.reassignCombFilter().call(data);
+      return average(chroma, f.hcdf.frame(log(10)).call(chroma));
+    }
 
     Iterable<Iterable<double>> getScoreWithTime(
       List<Chroma> chroma,

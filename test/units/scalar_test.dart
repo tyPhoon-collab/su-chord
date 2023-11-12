@@ -1,5 +1,5 @@
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/factory.dart';
+import 'package:chord/factory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,18 +13,18 @@ void main() {
 
     final e1 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.combFilter(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
     );
 
     final e2 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.combFilter(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
       templateScalar: const ThirdHarmonicChromaScalar(0.2),
     );
 
     final e3 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.combFilter(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
       templateScalar: HarmonicsChromaScalar(),
     );
 

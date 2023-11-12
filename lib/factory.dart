@@ -1,18 +1,15 @@
 import 'package:get/get.dart';
 
-import '../utils/loaders/csv.dart';
-import 'chord_selector.dart';
-import 'chroma.dart';
-import 'chroma_calculators/chroma_calculator.dart';
-import 'chroma_calculators/comb_filter.dart';
-import 'chroma_calculators/reassignment.dart';
-import 'filters/chord_change_detector.dart';
-import 'filters/filter.dart';
-import 'magnitudes_calculator.dart';
-import 'note_extractor.dart';
-import 'score_calculator.dart';
-
-typedef Filters = List<ChromaListFilter>;
+import 'domains/chord_selector.dart';
+import 'domains/chroma.dart';
+import 'domains/chroma_calculators/chroma_calculator.dart';
+import 'domains/chroma_calculators/comb_filter.dart';
+import 'domains/chroma_calculators/reassignment.dart';
+import 'domains/filters/chord_change_detector.dart';
+import 'domains/magnitudes_calculator.dart';
+import 'domains/note_extractor.dart';
+import 'domains/score_calculator.dart';
+import 'utils/loaders/csv.dart';
 
 final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 2048,
@@ -64,7 +61,7 @@ final class EstimatorFactory {
 
   final EstimatorFactoryContext context;
 
-  late final filter = FilterFactory(context);
+  late final hcdf = HCDFFactory(context);
   late final magnitude = MagnitudesFactory(context);
   late final selector = ChordSelectorFactory();
   late final extractor = NoteExtractorFactory();
@@ -163,60 +160,62 @@ final class ChromaCalculatorFactory {
       );
 }
 
-final class FilterFactory {
-  const FilterFactory(this.context);
+final class HCDFFactory {
+  const HCDFFactory(this.context);
 
   final EstimatorFactoryContext context;
 
   ///評価音源のための簡易的なクロマフィルタ
-  Filters get eval => [
-        interval(4.seconds),
-      ];
+  ChromaChordChangeDetectable get eval => interval(4.seconds);
 
   ///リアルタイム向きのクロマフィルタ
   ///無音検知
   ///類似度
-  Filters realtime({
+  ChromaChordChangeDetectable realtime({
     required double threshold,
-    double similarityThreshold = 0.9,
+    double scoreThreshold = 0.9,
   }) =>
-      [
-        PowerThresholdChordChangeDetector(threshold: threshold),
-        PreFrameCheckChordChangeDetector(
-          scoreCalculator: const ScoreCalculator.cosine(
-            ToTonalIntervalVector.musical(),
-          ),
-          threshold: similarityThreshold,
+      preFrameCheck(
+        threshold: threshold,
+        scoreCalculator: const ScoreCalculator.cosine(
+          ToTonalIntervalVector.musical(),
         ),
-      ];
+        scoreThreshold: scoreThreshold,
+      );
 
-  Filters get triad => [
-        powerThreshold(20),
-        TriadChordChangeDetector(),
-      ];
+  //TODO Add args
+  ChromaChordChangeDetectable triad({
+    required double threshold,
+  }) =>
+      PowerThresholdChordChangeDetector(
+        threshold,
+        onPower: TriadChordChangeDetector(),
+      );
 
-  Filters threshold(double threshold) => [
-        PowerThresholdChordChangeDetector(threshold: threshold),
-      ];
+  ChromaChordChangeDetectable frame(double threshold) =>
+      PowerThresholdChordChangeDetector(
+        threshold,
+        onPower: const FrameChordChangeDetector(),
+      );
 
-  Filters preFrameCheck({
+  ChromaChordChangeDetectable threshold(double threshold) =>
+      PowerThresholdChordChangeDetector(threshold);
+
+  ChromaChordChangeDetectable preFrameCheck({
     required double threshold,
     ScoreCalculator scoreCalculator = const ScoreCalculator.cosine(),
     double scoreThreshold = 0.8,
   }) =>
-      [
-        powerThreshold(threshold),
-        PreFrameCheckChordChangeDetector(
+      PowerThresholdChordChangeDetector(
+        threshold,
+        onPower: PreFrameCheckChordChangeDetector(
           scoreCalculator: scoreCalculator,
           threshold: scoreThreshold,
         ),
-      ];
+      );
 
-  ChromaListFilter interval(Duration duration) =>
+  ChromaChordChangeDetectable interval(Duration duration) =>
       IntervalChordChangeDetector(interval: duration, dt: context.dt);
-
-  ChromaListFilter powerThreshold(double threshold) =>
-      ThresholdFilter(threshold: threshold);
 }
 
 final class ChordSelectorFactory {

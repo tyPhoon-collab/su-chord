@@ -12,6 +12,8 @@ import '../magnitudes_calculator.dart';
 
 abstract interface class ChromaCalculable {
   List<Chroma> call(AudioData data, [bool flush = true]);
+
+  double deltaTime(int sampleRate);
 }
 
 ///STFTに必要な変数群を定義したクラス

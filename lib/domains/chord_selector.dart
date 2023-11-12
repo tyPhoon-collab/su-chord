@@ -7,7 +7,7 @@ import 'chord_progression.dart';
 import 'equal_temperament.dart';
 
 abstract interface class ChordSelectable {
-  Chord? call(Iterable<Chord> chords, ChordProgression progression);
+  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression);
 }
 
 class FirstChordSelector implements ChordSelectable {
@@ -17,7 +17,7 @@ class FirstChordSelector implements ChordSelectable {
   String toString() => 'select first';
 
   @override
-  Chord? call(Iterable<Chord> chords, ChordProgression progression) {
+  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression) {
     return chords.firstOrNull;
   }
 }
@@ -33,14 +33,14 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 
   ChordProgressionDBChordSelector.fromCSV(CSV csv) : progressions = parse(csv);
 
-  static Iterable<DegreeChordProgression> parse(CSV csv) {
+  static Iterable<ChordProgression<DegreeChord>> parse(CSV csv) {
     return csv.map((e) {
       final row = e.whereType<String>().toList();
-      return DegreeChordProgression.fromCSVRow(row);
+      return ChordProgression.fromDegreeChordRow(row);
     });
   }
 
-  final Iterable<DegreeChordProgression> progressions;
+  final Iterable<ChordProgression<DegreeChord>> progressions;
 
   late final DBSearchTrees _trees = _buildTrees();
   late final int _maxProgressionLength =
@@ -50,10 +50,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
   String toString() => 'select by db';
 
   @override
-  Chord? call(Iterable<Chord> chords, ChordProgression progression) {
-    //仮でnull（推定できていないもの）は落として考える
-    progression = ChordProgression(progression.nonNulls.toList());
-
+  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression) {
     final first = chords.firstOrNull;
 
     if (chords.length <= 1) return first;
@@ -61,7 +58,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
     //DBの最長進行でカットする
     final len = progression.length;
     if (len > _maxProgressionLength) {
-      progression = progression.cut(len - _maxProgressionLength);
+      progression = progression.skip(len - _maxProgressionLength);
     }
 
     final possibleChords = _select(progression);
@@ -71,18 +68,18 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
   ///再帰的にコード進行を辿ってDBを参照する
   ///空のコード進行の場合はDBの最初のコードの全てが返される
   ///DartのSetは順番を持つため、再帰の順番に気をつければ、優先度は長い進行に適合するコードになる
-  Set<Chord> _select(ChordProgression progression) {
+  Set<Chord> _select(Iterable<Chord> progression) {
     if (progression.isEmpty) return _trees.keys.toSet();
 
     final root = _trees[progression.first];
-    final withoutFirstProgression = progression.cut(1);
+    final withoutFirstProgression = progression.skip(1);
 
     if (root == null) return _select(withoutFirstProgression);
 
     var node = root;
 
     for (final chord in withoutFirstProgression) {
-      final n = node.getChild(chord!);
+      final n = node.getChild(chord);
       if (n == null) return _select(withoutFirstProgression);
       node = n;
     }
@@ -94,10 +91,10 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 
     for (final degreeChordProgression in progressions) {
       for (int i = 0; i < 12; i++) {
-        final progression = degreeChordProgression.toChords(Note.fromIndex(i));
-        final firstChord = progression.first!;
+        final progression = degreeChordProgression.toChord(Note.fromIndex(i));
+        final firstChord = progression.first.chord!;
         var node = nodes.putIfAbsent(firstChord, () => TreeNode(firstChord));
-        for (final chord in progression.toList().sublist(1)) {
+        for (final chord in progression.toChordList().sublist(1)) {
           node = node.putChildIfAbsent(chord!, () => TreeNode(chord));
         }
       }

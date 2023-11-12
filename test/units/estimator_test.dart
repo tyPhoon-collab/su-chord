@@ -1,7 +1,6 @@
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
-import 'package:chord/domains/factory.dart';
-import 'package:chord/utils/loaders/audio.dart';
+import 'package:chord/factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,7 +13,7 @@ void main() {
   test('reassignment', () async {
     final e = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
     );
 
     final chords = e.estimate(await DataSet().sample);
@@ -25,7 +24,7 @@ void main() {
   test('search tree', () async {
     final e = SearchTreeChordEstimator(
       chromaCalculable: f.guitar.reassignment(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
       chordSelectable: await f.selector.db,
     );
 
@@ -37,7 +36,7 @@ void main() {
   test('from notes', () async {
     final e = FromNotesChordEstimator(
       chromaCalculable: f.guitar.reassignCombFilter(),
-      filters: f.filter.eval,
+      chordChangeDetectable: f.hcdf.eval,
     );
 
     final chords = e.estimate(await DataSet().sample);
@@ -47,16 +46,13 @@ void main() {
 
   group('stream', () {
     test('22050 chunk size', () async {
+      final f = factory2048_1024;
       final e = PatternMatchingChordEstimator(
-        chromaCalculable: factory2048_1024.guitar.reassignment(),
-        filters: factory2048_1024.filter.eval,
-      );
-      final data = await AudioLoader.sample.load(
-        duration: 21,
-        sampleRate: factory2048_1024.context.sampleRate,
+        chromaCalculable: f.guitar.reassignment(),
+        chordChangeDetectable: f.hcdf.eval,
       );
       await for (final chords in const AudioStreamEmulator()
-          .stream(data)
+          .stream(await DataSet().G_Em_Bm_C)
           .map((data) => e.estimate(data, false))) {
         debugPrint(chords.toString());
       }

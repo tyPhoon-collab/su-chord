@@ -1,14 +1,46 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import '../annotation.dart';
 import '../chord.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
 import '../score_calculator.dart';
-import 'filter.dart';
+
+abstract interface class ChromaChordChangeDetectable {
+  List<Slice> call(List<Chroma> chroma);
+}
+
+///渡されたクロマのリストをスライスして平均値のリストを返す
+///[slices]を渡さないときは全ての平均をとる
+List<Chroma> average(List<Chroma> source, [List<Slice>? slices]) {
+  slices ??= [Slice(0, source.length)];
+
+  final averages = <Chroma>[];
+
+  for (final slice in slices) {
+    final sliced = source.sublist(slice.start, slice.end);
+    final sum = sliced.reduce((a, b) => a + b);
+    averages.add(sum / slice.size);
+  }
+
+  return averages;
+}
+
+class FrameChordChangeDetector implements ChromaChordChangeDetectable {
+  const FrameChordChangeDetector();
+
+  @override
+  List<Slice> call(List<Chroma> chroma) {
+    return List.generate(
+      chroma.length,
+      (i) => Slice(i, i + 1),
+    );
+  }
+}
 
 ///秒数によってコード区間を設定する
-class IntervalChordChangeDetector implements ChromaListFilter {
+class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
   IntervalChordChangeDetector({required this.interval, required this.dt}) {
     _intervalSeconds = interval.inMicroseconds / 1000000;
     if (_intervalSeconds <= dt) {
@@ -24,70 +56,83 @@ class IntervalChordChangeDetector implements ChromaListFilter {
   late final double _intervalSeconds;
 
   @override
-  List<Chroma> call(List<Chroma> chromas) {
-    if (chromas.isEmpty) return [];
-    if (_intervalSeconds <= dt) return chromas;
+  List<Slice> call(List<Chroma> chroma) {
+    if (_intervalSeconds <= dt) {
+      return const FrameChordChangeDetector().call(chroma);
+    }
 
-    final slices = <int>[];
+    final slices = <Slice>[];
     double accumulatedTime = 0;
-    int accumulatedCount = 0;
+    int seek = 0;
+    int count = 0;
 
-    for (int i = 0; i < chromas.length; i++) {
+    for (; count < chroma.length; count++) {
       accumulatedTime += dt;
-      accumulatedCount++;
 
       if (accumulatedTime >= _intervalSeconds) {
-        slices.add(accumulatedCount);
+        slices.add(Slice(seek, count + 1));
         accumulatedTime -= _intervalSeconds;
-        accumulatedCount = 0;
+        seek = count + 1;
       }
     }
 
-    return average(chromas, slices);
+    // ignore. 3.6, dt:2 -> 2. not 2, 1.6
+    // if (seek < count) {
+    //   slices.add(Slice(seek, count));
+    // }
+
+    return slices;
   }
 }
 
 ///無音区間があれば、そこをコード区間の区切りとする
-class PowerThresholdChordChangeDetector implements ChromaListFilter {
-  const PowerThresholdChordChangeDetector({required this.threshold});
+class PowerThresholdChordChangeDetector implements ChromaChordChangeDetectable {
+  const PowerThresholdChordChangeDetector(
+    this.threshold, {
+    this.onPower,
+  });
 
   final double threshold;
+  final ChromaChordChangeDetectable? onPower;
 
   @override
   String toString() => 'threshold HCDF $threshold';
 
   @override
-  List<Chroma> call(List<Chroma> chroma) {
-    if (chroma.isEmpty) return [];
+  List<Slice> call(List<Chroma> chroma) {
+    final slices = <Slice>[];
+    int? seek;
+    int count = 0;
 
-    final filteredChromas = Map.fromEntries(
-      chroma.asMap().entries.where((e) => e.value.l2norm >= threshold),
-    );
-
-    if (filteredChromas.isEmpty) return [];
-
-    final indexes = filteredChromas.keys;
-    int count = 1;
-    int preIndex = indexes.first;
-    final slices = <int>[];
-
-    for (final index in indexes.skip(1)) {
-      if (index - 1 != preIndex) {
-        slices.add(count);
-        count = 0;
+    for (; count < chroma.length; count++) {
+      if (chroma[count].l2norm < threshold) {
+        if (seek != null) {
+          add(slices, chroma, seek, count);
+          seek = null;
+        }
+      } else {
+        seek ??= count;
       }
-      preIndex = index;
-      count++;
     }
 
-    slices.add(count);
+    if (seek != null && seek < count) {
+      add(slices, chroma, seek, count);
+    }
 
-    return average(filteredChromas.values.toList(), slices);
+    return slices;
+  }
+
+  void add(List<Slice> slices, List<Chroma> chroma, int seek, int count) {
+    if (onPower == null) {
+      slices.add(Slice(seek, count));
+    } else {
+      slices.addAll(onPower!(chroma.sublist(seek, count)).map((e) => e + seek));
+    }
   }
 }
 
 ///少ないコードタイプで推定することで、コード区間を概算する
-class TriadChordChangeDetector implements ChromaListFilter {
+class TriadChordChangeDetector implements ChromaChordChangeDetectable {
   TriadChordChangeDetector({
     // this.lookaheadSize = 5,
     this.scoreCalculator = const ScoreCalculator.cosine(),
@@ -107,33 +152,31 @@ class TriadChordChangeDetector implements ChromaListFilter {
   String toString() => 'triad HCDF';
 
   @override
-  List<Chroma> call(List<Chroma> chroma) {
-    if (chroma.isEmpty) return [];
-
+  List<Slice> call(List<Chroma> chroma) {
     final chords = chroma
         .map((e) => maxBy(_templates, (t) => scoreCalculator(e, t.unitPCP))!)
         .toList();
 
-    Chord preChord = chords.first;
+    final slices = <Slice>[];
+    int seek = 0;
     int count = 1;
-    final slices = <int>[];
 
-    for (final chord in chords.skip(1)) {
-      if (chord != preChord) {
-        slices.add(count);
-        count = 0;
+    for (; count < chroma.length; count++) {
+      if (chords[count - 1] != chords[count]) {
+        slices.add(Slice(seek, count));
+        seek = count;
       }
-      preChord = chord;
-      count++;
     }
 
-    slices.add(count);
+    if (seek < count) {
+      slices.add(Slice(seek, count));
+    }
 
-    return average(chroma, slices);
+    return slices;
   }
 }
 
-class PreFrameCheckChordChangeDetector implements ChromaListFilter {
+class PreFrameCheckChordChangeDetector implements ChromaChordChangeDetectable {
   const PreFrameCheckChordChangeDetector({
     required this.scoreCalculator,
     required this.threshold,
@@ -143,16 +186,6 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
       : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
         scoreCalculator = const ScoreCalculator.cosine();
 
-  const PreFrameCheckChordChangeDetector.cosineTonalCentroid(this.threshold)
-      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculator = const ScoreCalculator.cosine(ToTonalCentroid());
-
-  const PreFrameCheckChordChangeDetector.cosineMusicalTIV(this.threshold)
-      : assert(0 <= threshold && threshold <= 1, 'threshold MUST BE [0, 1]'),
-        scoreCalculator = const ScoreCalculator.cosine(
-          ToTonalIntervalVector.musical(),
-        );
-
   final double threshold;
   final ScoreCalculator scoreCalculator;
 
@@ -160,27 +193,25 @@ class PreFrameCheckChordChangeDetector implements ChromaListFilter {
   String toString() => '$scoreCalculator HCDF $threshold';
 
   @override
-  List<Chroma> call(List<Chroma> chroma) {
-    if (chroma.isEmpty) return const [];
-
-    final slices = <int>[];
-
-    Chroma preChroma = chroma.first;
+  List<Slice> call(List<Chroma> chroma) {
+    final slices = <Slice>[];
+    int seek = 0;
     int count = 1;
-    for (final value in chroma.skip(1)) {
-      final score = scoreCalculator(value, preChroma);
+
+    for (; count < chroma.length; count++) {
+      final score = scoreCalculator(chroma[count], chroma[count - 1]);
       // debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {
-        slices.add(count);
-        count = 0;
+        slices.add(Slice(seek, count));
+        seek = count;
       }
-      preChroma = value;
-      count++;
     }
 
-    slices.add(count);
+    if (seek < count) {
+      slices.add(Slice(seek, count));
+    }
 
-    return average(chroma, slices);
+    return slices;
   }
 }

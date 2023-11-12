@@ -1,12 +1,12 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/factory.dart';
+import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 
 import '../data_set.dart';
 
@@ -36,11 +36,10 @@ void main() {
     final template =
         HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
 
-    final chromas = f.guitar
-        .reassignment(scalar: MagnitudeScalar.ln)
-        .call(await DataSet().C);
-
-    final pcp = f.filter.interval(4.seconds).call(chromas).first;
+    final pcp = average(f.guitar
+            .reassignment(scalar: MagnitudeScalar.ln)
+            .call(await DataSet().C))
+        .first;
 
     final score = const ScoreCalculator.cosine().call(pcp, template);
 

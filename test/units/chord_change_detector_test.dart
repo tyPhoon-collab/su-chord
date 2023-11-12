@@ -1,12 +1,16 @@
+// ignore_for_file: avoid_redundant_argument_values
+
 import 'dart:math';
 
+import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
+import 'package:chord/domains/score_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:chord/utils/loaders/csv.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +24,7 @@ Future<void> main() async {
   late final ChordProgression corrects;
 
   setUpAll(() async {
-    corrects = ChordProgression.fromCSVRow(
+    corrects = ChordProgression.fromChordRow(
       (await CSVLoader.corrects.load())[1]
           .skip(1)
           .map((e) => e.toString())
@@ -32,70 +36,90 @@ Future<void> main() async {
     test('just', () {
       final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1);
       final chromas = List.filled(4, Chroma.empty); // 4 sec
-      expect(ccd(chromas).length, 2); // 4 sec / 2 sec -> 2
+      expect(
+        ccd(chromas),
+        [const Slice(0, 2), const Slice(2, 4)],
+      ); // 4 sec / 2 sec -> 2
     });
 
     test('over', () {
       final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1.1);
       final chromas = List.filled(4, Chroma.empty); // 4.4 sec
-      expect(ccd(chromas).length, 2); // 4.4 sec / 2 sec -> 2
+      expect(
+        ccd(chromas),
+        [const Slice(0, 2), const Slice(2, 4)],
+      ); // 4.4 sec / 2.2 sec -> 2
     });
 
     test('less', () {
       final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 0.9);
       final chromas = List.filled(4, Chroma.empty); // 3.6 sec
-      expect(ccd(chromas).length, 1); // 3.6 sec / 2 sec -> 1
+      expect(
+        ccd(chromas),
+        [const Slice(0, 3)],
+      ); // 3.6 sec / 2.7 sec -> 1
     });
 
     test('less than dt', () {
       final ccd = IntervalChordChangeDetector(interval: 0.1.seconds, dt: 1);
       final chromas = List.filled(4, Chroma.empty);
-      expect(ccd(chromas).length, 4); // same as chromas.length
+      expect(ccd(chromas), [
+        const Slice(0, 1),
+        const Slice(1, 2),
+        const Slice(2, 3),
+        const Slice(3, 4),
+      ]); // same as chromas.length
     });
 
     test('estimator', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.eval,
+        chordChangeDetectable: f.hcdf.eval,
       );
       final progress = estimator.estimate(await DataSet().sample);
+      debugPrint('deltaTime: ${f.context.dt}');
+      debugPrint(progress.toDetailString());
       expect(progress.length, 20);
     });
   });
 
-  test('threshold', () async {
-    final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitar.reassignCombFilter(),
-      filters: [
-        const PowerThresholdChordChangeDetector(threshold: 15),
-      ],
-    );
-    final progress = estimator.estimate(await DataSet().sample);
-    expect(progress.length, 20);
+  group('threshold', () {
+    test('toy', () {
+      final chromas = [1, 10, 100, 5, 5, 5, 20, 0, 0, 0, 20, 20, 20, -1]
+          .map((e) => Chroma([e.toDouble()]))
+          .toList();
+      final slices = const PowerThresholdChordChangeDetector(10).call(chromas);
+      debugPrint(slices.toString());
+      expect(slices[0], const Slice(1, 3));
+      expect(slices[1], const Slice(6, 7));
+      expect(slices[2], const Slice(10, 13));
+    });
+
+    test('estimate', () async {
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitar.reassignCombFilter(),
+        chordChangeDetectable: f.hcdf.threshold(15),
+      );
+      final progress = estimator.estimate(await DataSet().sample);
+      debugPrint(progress.toDetailString());
+      expect(progress.length, 20);
+    });
   });
 
   test('triad', () async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignCombFilter(),
-      filters: [
-        const ThresholdFilter(threshold: 100),
-        TriadChordChangeDetector(),
-      ],
+      chordChangeDetectable: f.hcdf.triad(threshold: 15),
     );
     final progress = estimator.estimate(await DataSet().sample);
     expect(progress.length, 20);
   });
 
   group('fold', () {
-    final base = [
-      const ThresholdFilter(threshold: 20),
-      // IntervalChordChangeDetector(interval: 0.5.seconds, dt: f.context.dt),
-    ];
-
     test('no smoothing', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: base,
+        chordChangeDetectable: f.hcdf.frame(20),
       );
       final progression = estimator.estimate(await DataSet().sample);
       printProgressions(progression, corrects);
@@ -104,8 +128,8 @@ Future<void> main() async {
     test('average', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
+        chordChangeDetectable: f.hcdf.frame(20),
         filters: [
-          ...base,
           const AverageFilter(kernelRadius: 1),
         ],
       );
@@ -116,8 +140,8 @@ Future<void> main() async {
     test('gaussian', () async {
       final estimator = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
+        chordChangeDetectable: f.hcdf.frame(20),
         filters: [
-          ...base,
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
         ],
       );
@@ -131,10 +155,10 @@ Future<void> main() async {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosine(0.8),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreThreshold: 0.8,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -143,10 +167,10 @@ Future<void> main() async {
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosine(0.9),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreThreshold: 0.9,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -156,10 +180,10 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          filters: [
-            ThresholdFilter(threshold: log(15)),
-            const PreFrameCheckChordChangeDetector.cosine(0.8),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: log(15),
+            scoreThreshold: 0.8,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -170,10 +194,11 @@ Future<void> main() async {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineTonalCentroid(0.8),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
+            scoreThreshold: 0.8,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -182,10 +207,11 @@ Future<void> main() async {
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineTonalCentroid(0.9),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
+            scoreThreshold: 0.9,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -196,10 +222,12 @@ Future<void> main() async {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.8),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreCalculator:
+                const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
+            scoreThreshold: 0.8,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -208,10 +236,12 @@ Future<void> main() async {
       test('0.9', () async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: [
-            const ThresholdFilter(threshold: 20),
-            const PreFrameCheckChordChangeDetector.cosineMusicalTIV(0.9),
-          ],
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            threshold: 20,
+            scoreCalculator:
+                const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
+            scoreThreshold: 0.9,
+          ),
         );
         final progression = estimator.estimate(await DataSet().sample);
         printProgressions(progression, corrects);
@@ -224,7 +254,7 @@ Future<void> main() async {
     const bufferChunkSize = 4096;
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      filters: f.filter.realtime(threshold: 20),
+      chordChangeDetectable: f.hcdf.realtime(threshold: 20),
       templateScalar: HarmonicsChromaScalar(until: 6),
     );
     final data = await DataSet().sample;

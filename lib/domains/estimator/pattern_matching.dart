@@ -67,6 +67,7 @@ class HarmonicsChromaScalar implements ChromaMappable {
 class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
   PatternMatchingChordEstimator({
     required super.chromaCalculable,
+    super.chordChangeDetectable,
     super.chordSelectable,
     super.filters,
     this.templateScalar,

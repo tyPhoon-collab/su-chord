@@ -1,75 +1,75 @@
 import 'dart:math';
 
 import '../utils/table.dart';
+import 'annotation.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 
-abstract class ChordProgressionBase<T extends ChordBase> extends Iterable<T?> {
-  ChordProgressionBase(this._values);
+class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
+    implements Transposable<ChordProgression> {
+  const ChordProgression(this._values);
 
-  static const noChordLabel = '***';
-  static const chordSeparator = '->';
+  static ChordProgression<Chord> chordEmpty() =>
+      const ChordProgression<Chord>([]);
 
-  final List<T?> _values;
+  static ChordProgression<DegreeChord> degreeChordEmpty() =>
+      const ChordProgression<DegreeChord>([]);
 
-  @override
-  Iterator<T?> get iterator => _values.iterator;
-
-  @override
-  String toString() => _values.isEmpty
-      ? 'No Chords'
-      : _values.map((e) => e?.toString() ?? noChordLabel).join(chordSeparator);
-
-  List<String> toCSVRow() =>
-      _values.map((e) => e?.toString() ?? noChordLabel).toList();
-
-  void add(T? chord) => _values.add(chord);
-}
-
-class DegreeChordProgression extends ChordProgressionBase<DegreeChord>
-    implements Transposable<DegreeChordProgression> {
-  DegreeChordProgression(super.values);
-
-  DegreeChordProgression.empty() : super([]);
-
-  factory DegreeChordProgression.fromCSVRow(List<String> row) {
-    return DegreeChordProgression(
-        row.map((e) => DegreeChord.parse(e)).toList());
+  static ChordProgression<DegreeChord> fromDegreeChordRow(Row row) {
+    return ChordProgression(row
+        .map((e) => ChordCell<DegreeChord>(chord: DegreeChord.parse(e)))
+        .toList());
   }
 
-  @override
-  DegreeChordProgression transpose(int degree) =>
-      DegreeChordProgression(_values.map((e) => e?.transpose(degree)).toList());
-
-  ChordProgression toChords(Note key) =>
-      ChordProgression(_values.map((e) => e?.toChordFromKey(key)).toList());
-}
-
-class ChordProgression extends ChordProgressionBase<Chord> {
-  ChordProgression(super._values);
-
-  ChordProgression.empty() : super([]);
-
-  factory ChordProgression.fromCSVRow(
+  static ChordProgression<Chord> fromChordRow(
     Row row, {
     bool ignoreNotParsable = false,
+    List<Time>? times,
   }) {
-    final chords = <Chord?>[];
-    for (final value in row) {
+    assert(times == null || row.length == times.length);
+
+    final chords = <ChordCell<Chord>>[];
+    for (int i = 0; i < row.length; i++) {
+      final value = row[i];
       Chord? chord;
       try {
         chord = Chord.parse(value);
       } catch (e) {
-        if (!ignoreNotParsable) {
-          rethrow;
-        }
+        if (!ignoreNotParsable) rethrow;
       }
-      chords.add(chord);
+      chords.add(ChordCell(
+        chord: chord,
+        time: times?[i],
+      ));
     }
     return ChordProgression(chords);
   }
 
-  double similarity(ChordProgression other) {
+  static const chordSeparator = '->';
+
+  final List<ChordCell<T>> _values;
+
+  @override
+  Iterator<ChordCell<T>> get iterator => _values.iterator;
+
+  @override
+  String toString() => _values.isEmpty
+      ? 'No Chords'
+      : _values.map((e) => e.toString()).join(chordSeparator);
+
+  String toDetailString() => _values.isEmpty
+      ? 'No Chords'
+      : _values.map((e) => e.toDetailString()).join(chordSeparator);
+
+  List<String> toCSVRow() => _values.map((e) => e.toString()).toList();
+
+  void add(ChordCell<T> chord) {
+    assert(_values.isEmpty ||
+        (_values.last.time?.end ?? 0) <= (chord.time?.start ?? 0));
+    _values.add(chord);
+  }
+
+  double similarity(ChordProgression<T> other) {
     final otherValues = other.toList();
     final len = min(otherValues.length, length);
     int count = 0;
@@ -81,15 +81,42 @@ class ChordProgression extends ChordProgressionBase<Chord> {
     return count / len;
   }
 
-  ChordProgression cut(int start, [int? end]) =>
+  ChordProgression<T> cut(int start, [int? end]) =>
       ChordProgression(_values.sublist(start, end));
 
-  ChordProgression simplify() {
-    Chord? chord;
-    return ChordProgression(_values.where((e) {
-      final isDifferent = e != chord;
-      chord = e;
-      return isDifferent;
-    }).toList());
+  ChordProgression<T> simplify() {
+    if (_values.isEmpty) return this;
+
+    final cells = [_values.first];
+
+    for (final value in _values.skip(1)) {
+      final last = cells.last;
+      if (last.chord != value.chord) {
+        cells.add(value);
+      } else {
+        cells[cells.length - 1] = last.copyWith(
+          time: last.time?.copyWith(
+            end: value.time?.end,
+          ),
+        );
+      }
+    }
+
+    return ChordProgression(cells);
   }
+
+  ChordProgression<T> nonNulls() {
+    return ChordProgression(_values.where((e) => e.chord != null).toList());
+  }
+
+  @override
+  ChordProgression<T> transpose(int degree) =>
+      ChordProgression(_values.map((e) => e.transpose(degree)).toList());
+
+  ChordProgression<Chord> toChord(Note key) => ChordProgression<Chord>(_values
+      .cast<ChordCell<DegreeChord>>()
+      .map((e) => ChordCell<Chord>(chord: e.chord?.toChordFromKey(key)))
+      .toList());
+
+  List<T?> toChordList() => map((e) => e.chord).toList();
 }

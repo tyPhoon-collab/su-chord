@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,12 +13,13 @@ import '../chord_selector.dart';
 import '../chroma.dart';
 import '../chroma_calculators/chroma_calculator.dart';
 import '../debug.dart';
+import '../filters/chord_change_detector.dart';
 import '../filters/filter.dart';
 
 abstract interface class ChordEstimable {
-  ChordProgression estimate(AudioData data, [bool flush = true]);
+  ChordProgression<Chord> estimate(AudioData data, [bool flush = true]);
 
-  ChordProgression flush();
+  ChordProgression<Chord> flush();
 }
 
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
@@ -26,6 +28,7 @@ abstract class ChromaChordEstimator
     implements ChordEstimable, HasDebugViews {
   ChromaChordEstimator({
     required this.chromaCalculable,
+    this.chordChangeDetectable = const FrameChordChangeDetector(),
     this.filters = const [],
   });
 
@@ -35,20 +38,29 @@ abstract class ChromaChordEstimator
 
   final ChromaCalculable chromaCalculable;
   final Iterable<ChromaListFilter> filters;
+  final ChromaChordChangeDetectable chordChangeDetectable;
 
   List<Chroma> _chromas = [];
   List<Chroma> _filteredChromas = [];
+  List<Chroma> _slicedChromas = [];
+  double _dt = 0;
 
   @override
   String toString() => chromaCalculable.toString();
 
   @override
-  ChordProgression estimate(AudioData data, [bool flush = true]) {
+  void onSampleRateChanged(int newSampleRate) {
+    _dt = chromaCalculable.deltaTime(newSampleRate);
+  }
+
+  @override
+  ChordProgression<Chord> estimate(AudioData data, [bool flush = true]) {
     updateCacheSampleRate(data.sampleRate);
     final chroma = measure(
       'chroma calc',
       () => chromaCalculable(data, flush),
     );
+
     _chromas.addAll(chroma);
 
     _filteredChromas = measure(
@@ -56,29 +68,41 @@ abstract class ChromaChordEstimator
       () => filters.fold(_chromas, (pre, filter) => filter(pre)),
     );
 
+    final slices = measure(
+      'HCDF calc',
+      () => chordChangeDetectable(_filteredChromas),
+    );
+
+    _slicedChromas = average(_filteredChromas, slices);
+
     final progression = measure(
-      'estimate',
-      () => estimateFromChroma(_filteredChromas),
+      'estimate calc',
+      () => estimateFromChroma(_slicedChromas),
     );
 
     if (flush) _flush();
-    return progression;
+    return ChordProgression(progression
+        .mapIndexed((i, chord) => ChordCell(
+              chord: chord,
+              time: slices[i].toTime(_dt),
+            ))
+        .toList());
   }
 
   @override
-  ChordProgression flush() => estimate(AudioData.empty());
+  ChordProgression<Chord> flush() => estimate(AudioData.empty());
 
   void _flush() {
     _chromas = [];
   }
 
-  ChordProgression estimateFromChroma(List<Chroma> chroma);
+  Iterable<Chord?> estimateFromChroma(List<Chroma> chroma);
 
   @override
   List<DebugChip> build() => [
         DebugChip(
           titleText: 'Chromagram',
-          builder: (_) => Chromagram(chromas: _filteredChromas),
+          builder: (_) => Chromagram(chromas: _slicedChromas),
         ),
         // if (chromaCalculable case final HasMagnitudes hasMagnitudes)
         //   if (hasMagnitudes.cachedMagnitudes case final Magnitudes mag)
@@ -104,6 +128,7 @@ abstract class ChromaChordEstimator
 abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   SelectableChromaChordEstimator({
     required super.chromaCalculable,
+    super.chordChangeDetectable,
     super.filters,
     this.chordSelectable = const FirstChordSelector(),
   });
@@ -114,11 +139,11 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   String toString() => '${super.toString()}, $chordSelectable';
 
   @override
-  ChordProgression estimateFromChroma(List<Chroma> chroma) {
-    final progression = ChordProgression.empty();
-    for (final c in _filteredChromas) {
+  Iterable<Chord?> estimateFromChroma(List<Chroma> chroma) {
+    final progression = <Chord?>[];
+    for (final c in chroma) {
       final chords = estimateOneFromChroma(c);
-      final chord = chordSelectable(chords, progression);
+      final chord = chordSelectable(chords, progression.nonNulls);
       progression.add(chord);
     }
 

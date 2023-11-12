@@ -48,9 +48,6 @@ class ReassignmentEqualTemperamentBinCalculator extends ReassignmentCalculator
   }
 
   @override
-  double time(int index, int sampleRate) => deltaTime(sampleRate) * index;
-
-  @override
   double frequency(int index, int sampleRate) => _hzList[index];
 
   @override

@@ -7,11 +7,11 @@ import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
-import 'package:chord/domains/factory.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/domains/score_calculator.dart';
+import 'package:chord/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
@@ -21,7 +21,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 
 import 'util.dart';
 import 'writer.dart';
@@ -64,7 +63,6 @@ Future<void> main() async {
     const folderName = 'temp';
 
     final f = factory4096_0;
-    final filter = f.filter.eval;
 
     final folderPath =
         'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
@@ -83,12 +81,12 @@ Future<void> main() async {
       ]) ...[
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
-          filters: filter,
+          chordChangeDetectable: f.hcdf.eval,
           // templateScalar: HarmonicsChromaScalar(until: 6),
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,
-          filters: filter,
+          chordChangeDetectable: f.hcdf.eval,
           noteExtractable: switch (chromaCalculable) {
             final HasMagnitudes value =>
               f.extractor.threshold(scalar: value.magnitudeScalar),
@@ -120,7 +118,7 @@ Future<void> main() async {
       header: ['search + log comb, $logExtractor, ${f.context}'],
       estimator: SearchTreeChordEstimator(
         chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-        filters: f.filter.eval,
+        chordChangeDetectable: f.hcdf.eval,
         noteExtractable: logExtractor,
         chordSelectable: await f.selector.db,
       ),
@@ -135,7 +133,7 @@ Future<void> main() async {
         header: ['main'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.eval,
+          chordChangeDetectable: f.hcdf.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
@@ -147,7 +145,7 @@ Future<void> main() async {
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
           ),
         ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
       });
@@ -160,7 +158,7 @@ Future<void> main() async {
             scoreCalculator: const ScoreCalculator.cosine(
               ToTonalIntervalVector.musical(),
             ),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
           ),
         ).evaluate(contexts).toCSV('test/outputs/tiv_musical.csv');
       });
@@ -173,7 +171,7 @@ Future<void> main() async {
             scoreCalculator: const ScoreCalculator.cosine(
               ToTonalIntervalVector.symbolic(),
             ),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
           ),
         ).evaluate(contexts).toCSV('test/outputs/tiv_symbolic.csv');
       });
@@ -186,7 +184,7 @@ Future<void> main() async {
             scoreCalculator: const ScoreCalculator.cosine(
               ToTonalIntervalVector.harte(),
             ),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
           ),
         ).evaluate(contexts).toCSV('test/outputs/tiv_harte.csv');
       });
@@ -198,7 +196,7 @@ Future<void> main() async {
         estimator: PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          filters: f.filter.eval,
+          chordChangeDetectable: f.hcdf.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
@@ -208,7 +206,7 @@ Future<void> main() async {
         header: ['main'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.eval,
+          chordChangeDetectable: f.hcdf.eval,
         ),
       ).evaluate(contexts).toCSV('test/outputs/main.csv');
     });
@@ -219,7 +217,7 @@ Future<void> main() async {
           header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
             templateScalar: const ThirdHarmonicChromaScalar(0.2),
           ),
         ).evaluate(contexts).toCSV('test/outputs/third_scalar.csv');
@@ -231,7 +229,7 @@ Future<void> main() async {
           estimator: PatternMatchingChordEstimator(
             chromaCalculable:
                 f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-            filters: f.filter.eval,
+            chordChangeDetectable: f.hcdf.eval,
             templateScalar: HarmonicsChromaScalar(),
           ),
         ).evaluate(contexts).toCSV('test/outputs/harmonics_scalar.csv');
@@ -243,8 +241,8 @@ Future<void> main() async {
         header: ['scalar'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
+          chordChangeDetectable: f.hcdf.eval,
           filters: [
-            f.filter.interval(4.seconds),
             const CompressionFilter(),
           ],
         ),
@@ -258,7 +256,7 @@ Future<void> main() async {
     test('HCDF fold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: [f.filter.powerThreshold(20)],
+        chordChangeDetectable: f.hcdf.frame(20),
       );
 
       for (final context in contexts) {
@@ -276,7 +274,7 @@ Future<void> main() async {
     test('HCDF threshold', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.threshold(15),
+        chordChangeDetectable: f.hcdf.threshold(15),
       );
 
       for (final context in contexts) {
@@ -294,7 +292,8 @@ Future<void> main() async {
     test('HCDF cosine similarity', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.preFrameCheck(threshold: 15, scoreThreshold: .9),
+        chordChangeDetectable:
+            f.hcdf.preFrameCheck(threshold: 15, scoreThreshold: .9),
       );
 
       for (final context in contexts) {
@@ -310,7 +309,7 @@ Future<void> main() async {
     test('HCDF tonal', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.preFrameCheck(
+        chordChangeDetectable: f.hcdf.preFrameCheck(
           threshold: 15,
           scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
           scoreThreshold: .8,
@@ -330,7 +329,7 @@ Future<void> main() async {
     test('HCDF TIV', () {
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignCombFilter(),
-        filters: f.filter.preFrameCheck(
+        chordChangeDetectable: f.hcdf.preFrameCheck(
           threshold: 15,
           scoreCalculator: const ScoreCalculator.cosine(
             ToTonalIntervalVector.musical(),
@@ -473,7 +472,10 @@ class _EvaluatorContext implements Comparable<_EvaluatorContext> {
     return Map.fromEntries(
       fields.skip(1).map((e) => MapEntry(
             e.first.toString(),
-            ChordProgression(e.skip(1).map((e) => Chord.parse(e)).toList()),
+            ChordProgression<Chord>(e
+                .skip(1)
+                .map((e) => ChordCell(chord: Chord.parse(e)))
+                .toList()),
           )),
     );
   }

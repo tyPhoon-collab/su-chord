@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
@@ -206,7 +207,7 @@ class ChordQualities extends Iterable<ChordQuality> {
 }
 
 @immutable
-class ChordBase {
+class ChordBase<T> implements Transposable<T> {
   ChordBase({
     required this.type,
     ChordQualities? qualities,
@@ -265,10 +266,15 @@ class ChordBase {
 
   @override
   int get hashCode => type.hashCode ^ qualities.hashCode;
+
+  @override
+  T transpose(int degree) {
+    throw UnimplementedError();
+  }
 }
 
 @immutable
-class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
+class DegreeChord extends ChordBase<DegreeChord> {
   DegreeChord(this.degreeName, {required super.type, super.qualities});
 
   factory DegreeChord.parse(String chord) {
@@ -318,7 +324,7 @@ class DegreeChord extends ChordBase implements Transposable<DegreeChord> {
 }
 
 @immutable
-class Chord extends ChordBase {
+class Chord extends ChordBase<Chord> {
   Chord({
     required Notes notes,
     required this.root,
@@ -415,4 +421,37 @@ class Chord extends ChordBase {
 
   @override
   String toString() => root.toString() + super.toString();
+
+  @override
+  Chord transpose(int degree) => Chord.fromType(
+        type: type,
+        root: root.transpose(degree),
+        qualities: qualities,
+      );
+}
+
+class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
+  const ChordCell({this.chord, this.time});
+
+  static const noChordLabel = '***';
+
+  final T? chord;
+  final Time? time;
+
+  @override
+  String toString() => chord?.toString() ?? noChordLabel;
+
+  String toDetailString() =>
+      '$chord${time != null ? '(${time!.start}-${time!.end})' : ''}';
+
+  @override
+  ChordCell<T> transpose(int degree) =>
+      ChordCell(chord: chord?.transpose(degree), time: time);
+
+  ChordCell<T> copyWith({T? chord, Time? time}) {
+    return ChordCell<T>(
+      chord: chord ?? this.chord,
+      time: time ?? this.time,
+    );
+  }
 }

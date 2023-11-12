@@ -6,8 +6,9 @@ import 'domains/equal_temperament.dart';
 import 'domains/estimator/estimator.dart';
 import 'domains/estimator/pattern_matching.dart';
 import 'domains/estimator/search.dart';
-import 'domains/factory.dart';
+import 'domains/filters/filter.dart';
 import 'domains/magnitudes_calculator.dart';
+import 'factory.dart';
 
 part 'service.g.dart';
 
@@ -74,24 +75,27 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
     'matching + reassign ln + template scaled': () async =>
         PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(),
-          filters: f.filter.realtime(threshold: 30),
+          chordChangeDetectable: f.hcdf.realtime(threshold: 40),
+          filters: [
+            GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+          ],
           templateScalar: HarmonicsChromaScalar(until: 6),
           templates: detectableChords,
         ),
     'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          filters: f.filter.realtime(threshold: 10),
+          chordChangeDetectable: f.hcdf.realtime(threshold: 10),
           templates: detectableChords,
         ),
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          filters: f.filter.realtime(threshold: 3),
+          chordChangeDetectable: f.hcdf.realtime(threshold: 3),
           templates: detectableChords,
         ),
     'search + comb + ln': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-          filters: f.filter.realtime(threshold: 3),
+          chordChangeDetectable: f.hcdf.realtime(threshold: 3),
           noteExtractable: f.extractor.threshold(
             scalar: MagnitudeScalar.ln,
           ),
@@ -104,7 +108,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => 'matching + reassign comb + ln';
+  String build() => 'matching + reassign ln + template scaled';
 
   //ignore: use_setters_to_change_properties
   void change(String newValue) => state = newValue;

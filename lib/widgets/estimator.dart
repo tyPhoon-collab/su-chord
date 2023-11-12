@@ -7,10 +7,11 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
+import '../domains/chord.dart';
 import '../domains/chord_progression.dart';
 import '../domains/debug.dart';
 import '../domains/estimator/estimator.dart';
-import '../domains/factory.dart';
+import '../factory.dart';
 import '../recorder_service.dart';
 import '../recorders/recorder.dart';
 import '../service.dart';
@@ -27,7 +28,7 @@ class EstimatorPage extends ConsumerStatefulWidget {
 }
 
 class _EstimatorPageState extends ConsumerState<EstimatorPage> {
-  ChordProgression _progression = ChordProgression.empty();
+  ChordProgression<Chord> _progression = ChordProgression.chordEmpty();
 
   Color get surface => Get.theme.colorScheme.surfaceVariant;
 
@@ -177,7 +178,7 @@ class _EstimatedView extends ConsumerWidget {
     required this.estimator,
   });
 
-  final ChordProgression progression;
+  final ChordProgression<Chord> progression;
   final ChordEstimable estimator;
 
   @override
