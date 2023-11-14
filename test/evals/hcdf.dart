@@ -53,14 +53,16 @@ void main() {
       HCDFEvaluator(
         estimator:
             base.copyWith(chordChangeDetectable: f.hcdf.frame(threshold)),
-      ).evaluate(contexts);
+      ).evaluate(contexts, header: 'fold').toCSV('test/outputs/fold.csv');
     });
 
     test('HCDF threshold', () {
       HCDFEvaluator(
         estimator:
             base.copyWith(chordChangeDetectable: f.hcdf.threshold(threshold)),
-      ).evaluate(contexts);
+      )
+          .evaluate(contexts, header: 'threshold')
+          .toCSV('test/outputs/threshold.csv');
     });
 
     test('HCDF cosine similarity', () {
@@ -69,7 +71,9 @@ void main() {
           chordChangeDetectable:
               f.hcdf.preFrameCheck(threshold: threshold, scoreThreshold: .9),
         ),
-      ).evaluate(contexts);
+      )
+          .evaluate(contexts, header: 'pre frame cosine')
+          .toCSV('test/outputs/pre_frame_cosine');
     });
 
     test('HCDF tonal', () {
@@ -81,7 +85,9 @@ void main() {
             scoreThreshold: .8,
           ),
         ),
-      ).evaluate(contexts);
+      )
+          .evaluate(contexts, header: 'pre frame tonal cosine')
+          .toCSV('test/outputs/pre_frame_tonal_cosine');
     });
 
     test('HCDF TIV', () {
@@ -95,7 +101,9 @@ void main() {
             scoreThreshold: .8,
           ),
         ),
-      ).evaluate(contexts);
+      )
+          .evaluate(contexts, header: 'pre frame TIV cosine')
+          .toCSV('test/outputs/pre_frame_tiv_cosine');
     });
   });
 }

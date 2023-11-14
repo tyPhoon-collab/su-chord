@@ -71,10 +71,9 @@ void main() {
       logTest(estimator);
 
       final table = Evaluator(
-        header: [estimator.toString()],
         estimator: estimator,
         validator: (progression) => progression.length == 20,
-      ).evaluate(contexts);
+      ).evaluate(contexts, header: estimator.toString());
 
       table.toCSV('${directory.path}/$fileName.csv');
     }

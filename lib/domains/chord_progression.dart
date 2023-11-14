@@ -67,7 +67,7 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
       ? 'No Chords'
       : _values.map((e) => e.toDetailString()).join(chordSeparator);
 
-  List<String> toCSVRow() => _values.map((e) => e.toString()).toList();
+  Row toRow() => _values.map((e) => e.toString()).toList();
 
   void add(ChordCell<T> chord) {
     assert(_values.isEmpty ||
@@ -76,12 +76,13 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
   }
 
   double similarity(ChordProgression<T> other) {
+    final values = toChordList();
     final otherValues = other.toChordList();
     final minLength = min(otherValues.length, length);
     final maxLength = max(otherValues.length, length);
     int count = 0;
     for (int i = 0; i < minLength; i++) {
-      if (otherValues[i] == _values[i]) {
+      if (otherValues[i] == values[i]) {
         count++;
       }
     }

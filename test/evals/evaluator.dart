@@ -117,21 +117,22 @@ final class EvaluationAudioDataContext
 //描画するライブラリが乏しいため、全体的な統計や評価はExcelで行う
 //そのために必要なデータの書き出しや、基本的な統計量を提示する
 class Evaluator {
-  Evaluator({
+  const Evaluator({
     required this.estimator,
-    Header header = const ['no title'],
     this.validator,
-  }) : _table = Table.empty(header);
+  });
 
   static LogTest? progressionWriter = logTest;
   static LogTest? correctionWriter = logTest;
 
   final ChordEstimable estimator;
-  final Table _table;
   final bool Function(ChordProgression)? validator;
 
-  Table evaluate(Iterable<EvaluationAudioDataContext> contexts) {
-    _table.clear();
+  Table evaluate(
+    Iterable<EvaluationAudioDataContext> contexts, {
+    String header = 'no title',
+  }) {
+    final table = Table.empty([header]);
 
     final groupedContexts = groupBy(contexts, (p0) => p0.musicName);
 
@@ -139,14 +140,14 @@ class Evaluator {
 
     for (final entry in groupedContexts.entries) {
       final correct = entry.value.first.correct;
-      _add(correct, '${entry.key}_correct');
+      _add(table, correct, '${entry.key}_correct');
 
       for (final context in entry.value) {
         final progression = estimator.estimate(context.data);
 
         assert(validator?.call(progression) ?? true, 'validation was failed');
 
-        _add(progression, '${entry.key}_${context.soundSourceName}');
+        _add(table, progression, '${entry.key}_${context.soundSourceName}');
         rate += progression.similarity(correct);
       }
     }
@@ -155,19 +156,23 @@ class Evaluator {
       title: 'correct rate',
     );
 
-    return _table;
+    return table;
   }
 
-  void _add(ChordProgression progression, String indexLabel) {
+  void _add(
+    Table table,
+    ChordProgression<Chord> progression,
+    String indexLabel,
+  ) {
     progressionWriter?.call(progression);
-    _table.add(progression.toCSVRow()..insert(0, indexLabel));
+    table.add(progression.toRow()..insert(0, indexLabel));
   }
 }
 
 //描画するライブラリが乏しいため、全体的な統計や評価はExcelで行う
 //そのために必要なデータの書き出しや、基本的な統計量を提示する
 class HCDFEvaluator {
-  HCDFEvaluator({
+  const HCDFEvaluator({
     required this.estimator,
   });
 
@@ -176,7 +181,12 @@ class HCDFEvaluator {
 
   final ChordEstimable estimator;
 
-  void evaluate(Iterable<EvaluationAudioDataContext> contexts) {
+  Table evaluate(
+    Iterable<EvaluationAudioDataContext> contexts, {
+    String header = 'no title',
+  }) {
+    final table = Table.empty([header, ...FScore.csvHeader]);
+
     FScore rate = FScore.zero;
     for (final context in contexts) {
       final correct = context.correct;
@@ -191,12 +201,20 @@ class HCDFEvaluator {
         title: 'predict',
       );
 
-      rate += correct.overlapScore(predict);
+      final score = correct.overlapScore(predict);
+      _add(table, score, context.musicName);
+      rate += score;
     }
 
     correctionWriter?.call(
       (rate / contexts.length).toStringAxFixed(3),
       title: 'correct rate',
     );
+
+    return table;
+  }
+
+  void _add(Table table, FScore score, String indexLabel) {
+    table.add(score.toRow()..insert(0, indexLabel));
   }
 }

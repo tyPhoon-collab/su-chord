@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'table.dart';
+
 @immutable
 class FScore {
   ///正解、誤検知、検知漏れ
@@ -8,6 +10,14 @@ class FScore {
   factory FScore.one(double tp) => FScore(tp, 0, 0);
 
   static final zero = FScore(0, 0, 0);
+  static const csvHeader = [
+    'f-score',
+    'precision',
+    'recall',
+    'truth positive',
+    'false positive',
+    'false negative'
+  ];
 
   final double tp;
   final double fp;
@@ -29,11 +39,14 @@ class FScore {
 
   String toStringAxFixed(int fractionDigits) =>
       'score: ${score.toStringAsFixed(fractionDigits)}, '
-      'precision: ${precision.toStringAsFixed(fractionDigits)}, '
-      'recall: ${recall.toStringAsFixed(fractionDigits)}, '
-      '(${tp.toStringAsFixed(fractionDigits)}, '
-      '${fp.toStringAsFixed(fractionDigits)}, '
-      '${fn.toStringAsFixed(fractionDigits)})';
+          'precision: ${precision.toStringAsFixed(fractionDigits)}, '
+          'recall: ${recall.toStringAsFixed(fractionDigits)}, '
+          '(${tp.toStringAsFixed(fractionDigits)}, '
+          '${fp.toStringAsFixed(fractionDigits)}, '
+          '${fn.toStringAsFixed(fractionDigits)})';
+
+  Row toRow() =>
+      [score, precision, recall, tp, fp, fn].map((e) => e.toString()).toList();
 
   @override
   int get hashCode => tp.hashCode | fp.hashCode | fn.hashCode;

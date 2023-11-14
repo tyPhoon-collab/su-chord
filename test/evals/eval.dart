@@ -8,6 +8,7 @@ import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
+import 'package:chord/utils/table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +19,7 @@ Future<void> main() async {
 
   setUpAll(() async {
     // CSV書き込みをするなら以下をコメント化
-    // Table.bypass = true;
+    Table.bypass = true;
 
     // 計算時間を出力したいなら以下をコメント化
     Measure.logger = null;
@@ -45,14 +46,18 @@ Future<void> main() async {
     final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
 
     Evaluator(
-      header: ['search + log comb, $logExtractor, ${f.context}'],
       estimator: SearchTreeChordEstimator(
         chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
         chordChangeDetectable: f.hcdf.eval,
         noteExtractable: logExtractor,
         chordSelectable: await f.selector.db,
       ),
-    ).evaluate(contexts).toCSV('test/outputs/search_tree_comb_log.csv');
+    )
+        .evaluate(
+          contexts,
+          header: 'search + log comb, $logExtractor, ${f.context}',
+        )
+        .toCSV('test/outputs/search_tree_comb_log.csv');
   });
 
   group('prop', () {
@@ -60,29 +65,30 @@ Future<void> main() async {
 
     test('reassign comb', () async {
       Evaluator(
-        header: ['main'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.eval,
         ),
-      ).evaluate(contexts).toCSV('test/outputs/main.csv');
+      )
+          .evaluate(contexts, header: 'reassign comb')
+          .toCSV('test/outputs/main.csv');
     });
 
     group('tonal', () {
       test('tonal centroid comb', () async {
         Evaluator(
-          header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
             chordChangeDetectable: f.hcdf.eval,
           ),
-        ).evaluate(contexts).toCSV('test/outputs/tonal_centroid.csv');
+        )
+            .evaluate(contexts, header: 'tonal')
+            .toCSV('test/outputs/tonal_centroid.csv');
       });
 
       test('tonal interval space comb musical weight', () async {
         Evaluator(
-          header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -90,12 +96,13 @@ Future<void> main() async {
             ),
             chordChangeDetectable: f.hcdf.eval,
           ),
-        ).evaluate(contexts).toCSV('test/outputs/tiv_musical.csv');
+        )
+            .evaluate(contexts, header: 'tiv musical')
+            .toCSV('test/outputs/tiv_musical.csv');
       });
 
       test('tonal interval space comb symbolic weight', () async {
         Evaluator(
-          header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -103,12 +110,13 @@ Future<void> main() async {
             ),
             chordChangeDetectable: f.hcdf.eval,
           ),
-        ).evaluate(contexts).toCSV('test/outputs/tiv_symbolic.csv');
+        )
+            .evaluate(contexts, header: 'tiv symbolic')
+            .toCSV('test/outputs/tiv_symbolic.csv');
       });
 
       test('tonal interval space comb harte weight', () async {
         Evaluator(
-          header: ['main'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -116,60 +124,65 @@ Future<void> main() async {
             ),
             chordChangeDetectable: f.hcdf.eval,
           ),
-        ).evaluate(contexts).toCSV('test/outputs/tiv_harte.csv');
+        )
+            .evaluate(contexts, header: 'tiv harte')
+            .toCSV('test/outputs/tiv_harte.csv');
       });
     });
 
     test('ln reassign comb', () async {
       Evaluator(
-        header: ['main'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.eval,
         ),
-      ).evaluate(contexts).toCSV('test/outputs/main.csv');
+      )
+          .evaluate(contexts, header: 'ln reassign comb')
+          .toCSV('test/outputs/main.csv');
     });
 
     test('reassignment', () async {
       Evaluator(
-        header: ['main'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.eval,
           templateScalar: HarmonicsChromaScalar(until: 6),
         ),
-      ).evaluate(contexts).toCSV('test/outputs/main.csv');
+      )
+          .evaluate(contexts, header: 'reassignment')
+          .toCSV('test/outputs/main.csv');
     });
 
     group('template scalar', () {
       test('third scaled', () {
         Evaluator(
-          header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             chordChangeDetectable: f.hcdf.eval,
             templateScalar: const ThirdHarmonicChromaScalar(0.2),
           ),
-        ).evaluate(contexts).toCSV('test/outputs/third_scalar.csv');
+        )
+            .evaluate(contexts, header: 'third scaled')
+            .toCSV('test/outputs/third_scalar.csv');
       });
 
       test('harmonics scaled', () {
         Evaluator(
-          header: ['scalar'],
           estimator: PatternMatchingChordEstimator(
             chromaCalculable:
                 f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
             chordChangeDetectable: f.hcdf.eval,
             templateScalar: HarmonicsChromaScalar(),
           ),
-        ).evaluate(contexts).toCSV('test/outputs/harmonics_scalar.csv');
+        )
+            .evaluate(contexts, header: 'harmonics scaled')
+            .toCSV('test/outputs/harmonics_scalar.csv');
       });
     });
 
     test('pcp scalar', () {
       Evaluator(
-        header: ['scalar'],
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.eval,
@@ -177,7 +190,9 @@ Future<void> main() async {
             const CompressionFilter(),
           ],
         ),
-      ).evaluate(contexts).toCSV('test/outputs/pcp_compression.csv');
+      )
+          .evaluate(contexts, header: 'compression')
+          .toCSV('test/outputs/pcp_compression.csv');
     });
   });
 
@@ -189,9 +204,10 @@ Future<void> main() async {
       for (final MapEntry(:key, :value) in estimators.entries) {
         final estimator = await value();
         Evaluator(
-          header: [key],
           estimator: estimator,
-        ).evaluate(contexts).toCSV('test/outputs/front_ends/$key.csv');
+        )
+            .evaluate(contexts, header: key)
+            .toCSV('test/outputs/front_ends/$key.csv');
       }
     });
 
@@ -200,9 +216,8 @@ Future<void> main() async {
 
       final estimator = await estimators[id]!.call();
       Evaluator(
-        header: [id],
         estimator: estimator,
-      ).evaluate(contexts).toCSV('test/outputs/front_ends/$id.csv');
+      ).evaluate(contexts, header: id).toCSV('test/outputs/front_ends/$id.csv');
     });
   });
 }
