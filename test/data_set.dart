@@ -1,4 +1,5 @@
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:chord/utils/loaders/csv.dart';
 
 ///サンプルレート22050でよく使用する音源をキャッシュしつつ取得するクラス
 class DataSet {
@@ -31,11 +32,14 @@ class DataSet {
   Future<AudioData> get G_Em_Bm_C => sample.then((value) => value._cut(0, 4));
 }
 
-class CacheableAudioLoader {
-  CacheableAudioLoader({required this.sampleRate}) : _cache = {};
+mixin class Cacheable<T> {
+  final Map<String, T> _cache = {};
+}
+
+class CacheableAudioLoader with Cacheable<AudioData> {
+  CacheableAudioLoader({required this.sampleRate});
 
   final int sampleRate;
-  final Map<String, AudioData> _cache;
 
   Future<AudioData> load(
     String path, {
@@ -49,6 +53,18 @@ class CacheableAudioLoader {
       duration: duration,
       offset: offset,
     );
+    _cache[key] = data;
+    return data;
+  }
+}
+
+class CacheableCSVLoader with Cacheable<List<List<dynamic>>> {
+  CacheableCSVLoader();
+
+  Future<List<List<dynamic>>> load(String path) async {
+    final key = path;
+    if (_cache.containsKey(path)) return _cache[key]!;
+    final data = await SimpleCSVLoader(path: path).load();
     _cache[key] = data;
     return data;
   }

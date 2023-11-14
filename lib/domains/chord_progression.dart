@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../utils/score.dart';
 import '../utils/table.dart';
 import 'annotation.dart';
 import 'chord.dart';
@@ -26,7 +27,10 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
     bool ignoreNotParsable = false,
     List<Time>? times,
   }) {
-    assert(times == null || row.length == times.length);
+    assert(
+      times == null || row.length == times.length,
+      'row: $row, times: $times',
+    );
 
     final chords = <ChordCell<Chord>>[];
     for (int i = 0; i < row.length; i++) {
@@ -52,6 +56,8 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
   @override
   Iterator<ChordCell<T>> get iterator => _values.iterator;
 
+  ChordCell<T> operator [](int index) => _values[index];
+
   @override
   String toString() => _values.isEmpty
       ? 'No Chords'
@@ -70,15 +76,69 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
   }
 
   double similarity(ChordProgression<T> other) {
-    final otherValues = other.toList();
-    final len = min(otherValues.length, length);
+    final otherValues = other.toChordList();
+    final minLength = min(otherValues.length, length);
+    final maxLength = max(otherValues.length, length);
     int count = 0;
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < minLength; i++) {
       if (otherValues[i] == _values[i]) {
         count++;
       }
     }
-    return count / len;
+    return count / maxLength;
+  }
+
+  FScore overlapScore(ChordProgression<T> other) {
+    assert(every((e) => e.time != null) && other.every((e) => e.time != null));
+
+    FScore rate = FScore.zero;
+    int seekingOtherIndex = 0;
+    double seek = double.negativeInfinity;
+
+    Time createLimitation(double start) {
+      final limitation = Time(seek, start);
+      seek = start;
+      return limitation;
+    }
+
+    for (int i = 0; i < length;) {
+      final value = _values[i];
+      final another = other[seekingOtherIndex];
+
+      final status = value.time!.overlapStatus(another.time!);
+      switch (status) {
+        case OverlapStatus.overlapping:
+          late final Time limitation;
+          final nextTime = i + 1 < length ? _values[i + 1].time! : null;
+          final nextOtherTime = seekingOtherIndex + 1 < other.length
+              ? other[seekingOtherIndex + 1].time!
+              : null;
+
+          if (nextTime != null &&
+              nextTime.overlapStatus(another.time!).isOverlapping) {
+            limitation = createLimitation(nextTime.start);
+            i++;
+          } else if (nextOtherTime != null &&
+              nextOtherTime.overlapStatus(value.time!).isOverlapping) {
+            limitation = createLimitation(nextOtherTime.start);
+            seekingOtherIndex++;
+          } else {
+            limitation = createLimitation(min(
+              nextTime?.start ?? double.infinity,
+              nextOtherTime?.start ?? double.infinity,
+            ));
+            i++;
+          }
+
+          rate += value.overlapScore(another, limitation: limitation);
+        case OverlapStatus.anotherIsLate:
+          i++;
+        case OverlapStatus.anotherIsFast:
+          seekingOtherIndex++;
+      }
+    }
+
+    return rate;
   }
 
   ChordProgression<T> cut(int start, [int? end]) =>

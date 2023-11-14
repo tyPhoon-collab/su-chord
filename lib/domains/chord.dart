@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import '../utils/score.dart';
 import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
@@ -398,6 +399,9 @@ class Chord extends ChordBase<Chord> {
         .where((record) => record.type.validate(record.qualities));
   }
 
+  static final C = Chord.parse('C');
+  static final D = Chord.parse('D');
+
   late final PCP unitPCP = PCP.fromNotes(notes);
 
   final Note root;
@@ -442,7 +446,7 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
   String toString() => chord?.toString() ?? noChordLabel;
 
   String toDetailString() =>
-      '$chord${time != null ? '(${time!.start}-${time!.end})' : ''}';
+      '$chord${time != null ? '(${time!.start.toStringAsFixed(2)}-${time!.end.toStringAsFixed(2)})' : ''}';
 
   @override
   ChordCell<T> transpose(int degree) =>
@@ -452,6 +456,64 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
     return ChordCell<T>(
       chord: chord ?? this.chord,
       time: time ?? this.time,
+    );
+  }
+
+  ///自身が正解だとして、オーバーラップスコアを算出する
+  FScore overlapScore(ChordCell<T> other, {Time? limitation}) {
+    assert(this.time != null && other.time != null);
+
+    if (!time!.overlapStatus(other.time!).isOverlapping) {
+      return FScore.zero;
+    }
+
+    final isCorrect = chord == other.chord;
+
+    final min = limitation?.start ?? double.negativeInfinity;
+    final max = limitation?.end ?? double.infinity;
+
+    final start = time!.start.clamp(min, max);
+    final end = time!.end.clamp(min, max);
+    final otherStart = other.time!.start.clamp(min, max);
+    final otherEnd = other.time!.end.clamp(min, max);
+
+    double truthPositiveTime = 0;
+    double falsePositiveTime = 0;
+    double falseNegativeTime = 0;
+
+    void addPositive(double value) {
+      if (isCorrect) {
+        truthPositiveTime += value;
+      } else {
+        falsePositiveTime += value;
+      }
+    }
+
+    if (otherStart < start) {
+      falsePositiveTime += start - otherStart;
+
+      if (otherEnd < end) {
+        addPositive(otherEnd - start);
+        falseNegativeTime += end - otherEnd;
+      } else {
+        addPositive(time!.duration);
+        falsePositiveTime += otherEnd - end;
+      }
+    } else {
+      falseNegativeTime += otherStart - start;
+      if (otherEnd < end) {
+        addPositive(other.time!.duration);
+        falseNegativeTime += end - otherEnd;
+      } else {
+        addPositive(end - otherStart);
+        falsePositiveTime += otherEnd - end;
+      }
+    }
+
+    return FScore(
+      truthPositiveTime,
+      falsePositiveTime,
+      falseNegativeTime,
     );
   }
 }

@@ -1,5 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+enum OverlapStatus {
+  overlapping,
+  anotherIsLate,
+  anotherIsFast;
+
+  bool get isOverlapping => this == OverlapStatus.overlapping;
+}
+
 @immutable
 class SequenceAnnotation<T extends num> {
   const SequenceAnnotation(this.start, this.end);
@@ -19,10 +27,23 @@ class SequenceAnnotation<T extends num> {
         start == other.start &&
         end == other.end;
   }
+
+  OverlapStatus overlapStatus(Time other) {
+    if (other.end <= start) return OverlapStatus.anotherIsFast;
+    if (end <= other.start) return OverlapStatus.anotherIsLate;
+    return OverlapStatus.overlapping;
+  }
 }
 
 final class Time extends SequenceAnnotation<double> {
-  const Time(super.start, super.end);
+  const Time(super.start, super.end) : assert(start <= end);
+
+  factory Time.fromList(List<double> row) => Time(row[0], row[1]);
+
+  factory Time.infinity(double start) => Time(start, double.infinity);
+
+  factory Time.negativeInfinity(double end) =>
+      Time(double.negativeInfinity, end);
 
   static Time zero = const Time(0, 0);
 

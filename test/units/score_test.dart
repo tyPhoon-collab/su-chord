@@ -5,10 +5,12 @@ import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/utils/score.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../data_set.dart';
+import '../writer.dart';
 
 void main() {
   group('mapper', () {
@@ -44,5 +46,36 @@ void main() {
     final score = const ScoreCalculator.cosine().call(pcp, template);
 
     debugPrint(score.toString());
+  });
+
+  group('f-score', () {
+    test('1 0 0', () {
+      final f = FScore(1, 0, 0);
+      logTest(f);
+    });
+    test('2 1 0', () {
+      final f = FScore(2, 1, 0);
+      logTest(f);
+    });
+
+    test('2 0 1', () {
+      final f = FScore(2, 0, 1);
+      logTest(f);
+    });
+
+    test('1 1 1', () {
+      final f = FScore(1, 1, 1);
+      logTest(f);
+    });
+
+    test('2 2 2', () {
+      final f = FScore(2, 2, 2);
+      logTest(f);
+    });
+
+    test('2 1 1', () {
+      final f = FScore(2, 1, 1);
+      logTest(f);
+    });
   });
 }

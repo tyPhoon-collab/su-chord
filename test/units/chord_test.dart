@@ -1,5 +1,7 @@
+import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/equal_temperament.dart';
+import 'package:chord/utils/score.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -345,5 +347,91 @@ void main() {
         equals(Chord.parse('Dm7')),
       ),
     );
+  });
+
+  group('chord cell', () {
+    final correct = ChordCell(chord: Chord.C, time: const Time(3, 5));
+
+    group('same', () {
+      test('perfect', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(3, 5),
+          )),
+          FScore.one(2),
+        );
+      });
+      test('perfect fast half', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(3, 4),
+          )),
+          FScore(1, 0, 1),
+        );
+      });
+      test('perfect late half', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(4, 5),
+          )),
+          FScore(1, 0, 1),
+        );
+      });
+      test('slide 1 sec fast', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(2, 4),
+          )),
+          FScore(1, 1, 1),
+        );
+      });
+      test('slide 1 sec late', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(4, 6),
+          )),
+          FScore(1, 1, 1),
+        );
+      });
+    });
+
+    group('different', () {
+      test('time', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.C,
+            time: const Time(1, 2),
+          )),
+          FScore.zero,
+        );
+      });
+      test('chord', () {
+        expect(
+          correct.overlapScore(ChordCell(
+            chord: Chord.D,
+            time: const Time(3, 5),
+          )),
+          FScore.zero,
+        );
+      });
+    });
+
+    test('limitation', () {
+      expect(
+        correct.overlapScore(
+          ChordCell(
+            chord: Chord.C,
+            time: const Time(3, 5),
+          ),
+          limitation: const Time(3, 4),
+        ),
+        FScore.one(1),
+      );
+    });
   });
 }
