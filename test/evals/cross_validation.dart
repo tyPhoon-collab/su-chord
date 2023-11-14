@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
 import '../writer.dart';
-import 'evalulator.dart';
+import 'evaluator.dart';
 
 void main() {
   late final Iterable<EvaluationAudioDataContext> contexts;

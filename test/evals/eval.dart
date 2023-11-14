@@ -11,7 +11,7 @@ import 'package:chord/utils/measure.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'evalulator.dart';
+import 'evaluator.dart';
 
 Future<void> main() async {
   late final Iterable<EvaluationAudioDataContext> contexts;

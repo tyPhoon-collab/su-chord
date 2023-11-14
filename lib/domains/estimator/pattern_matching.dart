@@ -1,9 +1,14 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import '../chord.dart';
+import '../chord_selector.dart';
 import '../chroma.dart';
+import '../chroma_calculators/chroma_calculator.dart';
+import '../filters/chord_change_detector.dart';
+import '../filters/filter.dart';
 import '../score_calculator.dart';
 import 'estimator.dart';
 
@@ -97,4 +102,25 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     )!
         .value;
   }
+
+  @visibleForTesting
+  PatternMatchingChordEstimator copyWith({
+    Set<Chord>? templates,
+    ScoreCalculator? scoreCalculator,
+    ChromaMappable? templateScalar,
+    ChromaCalculable? chromaCalculable,
+    ChromaChordChangeDetectable? chordChangeDetectable,
+    ChordSelectable? chordSelectable,
+    List<ChromaListFilter>? filters,
+  }) =>
+      PatternMatchingChordEstimator(
+        templates: templates ?? this.templates,
+        scoreCalculator: scoreCalculator ?? this.scoreCalculator,
+        templateScalar: templateScalar ?? this.templateScalar,
+        chromaCalculable: chromaCalculable ?? this.chromaCalculable,
+        chordChangeDetectable:
+            chordChangeDetectable ?? this.chordChangeDetectable,
+        chordSelectable: chordSelectable ?? this.chordSelectable,
+        filters: filters ?? this.filters,
+      );
 }

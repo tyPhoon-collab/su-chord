@@ -1,12 +1,13 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'evalulator.dart';
+import 'evaluator.dart';
 
 void main() {
   late final Iterable<EvaluationAudioDataContext> contexts;
@@ -37,41 +38,40 @@ void main() {
 
   group('HCDF', () {
     final f = factory4096_0;
+    final base = PatternMatchingChordEstimator(
+      chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+      templateScalar: HarmonicsChromaScalar(until: 6),
+    );
+    const threshold = 30.0;
 
     test('HCDF fold', () {
       HCDFEvaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.frame(20),
-        ),
+        estimator:
+            base.copyWith(chordChangeDetectable: f.hcdf.frame(threshold)),
       ).evaluate(contexts);
     });
 
     test('HCDF threshold', () {
       HCDFEvaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.threshold(15),
-        ),
+        estimator:
+            base.copyWith(chordChangeDetectable: f.hcdf.threshold(threshold)),
       ).evaluate(contexts);
     });
 
     test('HCDF cosine similarity', () {
       HCDFEvaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        estimator: base.copyWith(
           chordChangeDetectable:
-              f.hcdf.preFrameCheck(threshold: 15, scoreThreshold: .9),
+              f.hcdf.preFrameCheck(threshold: threshold, scoreThreshold: .9),
         ),
       ).evaluate(contexts);
     });
 
     test('HCDF tonal', () {
       HCDFEvaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        estimator: base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 15,
+            threshold: threshold,
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
             scoreThreshold: .8,
           ),
@@ -81,10 +81,9 @@ void main() {
 
     test('HCDF TIV', () {
       HCDFEvaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        estimator: base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 15,
+            threshold: threshold,
             scoreCalculator: const ScoreCalculator.cosine(
               ToTonalIntervalVector.musical(),
             ),
