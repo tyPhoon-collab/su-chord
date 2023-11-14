@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+
 import '../../utils/formula.dart';
 import '../chroma.dart';
 
@@ -7,18 +9,19 @@ abstract interface class ChromaListFilter {
   List<Chroma> call(List<Chroma> chroma);
 }
 
-// class ThresholdFilter implements ChromaListFilter {
-//   const ThresholdFilter({required this.threshold});
-//
-//   final double threshold;
-//
-//   @override
-//   String toString() => 'threshold $threshold';
-//
-//   @override
-//   List<Chroma> call(List<Chroma> chroma) =>
-//       chroma.where((e) => e.l2norm >= threshold).toList();
-// }
+@visibleForTesting
+class ThresholdFilter implements ChromaListFilter {
+  const ThresholdFilter({required this.threshold});
+
+  final double threshold;
+
+  @override
+  String toString() => 'threshold $threshold';
+
+  @override
+  List<Chroma> call(List<Chroma> chroma) =>
+      chroma.where((e) => e.l2norm >= threshold).toList();
+}
 
 class AverageFilter implements ChromaListFilter {
   const AverageFilter({required this.kernelRadius}) : assert(kernelRadius > 0);

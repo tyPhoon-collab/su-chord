@@ -45,7 +45,30 @@ void main() {
 
     final score = const ScoreCalculator.cosine().call(pcp, template);
 
-    debugPrint(score.toString());
+    logTest(score);
+  });
+
+  test('compare', () async {
+    final f = factory4096_0;
+    final chord = Chord.parse('C');
+
+    final template =
+        HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
+
+    final cc = [
+      f.guitar.reassignment(),
+      f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+      f.guitar.reassignCombFilter(),
+      f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln)
+    ];
+
+    for (final value in cc) {
+      final pcp = average(value(await DataSet().C)).first;
+
+      final score = const ScoreCalculator.cosine().call(pcp, template);
+
+      logTest(score, title: value.toString());
+    }
   });
 
   group('f-score', () {

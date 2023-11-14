@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
@@ -41,6 +42,9 @@ void main() {
     final base = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       templateScalar: HarmonicsChromaScalar(until: 6),
+      filters: [
+        GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+      ],
     );
     const threshold = 30.0;
 

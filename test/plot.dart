@@ -229,33 +229,39 @@ void main() {
     });
 
     test('common', () async {
-      final chromas =
-          f.guitar.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
-      await writer(chromas, title: 'chromagram');
-    });
-
-    test('log scaled', () async {
       final chromas = f.guitar
-          .reassignCombFilter(scalar: MagnitudeScalar.ln)
+          .reassignment(scalar: MagnitudeScalar.ln)
           .call(await DataSet().G_Em_Bm_C);
       await writer(chromas, title: 'chromagram');
     });
 
     group('filter', () {
-      test('threshold 20', () async {
+      test('threshold', () async {
+        const filter = ThresholdFilter(threshold: 30);
+        final chromas = filter(f.guitar
+            .reassignment(scalar: MagnitudeScalar.ln)
+            .call(await DataSet().G_Em_Bm_C));
+        await writer(chromas, title: 'chromagram threshold');
+      });
+      test('gaussian', () async {
+        final filter = GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt);
+        final chromas = filter(f.guitar
+            .reassignment(scalar: MagnitudeScalar.ln)
+            .call(await DataSet().G_Em_Bm_C));
+        await writer(chromas, title: 'chromagram gaussian');
+      });
+      test('multi', () async {
         final filters = [
-          const AverageFilter(kernelRadius: 2),
+          GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+          const ThresholdFilter(threshold: 30),
         ];
-        final cc = f.guitar.reassignCombFilter();
-        var chromas = cc(await DataSet().G_Em_Bm_C);
-        await writer(chromas, title: 'chromagram 0 $cc');
-
-        int count = 0;
-        for (final filter in filters) {
-          count++;
-          chromas = filter(chromas);
-          await writer(chromas, title: 'chromagram $count $filter $cc');
-        }
+        final chromas = filters.fold(
+          f.guitar
+              .reassignment(scalar: MagnitudeScalar.ln)
+              .call(await DataSet().G_Em_Bm_C),
+          (value, filter) => filter(value),
+        );
+        await writer(chromas, title: 'chromagram multi');
       });
     });
   });
