@@ -11,7 +11,7 @@ abstract interface class ChromaListFilter {
 
 @visibleForTesting
 class ThresholdFilter implements ChromaListFilter {
-  const ThresholdFilter({required this.threshold});
+  const ThresholdFilter(this.threshold);
 
   final double threshold;
 

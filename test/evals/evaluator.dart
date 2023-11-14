@@ -8,13 +8,16 @@ import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/score.dart';
 import 'package:chord/utils/table.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import '../data_set.dart';
 import '../writer.dart';
 
-class EvaluationAudioDataContext
+///評価音源に必要な情報をすべて詰め込んだクラス
+@immutable
+final class EvaluationAudioDataContext
     implements Comparable<EvaluationAudioDataContext> {
-  EvaluationAudioDataContext({
+  const EvaluationAudioDataContext({
     required this.key,
     required this.data,
     required this.correct,
@@ -92,6 +95,22 @@ class EvaluationAudioDataContext
   @override
   int compareTo(EvaluationAudioDataContext other) {
     return key.compareTo(other.key);
+  }
+
+  EvaluationAudioDataContext copyWith({
+    int? key,
+    AudioData? data,
+    ChordProgression<Chord>? correct,
+    String? soundSourceName,
+    String? musicName,
+  }) {
+    return EvaluationAudioDataContext(
+      key: key ?? this.key,
+      data: data ?? this.data,
+      correct: correct ?? this.correct,
+      soundSourceName: soundSourceName ?? this.soundSourceName,
+      musicName: musicName ?? this.musicName,
+    );
   }
 }
 

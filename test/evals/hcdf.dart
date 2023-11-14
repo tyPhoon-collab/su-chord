@@ -43,6 +43,7 @@ void main() {
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       templateScalar: HarmonicsChromaScalar(until: 6),
       filters: [
+        const ThresholdFilter(31), //Deal as consecutive
         GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
       ],
     );

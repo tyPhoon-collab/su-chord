@@ -237,7 +237,7 @@ void main() {
 
     group('filter', () {
       test('threshold', () async {
-        const filter = ThresholdFilter(threshold: 30);
+        const filter = ThresholdFilter(30);
         final chromas = filter(f.guitar
             .reassignment(scalar: MagnitudeScalar.ln)
             .call(await DataSet().G_Em_Bm_C));
@@ -253,7 +253,7 @@ void main() {
       test('multi', () async {
         final filters = [
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
-          const ThresholdFilter(threshold: 30),
+          const ThresholdFilter(30),
         ];
         final chromas = filters.fold(
           f.guitar
