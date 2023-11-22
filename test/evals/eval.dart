@@ -63,15 +63,29 @@ Future<void> main() async {
   group('prop', () {
     final f = factory4096_0;
 
-    test('reassign comb', () async {
-      Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.eval,
-        ),
-      )
-          .evaluate(contexts, header: 'reassign comb')
-          .toCSV('test/outputs/main.csv');
+    group('reassign comb', () {
+      test('normal', () async {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitar.reassignCombFilter(),
+            chordChangeDetectable: f.hcdf.eval,
+          ),
+        )
+            .evaluate(contexts, header: 'reassign comb')
+            .toCSV('test/outputs/reassign_comb.csv');
+      });
+
+      test('ln', () async {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable:
+                f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
+            chordChangeDetectable: f.hcdf.eval,
+          ),
+        )
+            .evaluate(contexts, header: 'ln reassign comb')
+            .toCSV('test/outputs/ln_reassign_comb.csv');
+      });
     });
 
     group('tonal', () {
@@ -130,28 +144,46 @@ Future<void> main() async {
       });
     });
 
-    test('ln reassign comb', () async {
-      Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable:
-              f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.eval,
-        ),
-      )
-          .evaluate(contexts, header: 'ln reassign comb')
-          .toCSV('test/outputs/main.csv');
-    });
+    group('reassign', () {
+      test('ln template scale', () async {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+            chordChangeDetectable: f.hcdf.eval,
+            templateScalar: HarmonicsChromaScalar(until: 6),
+          ),
+        )
+            .evaluate(contexts, header: 'reassign')
+            .toCSV('test/outputs/reassign.csv');
+      });
 
-    test('reassignment', () async {
-      Evaluator(
-        estimator: PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.eval,
-          templateScalar: HarmonicsChromaScalar(until: 6),
-        ),
-      )
-          .evaluate(contexts, header: 'reassignment')
-          .toCSV('test/outputs/main.csv');
+      test('template scale', () async {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitar.reassignment(),
+            chordChangeDetectable: f.hcdf.eval,
+            templateScalar: HarmonicsChromaScalar(until: 6),
+          ),
+        )
+            .evaluate(contexts, header: 'reassign')
+            .toCSV('test/outputs/reassign.csv');
+      });
+
+      test('non reassign', () async {
+        Evaluator(
+          estimator: PatternMatchingChordEstimator(
+            chromaCalculable: f.guitar.reassignment(
+              // scalar: MagnitudeScalar.ln,
+              isReassignFrequency: false,
+              isReassignTime: false,
+            ),
+            chordChangeDetectable: f.hcdf.eval,
+            templateScalar: HarmonicsChromaScalar(until: 6),
+          ),
+        )
+            .evaluate(contexts, header: 'non reassign')
+            .toCSV('test/outputs/non_reassign.csv');
+      });
     });
 
     group('template scalar', () {

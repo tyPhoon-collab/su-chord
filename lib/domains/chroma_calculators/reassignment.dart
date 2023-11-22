@@ -15,8 +15,8 @@ class ReassignmentEqualTemperamentBinCalculator extends ReassignmentCalculator
   ReassignmentEqualTemperamentBinCalculator({
     super.chunkSize,
     super.chunkStride,
-    super.isReassignFrequencyDimension,
-    super.isReassignTimeDimension,
+    super.isReassignFrequency,
+    super.isReassignTime,
     this.chromaContext = ChromaContext.guitar,
     super.scalar,
   }) : super.hanning();
@@ -64,14 +64,15 @@ class ReassignmentChromaCalculator
   ReassignmentChromaCalculator({
     super.chunkSize,
     super.chunkStride,
-    super.isReassignFrequencyDimension,
-    super.isReassignTimeDimension,
+    super.isReassignFrequency,
+    super.isReassignTime,
     super.chromaContext,
     super.scalar,
   }) : super();
 
   @override
-  String toString() => 'sparse ${scalar.name} scaled, $chromaContext';
+  String toString() =>
+      'sparse ${!isReassignFrequency ? 'non reassign frequency ' : ''}${scalar.name} scaled, $chromaContext';
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {

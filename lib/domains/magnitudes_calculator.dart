@@ -97,12 +97,12 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   ReassignmentMagnitudesCalculator({
     super.chunkSize,
     super.chunkStride,
-    super.isReassignFrequencyDimension,
-    super.isReassignTimeDimension,
+    super.isReassignFrequency,
+    super.isReassignTime,
     super.scalar,
     this.overrideChunkSize,
-  })  : assert(overrideChunkSize == null || isReassignFrequencyDimension),
-        assert(!isReassignTimeDimension, 'not supported now'),
+  })  : assert(overrideChunkSize == null || isReassignFrequency),
+        assert(!isReassignTime, 'not supported now'),
         super.hanning();
 
   ///再割り当て法は擬似的に周波数分解能を向上させることができる

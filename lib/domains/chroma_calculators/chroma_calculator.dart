@@ -43,12 +43,11 @@ class ReassignmentCalculator extends STFTCalculator {
   ReassignmentCalculator.hanning({
     super.chunkSize,
     super.chunkStride,
-    this.isReassignTimeDimension = false,
-    this.isReassignFrequencyDimension = true,
+    this.isReassignTime = false,
+    this.isReassignFrequency = true,
     this.scalar = MagnitudeScalar.none,
-  })  : assert(isReassignFrequencyDimension || isReassignTimeDimension),
-        super.hanning() {
-    if (isReassignFrequencyDimension) {
+  }) : super.hanning() {
+    if (isReassignFrequency) {
       final windowD = Float64List.fromList(
         window
             .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
@@ -57,7 +56,7 @@ class ReassignmentCalculator extends STFTCalculator {
       stftD = STFT(chunkSize, windowD);
     }
 
-    if (isReassignTimeDimension) {
+    if (isReassignTime) {
       final windowT = Float64List.fromList(
         window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
       );
@@ -69,8 +68,8 @@ class ReassignmentCalculator extends STFTCalculator {
   STFT? stftD;
   STFT? stftT;
   final MagnitudeScalar scalar;
-  final bool isReassignTimeDimension;
-  final bool isReassignFrequencyDimension;
+  final bool isReassignTime;
+  final bool isReassignFrequency;
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
@@ -116,10 +115,10 @@ class ReassignmentCalculator extends STFTCalculator {
         if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
 
         points.add(Point(
-          x: isReassignTimeDimension
+          x: isReassignTime
               ? i * dt + complexDivision(sT[i][j], s[i][j]).x / sr
               : i * dt,
-          y: isReassignFrequencyDimension
+          y: isReassignFrequency
               ? j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi)
               : j * df,
           weight: magnitudes[i][j],

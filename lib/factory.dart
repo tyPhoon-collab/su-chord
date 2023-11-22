@@ -151,11 +151,17 @@ final class ChromaCalculatorFactory {
         context: combFilterContext ?? const CombFilterContext(),
       );
 
-  ChromaCalculable reassignment({MagnitudeScalar? scalar}) =>
+  ChromaCalculable reassignment({
+    MagnitudeScalar? scalar,
+    isReassignFrequency = true,
+    isReassignTime = false,
+  }) =>
       ReassignmentChromaCalculator(
         chunkSize: _chunkSize,
         chunkStride: _chunkStride,
         chromaContext: chromaContext,
+        isReassignFrequency: isReassignFrequency,
+        isReassignTime: isReassignTime,
         scalar: scalar ?? MagnitudeScalar.none,
       );
 }

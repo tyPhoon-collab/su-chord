@@ -230,7 +230,13 @@ void main() {
       final estimators = [
         f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
         f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
+        f.guitar.reassignment(),
         f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+        f.guitar.reassignment(isReassignFrequency: false),
+        f.guitar.reassignment(
+          scalar: MagnitudeScalar.ln,
+          isReassignFrequency: false,
+        ),
       ];
 
       await Future.wait(
