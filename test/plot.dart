@@ -63,6 +63,19 @@ void main() {
         ]);
       });
 
+      test('spotting', () async {
+        final f = factory4096_0;
+        final data = await const SimpleAudioLoader(
+                path:
+                    'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
+            .load(sampleRate: 22050);
+
+        final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
+
+        await writer(
+            average(cc(data.cutEvaluationAudioByIndex(10))).first.l2normalized);
+      });
+
       test('spot compare', () async {
         final factories = [factory8192_0, factory4096_0];
         final data = await const SimpleAudioLoader(

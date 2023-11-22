@@ -6,6 +6,7 @@ import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/measure.dart';
+import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'evaluator.dart';
@@ -15,7 +16,7 @@ void main() {
 
   setUpAll(() async {
     // CSV書き込みをするなら以下をコメント化
-    // Table.bypass = true;
+    Table.bypass = true;
 
     // 計算時間を出力したいなら以下をコメント化
     Measure.logger = null;
@@ -43,7 +44,7 @@ void main() {
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       templateScalar: HarmonicsChromaScalar(until: 6),
       filters: [
-        const ThresholdFilter(31), //Deal as consecutive
+        // const ThresholdFilter(31), //Deal as consecutive
         GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
       ],
     );

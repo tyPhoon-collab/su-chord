@@ -24,12 +24,15 @@ class DataSet {
   Future<AudioData> get nutcrackerShort =>
       nutcracker.then((value) => value.cut(duration: 30));
 
-  Future<AudioData> get G => sample.then((value) => value._cut(0));
+  Future<AudioData> get G =>
+      sample.then((value) => value.cutEvaluationAudioByIndex(0));
 
-  Future<AudioData> get C => sample.then((value) => value._cut(3));
+  Future<AudioData> get C =>
+      sample.then((value) => value.cutEvaluationAudioByIndex(3));
 
   // ignore: non_constant_identifier_names
-  Future<AudioData> get G_Em_Bm_C => sample.then((value) => value._cut(0, 4));
+  Future<AudioData> get G_Em_Bm_C =>
+      sample.then((value) => value.cutEvaluationAudioByIndex(0, 4));
 }
 
 mixin class Cacheable<T> {
@@ -70,8 +73,8 @@ class CacheableCSVLoader with Cacheable<List<List<dynamic>>> {
   }
 }
 
-extension _CutEvaluationAudioByIndex on AudioData {
-  AudioData _cut(int index, [int length = 1]) {
+extension CutEvaluationAudioByIndex on AudioData {
+  AudioData cutEvaluationAudioByIndex(int index, [int length = 1]) {
     assert(length > 0);
     return cut(duration: 4 * length + .1, offset: index * 4);
   }
