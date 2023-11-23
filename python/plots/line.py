@@ -13,7 +13,7 @@ df = pd.read_csv(args.path, header=None)
 
 data = df.to_numpy()
 
-plt.plot(data[0], data[1], marker="o")
+plt.plot(data[0], data[1], marker=None)
 
 if args.title:
     plt.title(args.title)

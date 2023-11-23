@@ -67,6 +67,15 @@ class AudioData {
       sampleRate: newSampleRate,
     );
   }
+
+  AudioData concat(AudioData other) {
+    assert(other.sampleRate == sampleRate);
+
+    return AudioData(
+      buffer: Float64List.fromList([...buffer, ...other.buffer]),
+      sampleRate: sampleRate,
+    );
+  }
 }
 
 abstract interface class AudioLoader {
