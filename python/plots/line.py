@@ -20,6 +20,8 @@ data = df.to_numpy()
 
 plt.plot(data[0], data[1], marker=None)
 
+# plt.xscale("log")
+
 if args.x_min is not None and args.x_max is not None:
     plt.xlim(args.x_min, args.x_max)
 elif args.x_min is not None:

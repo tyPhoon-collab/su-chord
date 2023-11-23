@@ -1,6 +1,8 @@
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/loaders/csv.dart';
 
+import 'evals/evaluator.dart';
+
 ///サンプルレート22050でよく使用する音源をキャッシュしつつ取得するクラス
 class DataSet {
   factory DataSet() => _instance ?? DataSet._();
@@ -13,7 +15,8 @@ class DataSet {
 
   late final osawa = OsawaDataSet(_loader);
 
-  Future<AudioData> get sample => _loader.load(
+  Future<AudioData> get sample =>
+      _loader.load(
         'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav',
         duration: 81,
       );
@@ -33,6 +36,19 @@ class DataSet {
   // ignore: non_constant_identifier_names
   Future<AudioData> get G_Em_Bm_C =>
       sample.then((value) => value.cutEvaluationAudioByIndex(0, 4));
+
+  Future<AudioData> concat(String folderPath) async {
+    return _loader.load(folderPath, buildCachingData: () async {
+      final context = await EvaluationAudioDataContext.fromFolder(folderPath);
+
+      final data = context.fold(
+        AudioData.empty(sampleRate: _loader.sampleRate),
+            (value, element) => value.concat(element.data),
+      );
+
+      return data;
+    });
+  }
 }
 
 mixin class Cacheable<T> {
@@ -44,20 +60,25 @@ class CacheableAudioLoader with Cacheable<AudioData> {
 
   final int sampleRate;
 
-  Future<AudioData> load(
-    String path, {
+  Future<AudioData> load(String path, {
     double? duration,
     double? offset,
+    Future<AudioData> Function()? buildCachingData,
   }) async {
-    final key = '$path $duration $offset';
-    if (_cache.containsKey(path)) return _cache[key]!;
-    final data = await SimpleAudioLoader(path: path).load(
-      sampleRate: sampleRate,
+    final key = path;
+    if (_cache.containsKey(path)) {
+      return _cache[key]!.cut(
+        duration: duration,
+        offset: offset,
+      );
+    }
+    final data = await buildCachingData?.call() ??
+        await SimpleAudioLoader(path: path).load(sampleRate: sampleRate);
+    _cache[key] = data;
+    return data.cut(
       duration: duration,
       offset: offset,
     );
-    _cache[key] = data;
-    return data;
   }
 }
 

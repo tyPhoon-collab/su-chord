@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'data_set.dart';
-import 'evals/evaluator.dart';
 import 'writer.dart';
 
 void main() {
@@ -360,17 +360,12 @@ void main() {
     });
     group('LTAS', () {
       final f = factory4096_0;
+      final calc = f.magnitude.stft();
+      const xMax = 6000;
+
       test('A', () async {
-        final context = await EvaluationAudioDataContext.fromFolder(
-            'assets/evals/Halion_CleanGuitarVX');
-
-        final data = context.fold(
-          AudioData.empty(sampleRate: f.context.sampleRate),
-          (value, element) => value.concat(element.data),
-        );
-
-        final calc = f.magnitude.stft();
-        final ltas = LTASCalculator(magnitudesCalculable: calc).call(data);
+        final ltas = LTASCalculator(magnitudesCalculable: calc)
+            .call(await DataSet().concat('assets/evals/Halion_CleanGuitarVX'));
 
         await writer(
           List.generate(
@@ -380,30 +375,57 @@ void main() {
           ltas,
           title: 'LTAS A',
           xMin: 0,
-          xMax: 2000,
+          xMax: xMax,
+        );
+      });
+
+      test('B', () async {
+        final ltas = LTASCalculator(magnitudesCalculable: calc).call(
+            await DataSet().concat('assets/evals/Halion_CleanStratGuitar'));
+
+        await writer(
+          List.generate(
+            ltas.length,
+            (index) => calc.frequency(index, f.context.sampleRate),
+          ),
+          ltas,
+          title: 'LTAS B',
+          xMin: 0,
+          xMax: xMax,
+        );
+      });
+
+      test('C', () async {
+        final ltas = LTASCalculator(magnitudesCalculable: calc)
+            .call(await DataSet().concat('assets/evals/HojoGuitar'));
+
+        await writer(
+          List.generate(
+            ltas.length,
+            (index) => calc.frequency(index, f.context.sampleRate),
+          ),
+          ltas,
+          title: 'LTAS C',
+          xMin: 0,
+          xMax: xMax,
+        );
+      });
+
+      test('D', () async {
+        final ltas = LTASCalculator(magnitudesCalculable: calc)
+            .call(await DataSet().concat('assets/evals/RealStrat'));
+
+        await writer(
+          List.generate(
+            ltas.length,
+            (index) => calc.frequency(index, f.context.sampleRate),
+          ),
+          ltas,
+          title: 'LTAS D',
+          xMin: 0,
+          xMax: xMax,
         );
       });
     });
   });
-}
-
-class LTASCalculator {
-  LTASCalculator({required this.magnitudesCalculable});
-
-  final MagnitudesCalculable magnitudesCalculable;
-
-  List<double> call(AudioData data) {
-    final mags = magnitudesCalculable(data);
-
-    final frequencyIndexesCount = mags.first.length;
-
-    final ltas = [
-      for (int i = 0; i < frequencyIndexesCount; i++)
-        mags.fold(0.0, (value, mag) => value + mag[i]) / frequencyIndexesCount
-    ];
-
-    assert(ltas.length == frequencyIndexesCount);
-
-    return ltas;
-  }
 }
