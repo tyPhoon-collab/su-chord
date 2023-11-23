@@ -6,14 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 typedef LogTest = void Function(Object e, {String? title});
+typedef _Args = List<String>;
 
 //develop.logはtestモードでは機能しない
 //logのような機能をdebugPrintで代用した関数
+//Objectで受け取れる
 void logTest(Object e, {String? title}) {
   debugPrint('[${title ?? 'log'}] $e');
 }
 
-//TODO Writer to ChartWriter?
 class BarChartWriter {
   const BarChartWriter();
 
@@ -23,12 +24,7 @@ class BarChartWriter {
       [
         'python/plots/bar.py',
         ...data.map((e) => e.toString()),
-        if (title != null) ...[
-          '--title',
-          title,
-          '--output',
-          'test/outputs/plots/$title.png',
-        ],
+        ..._createTitleArgs(title),
       ],
     );
     _debugPrintIfNotEmpty(result.stderr);
@@ -44,16 +40,8 @@ class PCPChartWriter {
       [
         'python/plots/bar.py',
         ...data.map((e) => e.toString()),
-        if (title != null) ...[
-          '--title',
-          title,
-          '--output',
-          'test/outputs/plots/$title.png',
-        ],
-        '--y_max',
-        '1',
-        '--y_min',
-        '0',
+        ..._createTitleArgs(title),
+        ..._createLimitArgs(_Axis.y, 0, 1),
         '--pcp',
       ],
     );
@@ -87,20 +75,28 @@ mixin class _UsingTempCSVFileChartWriter {
 class LineChartWriter with _UsingTempCSVFileChartWriter {
   const LineChartWriter();
 
-  Future<void> call(Iterable<Iterable<num>> data, {String? title}) async =>
+  Future<void> call(
+    Iterable<num> x,
+    Iterable<num> y, {
+    String? title,
+    num? xMin,
+    num? xMax,
+    num? yMin,
+    num? yMax,
+  }) async =>
       runWithTempCSVFile(
-        data.map((e) => e.map((e) => e.toString()).toList()).toList(),
+        [
+          x.map((e) => e.toString()).toList(),
+          y.map((e) => e.toString()).toList(),
+        ],
         (filePath) => Process.run(
           'python3',
           [
             'python/plots/line.py',
             filePath,
-            if (title != null) ...[
-              '--title',
-              title,
-              '--output',
-              'test/outputs/plots/$title.png',
-            ]
+            ..._createTitleArgs(title),
+            ..._createLimitArgs(_Axis.x, xMin, xMax),
+            ..._createLimitArgs(_Axis.y, yMin, yMax),
           ],
         ),
       );
@@ -129,8 +125,8 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
   Future<void> call(
     Iterable<Iterable<num>> data, {
     String? title,
-    double? yMin,
-    double? yMax,
+    num? yMin,
+    num? yMax,
   }) async =>
       runWithTempCSVFile(
         data.map((e) => e.map((e) => e.toString()).toList()).toList(),
@@ -142,23 +138,11 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
             sampleRate.toString(),
             chunkSize.toString(),
             chunkStride.toString(),
-            if (title != null) ...[
-              '--title',
-              title,
-              '--output',
-              'test/outputs/plots/$title.png',
-            ],
+            ..._createTitleArgs(title),
+            ..._createLimitArgs(_Axis.y, yMin, yMax),
             if (yAxis case final String yAxis) ...[
               '--y_axis',
               yAxis,
-            ],
-            if (yMin != null) ...[
-              '--y_min',
-              yMin.toString(),
-            ],
-            if (yMax != null) ...[
-              '--y_max',
-              yMax.toString(),
             ],
           ],
         ),
@@ -178,12 +162,7 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
           [
             'python/plots/scatter.py',
             filePath,
-            if (title != null) ...[
-              '--title',
-              title,
-              '--output',
-              'test/outputs/plots/$title.png',
-            ]
+            ..._createTitleArgs(title),
           ],
         ),
         header: ['x', 'y', 'c'],
@@ -208,21 +187,43 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
           [
             'python/plots/hist2d.py',
             filePath,
-            '--x_bin',
-            ...xBin.map((e) => e.toString()),
-            '--y_bin',
-            ...yBin.map((e) => e.toString()),
-            if (title != null) ...[
-              '--title',
-              title,
-              '--output',
-              'test/outputs/plots/$title.png',
-            ]
+            ..._createTitleArgs(title),
+            ..._createBinArgs(_Axis.x, xBin),
+            ..._createBinArgs(_Axis.y, yBin),
           ],
         ),
         header: ['x', 'y', 'c'],
       );
 }
+
+enum _Axis { x, y }
+
+_Args _createTitleArgs(String? title) => [
+      if (title != null) ...[
+        '--title',
+        title,
+        '--output',
+        'test/outputs/plots/$title.png',
+      ],
+    ];
+
+_Args _createLimitArgs(_Axis limitAxis, num? min, num? max) => [
+      if (min != null) ...[
+        '--${limitAxis.name}_min',
+        min.toString(),
+      ],
+      if (max != null) ...[
+        '--${limitAxis.name}_max',
+        max.toString(),
+      ],
+    ];
+
+_Args _createBinArgs(_Axis axis, Bin? bin) => [
+      if (bin != null) ...[
+        '--${axis.name}_bin',
+        ...bin.map((e) => e.toString()),
+      ],
+    ];
 
 void _debugPrintIfNotEmpty(dynamic output) {
   if (output is String && output.isNotEmpty) {
