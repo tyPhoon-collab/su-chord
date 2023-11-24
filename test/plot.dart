@@ -74,7 +74,9 @@ void main() {
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
         await writer(
-            average(cc(data.cutEvaluationAudioByIndex(10))).first.l2normalized);
+          average(cc(data.cutEvaluationAudioByIndex(10))).first.l2normalized,
+          title: '12-Dadd9',
+        );
       });
 
       test('spot compare', () async {

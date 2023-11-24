@@ -5,6 +5,7 @@ import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/score.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,7 +49,35 @@ void main() {
     logTest(score);
   });
 
-  test('compare', () async {
+  test('compare score', () async {
+    final f = factory4096_0;
+
+    final chords = [
+      Chord.parse('Asus4'),
+      Chord.parse('Dadd9'),
+    ];
+
+    final data = await const SimpleAudioLoader(
+            path:
+                'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
+        .load(sampleRate: 22050);
+
+    final pcp = average(f.guitar
+            .reassignment(scalar: MagnitudeScalar.ln)
+            .call(data.cutEvaluationAudioByIndex(10)))
+        .first;
+
+    for (final chord in chords) {
+      final template =
+          HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
+
+      final score = const ScoreCalculator.cosine().call(pcp, template);
+
+      logTest('$chord: $score');
+    }
+  });
+
+  test('compare chroma calc', () async {
     final f = factory4096_0;
     final chord = Chord.parse('C');
 
@@ -64,7 +93,6 @@ void main() {
 
     for (final value in cc) {
       final pcp = average(value(await DataSet().C)).first;
-
       final score = const ScoreCalculator.cosine().call(pcp, template);
 
       logTest(score, title: value.toString());

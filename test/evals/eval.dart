@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/filters/filter.dart';
@@ -12,6 +13,8 @@ import 'package:chord/utils/table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../writer.dart';
+import 'comparator.dart';
 import 'evaluator.dart';
 
 Future<void> main() async {
@@ -210,6 +213,49 @@ Future<void> main() async {
         )
             .evaluate(contexts, header: 'harmonics scaled')
             .toCSV('test/outputs/harmonics_scalar.csv');
+      });
+    });
+
+    group('spot compare', () {
+      final f = factory4096_0;
+
+      final compare = SpotComparator(
+        chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+        writer: const PCPChartWriter(),
+      );
+      test('A 12 10', () async {
+        await compare(
+          source:
+              'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav',
+          index: 10,
+          chords: [
+            Chord.parse('Asus4'),
+            Chord.parse('Dadd9'),
+          ],
+        );
+      });
+
+      test('D 11 1', () async {
+        await compare(
+          source: 'assets/evals/RealStrat/11_RealStrat_Elite.wav',
+          index: 1,
+          chords: [
+            Chord.parse('C'),
+            Chord.parse('Cadd9'),
+          ],
+        );
+      });
+
+      test('A 11 1', () async {
+        await compare(
+          source:
+              'assets/evals/Halion_CleanGuitarVX/11_107_Halion_CleanGuitarVX.wav',
+          index: 1,
+          chords: [
+            Chord.parse('C'),
+            Chord.parse('Cadd9'),
+          ],
+        );
       });
     });
 
