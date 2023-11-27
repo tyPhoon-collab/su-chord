@@ -5,7 +5,6 @@ import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/factory.dart';
-import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
@@ -28,9 +27,10 @@ void main() {
   });
 
   test('cross validation', () async {
-    Table.bypass = false; //交差検証は目で見てもわからないので、からなず書き込む
+    // Table.bypass = true;
+    Evaluator.progressionWriter = null;
 
-    const folderName = 'temp';
+    const folderName = '4 chroma calc 3 estimator';
 
     final f = factory4096_0;
 
@@ -39,12 +39,13 @@ void main() {
 
     final directory = await Directory(folderPath).create(recursive: true);
 
-    logTest('${f.context} $folderPath');
+    logTest('${f.context} $folderPath', title: 'OUTPUT FOLDER PATH');
 
     for (final estimator in [
       for (final chromaCalculable in [
         for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
           f.guitar.reassignment(scalar: scalar),
+          f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
           f.guitar.stftCombFilter(scalar: scalar),
           f.guitar.reassignCombFilter(scalar: scalar),
         ]
@@ -53,6 +54,11 @@ void main() {
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
           // templateScalar: HarmonicsChromaScalar(until: 6),
+        ),
+        PatternMatchingChordEstimator(
+          chromaCalculable: chromaCalculable,
+          chordChangeDetectable: f.hcdf.eval,
+          templateScalar: HarmonicsChromaScalar(until: 6),
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,

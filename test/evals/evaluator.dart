@@ -153,7 +153,7 @@ class Evaluator {
     }
     correctionWriter?.call(
       '${((rate / contexts.length) * 100).toStringAsFixed(3)}%',
-      title: 'correct rate',
+      title: 'CORRECT RATE',
     );
 
     return table;

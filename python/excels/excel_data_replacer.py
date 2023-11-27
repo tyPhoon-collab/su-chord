@@ -21,7 +21,7 @@ START_ROW = 3
 
 
 class ExcelDataReplacer:
-    def __init__(self, paths: list[str], start_row: int = 1, start_column: int = 1) -> None:
+    def __init__(self, paths: list[str], start_row: int, start_column: int) -> None:
         self.paths = paths
         self.start_row = start_row
         self.start_column = start_column
