@@ -51,3 +51,7 @@ app.*.map.json
 
 /test/outputs/plots/
 /test/outputs/cross_validations/
+
+# python
+.python-version
+.venv

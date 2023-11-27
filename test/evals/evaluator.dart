@@ -43,7 +43,7 @@ final class EvaluationAudioDataContext
     final times = timeAnnotation
         .skip(1)
         .map((e) => Time.fromList(
-            e.skip(1).map((e) => double.parse(e.toString())).toList()))
+            e.skip(1).map((e) => double.parse(e.toString()) / 1000).toList()))
         .toList();
 
     final correct = ChordProgression.fromChordRow(
