@@ -86,7 +86,9 @@ class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
 }
 
 ///無音区間があれば、そこをコード区間の区切りとする
+///onPowerは無音でない部分を更に分割する[ChromaChordChangeDetectable]を指定する
 class PowerThresholdChordChangeDetector implements ChromaChordChangeDetectable {
+  //TODO １フレームだけ等の場合は不安定なので、何フレームか続いた場合のみ検知するようにする
   const PowerThresholdChordChangeDetector(
     this.threshold, {
     this.onPower,
@@ -195,7 +197,7 @@ class PreFrameCheckChordChangeDetector implements ChromaChordChangeDetectable {
   @override
   List<Slice> call(List<Chroma> chroma) {
     final slices = <Slice>[];
-    int seek = 0;
+    int? seek;
     int count = 1;
 
     for (; count < chroma.length; count++) {
@@ -203,12 +205,16 @@ class PreFrameCheckChordChangeDetector implements ChromaChordChangeDetectable {
       // debugPrint(score.toStringAsFixed(3));
 
       if (score < threshold) {
-        slices.add(Slice(seek, count));
-        seek = count;
+        if (seek != null) {
+          slices.add(Slice(seek, count));
+          seek = null;
+        }
+      } else {
+        seek ??= count - 1;
       }
     }
 
-    if (seek < count) {
+    if (seek != null && seek < count) {
       slices.add(Slice(seek, count));
     }
 

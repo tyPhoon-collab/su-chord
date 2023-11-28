@@ -56,6 +56,8 @@ final class EstimatorFactoryContext {
 }
 
 ///必要な情報をContextに閉じ込めることによって、DIを簡単にするためのファクトリ
+///また、統一したAPIを提供することで、扱いやすくする
+///同時に破壊的な変更時に、修正が最小限になるようにする
 final class EstimatorFactory {
   EstimatorFactory(this.context);
 
@@ -178,11 +180,11 @@ final class HCDFFactory {
   ///無音検知
   ///類似度
   ChromaChordChangeDetectable realtime({
-    required double threshold,
+    required double powerThreshold,
     double scoreThreshold = 0.9,
   }) =>
       preFrameCheck(
-        threshold: threshold,
+        threshold: powerThreshold,
         scoreCalculator: const ScoreCalculator.cosine(
           ToTonalIntervalVector.musical(),
         ),
@@ -204,7 +206,10 @@ final class HCDFFactory {
         onPower: const FrameChordChangeDetector(),
       );
 
-  ChromaChordChangeDetectable threshold(double threshold) =>
+  ChromaChordChangeDetectable threshold(
+    double threshold, {
+    ChromaChordChangeDetectable? onPower,
+  }) =>
       PowerThresholdChordChangeDetector(threshold);
 
   ChromaChordChangeDetectable preFrameCheck({

@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 
 import '../data_set.dart';
 import '../util.dart';
+import '../writer.dart';
 
 Future<void> main() async {
   final f = factory8192_0;
@@ -151,6 +152,94 @@ Future<void> main() async {
   });
 
   group('pre frame', () {
+    group('consequence', () {
+      test('normal', () {
+        final chromas = [
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+        ];
+
+        const ccd = PreFrameCheckChordChangeDetector(
+          scoreCalculator: ScoreCalculator.cosine(),
+          threshold: 0.5,
+        );
+        final slices = ccd(chromas);
+        logTest(slices);
+        expect(slices, isNotEmpty);
+        expect(slices.length, 1);
+        expect(slices[0], const Slice(0, 4));
+      });
+
+      test('first not include', () {
+        final chromas = [
+          Chroma(const [0, 0, 0, 0]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+        ];
+
+        const ccd = PreFrameCheckChordChangeDetector(
+          scoreCalculator: ScoreCalculator.cosine(),
+          threshold: 0.5,
+        );
+        final slices = ccd(chromas);
+        logTest(slices);
+        expect(slices.length, 1);
+        expect(slices[0], const Slice(1, 5));
+      });
+
+      test('last not include', () {
+        final chromas = [
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [1, 1, 1, 1]),
+          Chroma(const [0, 0, 0, 0]),
+        ];
+
+        const ccd = PreFrameCheckChordChangeDetector(
+          scoreCalculator: ScoreCalculator.cosine(),
+          threshold: 0.5,
+        );
+        final slices = ccd(chromas);
+        logTest(slices);
+        expect(slices.length, 1);
+        expect(slices[0], const Slice(0, 4));
+      });
+    });
+
+    test('unstable', () {
+      //不安定な部分は切り捨てる
+      final chromas = [
+        Chroma(const [0, 0, 0, 0]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [0, 0, 0, 0]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [0, 0, 0, 0]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [0, 0, 0, 0]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [1, 1, 1, 1]),
+        Chroma(const [1, 1, 1, 1]),
+      ];
+
+      const ccd = PreFrameCheckChordChangeDetector(
+        scoreCalculator: ScoreCalculator.cosine(),
+        threshold: 0.5,
+      );
+      final slices = ccd(chromas);
+      logTest(slices);
+      expect(slices.length, 2);
+      expect(slices[0], const Slice(1, 5));
+      expect(slices[1], const Slice(10, 13));
+    });
+
     group('cosine similarity', () {
       test('0.8', () async {
         final estimator = PatternMatchingChordEstimator(
@@ -254,7 +343,7 @@ Future<void> main() async {
     const bufferChunkSize = 4096;
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      chordChangeDetectable: f.hcdf.realtime(threshold: 20),
+      chordChangeDetectable: f.hcdf.realtime(powerThreshold: 20),
       templateScalar: HarmonicsChromaScalar(until: 6),
     );
     final data = await DataSet().sample;

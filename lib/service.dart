@@ -75,7 +75,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
     'matching + reassign ln + template scaled': () async =>
         PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(),
-          chordChangeDetectable: f.hcdf.realtime(threshold: 40),
+          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 40),
           filters: [
             GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
           ],
@@ -84,18 +84,18 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
         ),
     'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.realtime(threshold: 10),
+          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 10),
           templates: detectableChords,
         ),
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.realtime(threshold: 3),
+          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 3),
           templates: detectableChords,
         ),
     'search + comb + ln': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.realtime(threshold: 3),
+          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 3),
           noteExtractable: f.extractor.threshold(
             scalar: MagnitudeScalar.ln,
           ),
