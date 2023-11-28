@@ -43,15 +43,23 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-/assets/evals
-~$*.xlsx
-/test/outputs/tmp.xlsx
 
+# evaluation audio files. These will be BIG size
+/assets/evals
+
+# ignore vscode env
 .vscode
 
+# ignore test outputs
+/test/outputs/tmp.xlsx
 /test/outputs/plots/
 /test/outputs/cross_validations/
+
+~$*.xlsx
 
 # python
 .python-version
 .venv
+
+# temporary ignoring
+assets/csv/osawa/

@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 typedef LogTest = void Function(Object e, {String? title});
-typedef _Args = List<String>;
 
 //develop.logはtestモードでは機能しない
 //logのような機能をdebugPrintで代用した関数
@@ -15,12 +14,16 @@ void logTest(Object e, {String? title}) {
   debugPrint('[${title ?? 'log'}] $e');
 }
 
+///仮想環境を使わない場合は、通常のpythonコマンドを用いる
+// const _python = 'python3';
+const _python = '.venv/bin/python';
+
 class BarChartWriter {
   const BarChartWriter();
 
   Future<void> call(Iterable<num> data, {String? title}) async {
     final result = await Process.run(
-      'python3',
+      _python,
       [
         'python/plots/bar.py',
         ...data.map((e) => e.toString()),
@@ -36,7 +39,7 @@ class PCPChartWriter {
 
   Future<void> call(Iterable<num> data, {String? title}) async {
     final result = await Process.run(
-      'python3',
+      _python,
       [
         'python/plots/bar.py',
         ...data.map((e) => e.toString()),
@@ -90,7 +93,7 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
           y.map((e) => e.toString()).toList(),
         ],
         (filePath) => Process.run(
-          'python3',
+          _python,
           [
             'python/plots/line.py',
             filePath,
@@ -131,7 +134,7 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
       runWithTempCSVFile(
         data.map((e) => e.map((e) => e.toString()).toList()).toList(),
         (filePath) => Process.run(
-          'python3',
+          _python,
           [
             'python/plots/spec.py',
             filePath,
@@ -158,7 +161,7 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
             .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
             .toList(),
         (filePath) => Process.run(
-          'python3',
+          _python,
           [
             'python/plots/scatter.py',
             filePath,
@@ -183,7 +186,7 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
             .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
             .toList(),
         (filePath) => Process.run(
-          'python3',
+          _python,
           [
             'python/plots/hist2d.py',
             filePath,
@@ -195,6 +198,8 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
         header: ['x', 'y', 'c'],
       );
 }
+
+typedef _Args = List<String>;
 
 enum _Axis { x, y }
 

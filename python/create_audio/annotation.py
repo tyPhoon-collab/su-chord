@@ -3,12 +3,26 @@ from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
 
-def create_time_annotation_csv(durations: list[tuple[int, int]], output_path: str) -> None:
+def __get_sound_name(index: int) -> str:
+    return str(index + 1)
+
+
+def create_time_annotation_csv_from_durations(durations: list[int], output_path: str) -> None:
+    slices = []
+    seek = 0
+    for duration in durations:
+        slices.append((seek, duration + seek))
+        seek += duration
+
+    create_time_annotation_csv_from_slices(slices, output_path)
+
+
+def create_time_annotation_csv_from_slices(slices: list[tuple[int, int]], output_path: str) -> None:
     df = pd.DataFrame(
-        [[i + 1, *duration] for i, duration in enumerate(durations)],
+        [[__get_sound_name(i), *slice] for i, slice in enumerate(slices)],
         columns=["count", "start", "end"],
     )
-    df.to_csv(output_path, index=False, encoding="utf-8")
+    df.to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":
@@ -31,7 +45,7 @@ if __name__ == "__main__":
 
     assert len(ranges) == 20
 
-    create_time_annotation_csv(
+    create_time_annotation_csv_from_slices(
         ranges,
         output_path="assets/csv/correct_time_annotation_HojoGuitar.csv",
     )

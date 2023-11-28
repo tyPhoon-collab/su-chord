@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
@@ -29,8 +28,15 @@ void main() {
 
     // 使用する音源はフォルダごとに管理されている
     contexts = [
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //     'assets/evals/Halion_CleanGuitarVX'),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //     'assets/evals/Halion_CleanStratGuitar'),
+      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/HojoGuitar'),
+      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/RealStrat'),
+
       ...await EvaluationAudioDataContext.fromFolder(
-          'assets/evals/Halion_CleanGuitarVX'),
+          'assets/evals/Halion_CleanGuitarVX_nonsilent'),
       // ...await EvaluationAudioDataContext.fromFolder(
       //     'assets/evals/Halion_CleanStratGuitar'),
       // ...await EvaluationAudioDataContext.fromFolder('assets/evals/HojoGuitar'),
@@ -44,8 +50,7 @@ void main() {
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       templateScalar: HarmonicsChromaScalar(until: 6),
       filters: [
-        // const ThresholdFilter(31), //Deal as consecutive
-        GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+        // GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
       ],
     );
     const threshold = 30.0;
@@ -66,45 +71,47 @@ void main() {
           .toCSV('test/outputs/threshold.csv');
     });
 
-    test('HCDF cosine similarity', () {
-      HCDFEvaluator(
-        estimator: base.copyWith(
-          chordChangeDetectable:
-              f.hcdf.preFrameCheck(threshold: threshold, scoreThreshold: .9),
-        ),
-      )
-          .evaluate(contexts, header: 'pre frame cosine')
-          .toCSV('test/outputs/pre_frame_cosine');
-    });
-
-    test('HCDF tonal', () {
-      HCDFEvaluator(
-        estimator: base.copyWith(
-          chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: threshold,
-            scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
-            scoreThreshold: .8,
+    group('pre frame', () {
+      test('HCDF cosine similarity', () {
+        HCDFEvaluator(
+          estimator: base.copyWith(
+            chordChangeDetectable:
+                f.hcdf.preFrameCheck(threshold: threshold, scoreThreshold: .9),
           ),
-        ),
-      )
-          .evaluate(contexts, header: 'pre frame tonal cosine')
-          .toCSV('test/outputs/pre_frame_tonal_cosine');
-    });
+        )
+            .evaluate(contexts, header: 'pre frame cosine')
+            .toCSV('test/outputs/pre_frame_cosine.csv');
+      });
 
-    test('HCDF TIV', () {
-      HCDFEvaluator(
-        estimator: base.copyWith(
-          chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: threshold,
-            scoreCalculator: const ScoreCalculator.cosine(
-              ToTonalIntervalVector.musical(),
+      test('HCDF tonal', () {
+        HCDFEvaluator(
+          estimator: base.copyWith(
+            chordChangeDetectable: f.hcdf.preFrameCheck(
+              threshold: threshold,
+              scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
+              scoreThreshold: .8,
             ),
-            scoreThreshold: .8,
           ),
-        ),
-      )
-          .evaluate(contexts, header: 'pre frame TIV cosine')
-          .toCSV('test/outputs/pre_frame_tiv_cosine');
+        )
+            .evaluate(contexts, header: 'pre frame tonal cosine')
+            .toCSV('test/outputs/pre_frame_tonal_cosine.csv');
+      });
+
+      test('HCDF TIV', () {
+        HCDFEvaluator(
+          estimator: base.copyWith(
+            chordChangeDetectable: f.hcdf.preFrameCheck(
+              threshold: threshold,
+              scoreCalculator: const ScoreCalculator.cosine(
+                ToTonalIntervalVector.musical(),
+              ),
+              scoreThreshold: .8,
+            ),
+          ),
+        )
+            .evaluate(contexts, header: 'pre frame TIV cosine')
+            .toCSV('test/outputs/pre_frame_tiv_cosine.csv');
+      });
     });
   });
 }

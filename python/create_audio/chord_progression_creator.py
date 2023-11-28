@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from annotation import create_time_annotation_csv_from_durations
 from path_gettable import (
     ChordAudioSourcePathGettable,
     TanakaMLabChordAudioSourcePathGetter,
@@ -38,6 +39,12 @@ class ChordProgressionAudioCreator:
         assert len(chords) == len(durations)
         return sum([self.chord_creator(chord)[:duration] for chord, duration in zip(chords, durations)])
 
+    def save(self, chords: list[Chord], durations: list[int], audio_path: str, annotation_path: str) -> None:
+        assert audio_path.endswith(".wav") and annotation_path.endswith(".csv")
+        sound = self(chords, durations)
+        sound.export(audio_path, format="wav")
+        create_time_annotation_csv_from_durations(durations, annotation_path)
+
 
 def __print_detail(sound: AudioSegment) -> None:
     print(sound)
@@ -58,7 +65,7 @@ if __name__ == "__main__":
 
     progression_creator = ChordProgressionAudioCreator(chord_creator=chord_creator)
 
-    sound = progression_creator(
+    progression_creator.save(
         chords=[
             Chord("A", "minor"),
             Chord("F", "major"),
@@ -67,9 +74,26 @@ if __name__ == "__main__":
         ],
         durations=[
             1000,
-            1500,
+            1600,
             1000,
-            2400,
+            2600,
         ],
+        audio_path="assets/evals/osawa/Am-F-G-CM7.wav",
+        annotation_path="assets/csv/osawa/Am-F-G-CM7.csv",
     )
-    play(sound)
+
+    # sound = progression_creator(
+    #     chords=[
+    #         Chord("A", "minor"),
+    #         Chord("F", "major"),
+    #         Chord("G", "seventh"),
+    #         Chord("C", "major_seventh"),
+    #     ],
+    #     durations=[
+    #         1000,
+    #         1600,
+    #         1000,
+    #         2600,
+    #     ],
+    # )
+    # play(sound)

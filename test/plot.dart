@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
@@ -67,8 +65,8 @@ void main() {
       test('spotting', () async {
         final f = factory4096_0;
         final data = await const SimpleAudioLoader(
-                path:
-                    'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
+            path:
+            'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
             .load(sampleRate: 22050);
 
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
@@ -82,8 +80,8 @@ void main() {
       test('spot compare', () async {
         final factories = [factory8192_0, factory4096_0];
         final data = await const SimpleAudioLoader(
-                path:
-                    'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
+            path:
+            'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
             .load(
           sampleRate: 22050,
           duration: 4.1,
@@ -126,7 +124,9 @@ void main() {
               final chord = Chord.parse('C');
 
               await writer(
-                HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
+                HarmonicsChromaScalar()
+                    .call(chord.unitPCP)
+                    .l2normalized,
                 title: '4 harmonics scaled template of $chord',
               );
             });
@@ -243,7 +243,8 @@ void main() {
       ];
 
       await Future.wait(
-        estimators.map((e) async => writer(
+        estimators.map((e) async =>
+            writer(
               e.call(await DataSet().G_Em_Bm_C),
               title: 'chromagram $e ${f.context}',
             )),
@@ -281,7 +282,7 @@ void main() {
           f.guitar
               .reassignment(scalar: MagnitudeScalar.ln)
               .call(await DataSet().G_Em_Bm_C),
-          (value, filter) => filter(value),
+              (value, filter) => filter(value),
         );
         await writer(chromas, title: 'chromagram multi');
       });
@@ -294,20 +295,14 @@ void main() {
     group('HCDF', () {
       final f = factory4096_0;
 
-      List<Chroma> cc(AudioData data) {
-        final chroma = f.guitar.reassignCombFilter().call(data);
-        return average(chroma, f.hcdf.frame(log(10)).call(chroma));
-      }
-
-      (List<double> time, List<double> score) getScore(
-        List<Chroma> chroma,
-        ScoreCalculator scoreCalculator, {
-        double? nanTo,
-        double Function(double)? mapper,
-      }) {
+      (List<double> time, List<double> score) getScore(List<Chroma> chroma,
+          ScoreCalculator scoreCalculator, {
+            double? nanTo,
+            double Function(double)? mapper,
+          }) {
         Iterable<double> scores = List.generate(
           chroma.length - 1,
-          (i) => scoreCalculator(chroma[i + 1], chroma[i]),
+              (i) => scoreCalculator(chroma[i + 1], chroma[i]),
         );
 
         if (nanTo != null) {
@@ -318,46 +313,50 @@ void main() {
         }
 
         final times =
-            List.generate(chroma.length - 1, (i) => f.context.dt * (i + 1));
+        List.generate(chroma.length - 1, (i) => f.context.dt * (i + 1));
 
         return (times, scores.toList());
       }
 
-      test('cosine similarity', () async {
-        final chroma = cc(await DataSet().sample);
-        const scoreCalculator = ScoreCalculator.cosine();
-        final score = getScore(
-          chroma,
-          scoreCalculator,
-          mapper: (e) => e == 0 ? 1 : e,
-        );
+      group('sample silent', () {
+        final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
-        await writer(score.$1, score.$2, title: 'cosine similarity HCDF');
-      });
+        test('cosine similarity', () async {
+          final chroma = cc(await DataSet().sampleSilent);
+          const scoreCalculator = ScoreCalculator.cosine();
+          final score = getScore(
+            chroma,
+            scoreCalculator,
+            mapper: (e) => e == 0 ? 1 : e,
+          );
 
-      test('tonal centroid', () async {
-        final chroma = cc(await DataSet().sample);
-        const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
-        final score = getScore(
-          chroma,
-          scoreCalculator,
-          nanTo: 1,
-        );
+          await writer(score.$1, score.$2, title: 'HCDF cosine similarity');
+        });
 
-        await writer(score.$1, score.$2, title: 'tonal centroid HCDF');
-      });
-      test('tonal interval vector', () async {
-        final chroma = cc(await DataSet().sample);
-        const scoreCalculator =
-            ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+        test('tonal centroid', () async {
+          final chroma = cc(await DataSet().sampleSilent);
+          const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
+          final score = getScore(
+            chroma,
+            scoreCalculator,
+            nanTo: 1,
+          );
 
-        final score = getScore(
-          chroma,
-          scoreCalculator,
-          nanTo: 1,
-        );
+          await writer(score.$1, score.$2, title: 'HCDF tonal centroid');
+        });
+        test('tonal interval vector', () async {
+          final chroma = cc(await DataSet().sampleSilent);
+          const scoreCalculator =
+          ScoreCalculator.cosine(ToTonalIntervalVector.musical());
 
-        await writer(score.$1, score.$2, title: 'tonal interval vector HCDF');
+          final score = getScore(
+            chroma,
+            scoreCalculator,
+            nanTo: 1,
+          );
+
+          await writer(score.$1, score.$2, title: 'HCDF tonal interval vector');
+        });
       });
     });
     group('LTAS', () {
@@ -372,7 +371,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-            (index) => calc.frequency(index, f.context.sampleRate),
+                (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS A',
@@ -388,7 +387,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-            (index) => calc.frequency(index, f.context.sampleRate),
+                (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS B',
@@ -404,7 +403,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-            (index) => calc.frequency(index, f.context.sampleRate),
+                (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS C',
@@ -420,7 +419,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-            (index) => calc.frequency(index, f.context.sampleRate),
+                (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS D',

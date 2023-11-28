@@ -15,11 +15,13 @@ class DataSet {
 
   late final osawa = OsawaDataSet(_loader);
 
-  Future<AudioData> get sample =>
-      _loader.load(
+  Future<AudioData> get sample => _loader.load(
         'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav',
         duration: 81,
       );
+
+  Future<AudioData> get sampleSilent =>
+      _loader.load('assets/evals/Halion_CleanGuitarVX_nonsilent/1_青春の影.wav');
 
   Future<AudioData> get nutcracker =>
       _loader.load('assets/evals/nutcracker.wav');
@@ -43,7 +45,7 @@ class DataSet {
 
       final data = context.fold(
         AudioData.empty(sampleRate: _loader.sampleRate),
-            (value, element) => value.concat(element.data),
+        (value, element) => value.concat(element.data),
       );
 
       return data;
@@ -60,7 +62,8 @@ class CacheableAudioLoader with Cacheable<AudioData> {
 
   final int sampleRate;
 
-  Future<AudioData> load(String path, {
+  Future<AudioData> load(
+    String path, {
     double? duration,
     double? offset,
     Future<AudioData> Function()? buildCachingData,

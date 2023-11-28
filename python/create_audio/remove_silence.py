@@ -1,7 +1,7 @@
 import glob
 import os
 
-from annotation import create_time_annotation_csv
+from annotation import create_time_annotation_csv_from_slices
 from pydub import AudioSegment
 
 # from pydub.playback import play
@@ -17,13 +17,13 @@ DIR_PATHS = [
 
 def __create_nonsilent_audio(file_path: str) -> tuple[AudioSegment, list[tuple[int, int]]]:
     sound = AudioSegment.from_file(file_path)
-    durations = detect_nonsilent(sound, min_silence_len=100, silence_thresh=-40)
-    nonsilent_sound = sum([sound[range[0] : range[1]] for range in durations])
+    slices = detect_nonsilent(sound, min_silence_len=100, silence_thresh=-40)
+    nonsilent_sound = sum([sound[slice[0] : slice[1]] for slice in slices])
 
     nonsilent_durations = []
     seek = 0
-    for duration in durations:
-        nonsilent_duration = (seek, seek + duration[1] - duration[0])
+    for slice in slices:
+        nonsilent_duration = (seek, seek + slice[1] - slice[0])
         seek = nonsilent_duration[1] + 1
         nonsilent_durations.append(nonsilent_duration)
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
             # 一旦代表で一つだけアノテーションを採用する
             if file_name.startswith("1"):
-                create_time_annotation_csv(
+                create_time_annotation_csv_from_slices(
                     durations,
                     output_path=f"assets/csv/correct_time_annotation_{source_name}_nonsilent.csv",
                 )
