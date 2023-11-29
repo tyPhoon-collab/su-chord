@@ -1,9 +1,11 @@
-import glob
 import os
 
-import natsort
-from annotation import create_time_annotation_csv_from_slices, get_labels_from_conv
-from path import DIR_PATHS
+from annotation import (
+    create_time_annotation_csv_from_slices,
+    get_chord_labels_from_conv,
+    map_milliseconds_to_seconds,
+)
+from path import DIR_PATHS, get_file_name, get_sorted_audio_paths, get_source_name
 from pydub import AudioSegment
 
 # from pydub.playback import play
@@ -30,14 +32,11 @@ if __name__ == "__main__":
     無音部分を削除した音声を作成する
     """
     for dir_path in DIR_PATHS:
-        files = glob.glob(f"{dir_path}/*.wav")
-        sorted_files = natsort.natsorted(files)
+        for index, path in enumerate(get_sorted_audio_paths(dir_path)):
+            sound, slices = __create_nonsilent_audio(path)
 
-        for index, file in enumerate(sorted_files):
-            sound, slices = __create_nonsilent_audio(file)
-
-            sound_source_name = dir_path.split("/")[-1] + "_nonsilent"
-            file_name = file.split("/")[-1][:-4]
+            sound_source_name = get_source_name(path) + "_nonsilent"
+            file_name = get_file_name(path)
 
             output_dir_path = os.path.join(
                 "assets",
@@ -57,9 +56,9 @@ if __name__ == "__main__":
             os.makedirs(annotation_output_dir_path, exist_ok=True)
 
             create_time_annotation_csv_from_slices(
-                get_labels_from_conv(index),
-                slices,
+                get_chord_labels_from_conv(index),
+                map_milliseconds_to_seconds(slices),
                 output_path=os.path.join(annotation_output_dir_path, f"{file_name}.csv"),
             )
 
-            print("done: " + file)
+            print("done: " + path)
