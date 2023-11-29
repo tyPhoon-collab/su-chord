@@ -1,19 +1,17 @@
 from dataclasses import dataclass
 from typing import Literal
 
-__Note = Literal["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
 
 @dataclass
 class Chord:
-    root: __Note
+    root: Literal["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     type: str
 
     def __str__(self) -> str:
         return self.root + self.__get_type_name()
 
     def __get_type_name(self) -> str:
-        match (self.type):
+        match self.type:
             case "major":
                 return ""
             case "major_seventh":

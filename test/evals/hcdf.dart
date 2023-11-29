@@ -118,7 +118,7 @@ void main() {
 
     group('visualize', () {
       Table.bypass = false;
-      const index = 1;
+      const index = 0;
 
       test('v fold', () async {
         await HCDFVisualizer(estimator: estimable('frame')).visualize(

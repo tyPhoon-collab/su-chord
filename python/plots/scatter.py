@@ -3,6 +3,8 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from args import output
+
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str, help="Path to the CSV file")
 parser.add_argument("--title", type=str, help="Title for the plot")
@@ -20,10 +22,4 @@ c_data = df["c"].to_numpy()
 
 plt.scatter(x_data, y_data, c=c_data)
 
-if args.title:
-    plt.title(args.title)
-
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

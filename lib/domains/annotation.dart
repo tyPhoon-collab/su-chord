@@ -38,8 +38,6 @@ class SequenceAnnotation<T extends num> {
 final class Time extends SequenceAnnotation<double> {
   const Time(super.start, super.end) : assert(start <= end);
 
-  factory Time.fromList(List<double> row) => Time(row[0], row[1]);
-
   factory Time.infinity(double start) => Time(start, double.infinity);
 
   factory Time.negativeInfinity(double end) =>

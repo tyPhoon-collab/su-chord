@@ -2,6 +2,8 @@ import argparse
 
 import matplotlib.pyplot as plt
 
+from args import set_y_limit, output
+
 X_LABELS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 
@@ -22,19 +24,8 @@ parser.add_argument("--y_max", type=float, help="Maximum value for the Y-axis")
 parser.add_argument("--pcp", action="store_true", help="Use chromatic scale labels")
 args = parser.parse_args()
 
-if args.title:
-    plt.title(args.title)
-
 plt.bar(__get_x_labels(args.pcp), args.values)
 
-if args.y_min is not None and args.y_max is not None:
-    plt.ylim(args.y_min, args.y_max)
-elif args.y_min is not None:
-    plt.ylim(bottom=args.y_min)
-elif args.y_max is not None:
-    plt.ylim(top=args.y_max)
+set_y_limit(args)
 
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

@@ -3,6 +3,8 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from args import set_x_limit, set_y_limit, output
+
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str, help="Path to the CSV file")
 parser.add_argument("--title", type=str, help="Title for the graph")
@@ -22,25 +24,8 @@ plt.plot(data[0], data[1], marker=None)
 
 # plt.xscale("log")
 
-if args.x_min is not None and args.x_max is not None:
-    plt.xlim(args.x_min, args.x_max)
-elif args.x_min is not None:
-    plt.xlim(left=args.x_min)
-elif args.x_max is not None:
-    plt.xlim(right=args.x_max)
+set_x_limit(args)
 
-if args.y_min is not None and args.y_max is not None:
-    plt.ylim(args.y_min, args.y_max)
-elif args.y_min is not None:
-    plt.ylim(bottom=args.y_min)
-elif args.y_max is not None:
-    plt.ylim(top=args.y_max)
+set_y_limit(args)
 
-
-if args.title:
-    plt.title(args.title)
-
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

@@ -6,11 +6,13 @@ import pandas as pd
 from matplotlib.collections import BrokenBarHCollection
 from matplotlib.colors import Colormap
 
+from args import output
+
 BAR_HEIGHT = 4
 
 
-def __str_to_color(str: str, cmap: Colormap | None = None) -> tuple[float, float, float, float]:
-    hashed = hashlib.sha256(str.encode()).hexdigest()
+def __str_to_color(string: str, cmap: Colormap | None = None) -> tuple[float, float, float, float]:
+    hashed = hashlib.sha256(string.encode()).hexdigest()
     cm = cmap or plt.get_cmap("coolwarm")
 
     level = int(hashed, 16) % 256  # 0から255の範囲の数値を0から1の範囲に変換
@@ -62,12 +64,6 @@ plt.yticks(
     labels=["predict", "correct"],
 )
 
-if args.title:
-    plt.title(args.title)
-
 plt.subplots_adjust(left=0.05, right=0.95)
 
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

@@ -23,7 +23,7 @@ class TanakaMLabChordAudioSourcePathGetter(ChordAudioSourcePathGettable):
 
     @classmethod
     def __parse_chord_type(cls, chord_type: str) -> str:
-        match (chord_type):
+        match chord_type:
             case "major":
                 return "Major"
             case "major_seventh":

@@ -1,9 +1,10 @@
 import argparse
 
-import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import pandas as pd
+
+from args import set_y_limit, output
 
 parser = argparse.ArgumentParser(description="Generate and display a spectrogram from a 2D array data file")
 parser.add_argument("data_file", type=str, help="Path to the input data file (CSV format)")
@@ -29,20 +30,9 @@ librosa.display.specshow(
     cmap="magma",
 )
 
-if args.title:
-    plt.title(args.title)
-
 if args.y_axis == "log":
     plt.ylabel("Frequency")
 
-if args.y_min is not None and args.y_max is not None:
-    plt.ylim(args.y_min, args.y_max)
-elif args.y_min is not None:
-    plt.ylim(bottom=args.y_min)
-elif args.y_max is not None:
-    plt.ylim(top=args.y_max)
+set_y_limit(args)
 
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

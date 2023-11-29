@@ -3,6 +3,8 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from args import output
+
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str, help="Path to the CSV file")
 parser.add_argument("--x_bin", type=float, nargs="+", help="X bin list")
@@ -24,10 +26,4 @@ plt.hist2d(x_data, y_data, bins=[args.x_bin, args.y_bin], weights=c_data, cmap="
 
 plt.yscale("log")
 
-if args.title:
-    plt.title(args.title)
-
-if args.output:
-    plt.savefig(args.output)
-else:
-    plt.show()
+output(args)

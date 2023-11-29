@@ -10,6 +10,7 @@ import csv
 import glob
 import itertools
 import os
+from dataclasses import dataclass
 
 import natsort
 from openpyxl import Workbook, load_workbook
@@ -20,11 +21,11 @@ START_COLUMN = 2
 START_ROW = 3
 
 
+@dataclass
 class ExcelDataReplacer:
-    def __init__(self, paths: list[str], start_row: int, start_column: int) -> None:
-        self.paths = paths
-        self.start_row = start_row
-        self.start_column = start_column
+    paths: list[str]
+    start_row: int
+    start_column: int
 
     @staticmethod
     def _read_csv(path: str) -> list[list[str]]:

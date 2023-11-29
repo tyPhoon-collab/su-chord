@@ -42,12 +42,13 @@ final class EvaluationAudioDataContext
     final data = await audioLoader.load(audioPath);
     final annotation = await csvLoader.load(annotationPath);
 
-    final corrects = annotation.skip(1).map((e) => e[0].toString()).toList();
-    final times = annotation
-        .skip(1)
-        .map((e) => Time.fromList(
-            e.skip(1).map((e) => double.parse(e.toString())).toList()))
-        .toList();
+    final corrects = <String>[];
+    final times = <Time>[];
+
+    for (final value in annotation.skip(1)) {
+      corrects.add(value[0]);
+      times.add(Time(value[1], value[2]));
+    }
 
     final correct = ChordProgression.fromChordRow(corrects, times: times);
 

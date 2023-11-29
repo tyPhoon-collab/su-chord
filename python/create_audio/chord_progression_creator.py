@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from pydub import AudioSegment
+
 from path_gettable import (
     ChordAudioSourcePathGettable,
     TanakaMLabChordAudioSourcePathGetter,
@@ -8,12 +10,9 @@ from process import (  # TanakaMLabLastOneChordAudioSegmentPreprocessor,
     ChordAudioSegmentPreprocess,
     TanakaMLabChordAudioSegmentPreprocessor,
 )
-from pydub import AudioSegment
-
+from python.create_audio.annotation import create_time_annotation_csv_from_durations
 # from pydub.playback import play
 from type import Chord
-
-from python.create_audio.annotation import create_time_annotation_csv_from_durations
 
 DEFAULT_INPUT_DIR_PATH = "assets/evals/guitar_dataset"
 
@@ -34,7 +33,7 @@ class ChordProgressionAudioCreator:
 
     def __call__(self, chords: list[Chord], durations: list[int]) -> AudioSegment:
         """
-        durations is list of milliseconds
+        durations are list of milliseconds
         """
         assert len(chords) == len(durations)
         return sum([self.chord_creator(chord)[:duration] for chord, duration in zip(chords, durations)])
