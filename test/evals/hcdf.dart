@@ -35,12 +35,12 @@ void main() {
 
       ...await EvaluationAudioDataContext.fromFolder(
           'assets/evals/Halion_CleanGuitarVX_nonsilent'),
-      ...await EvaluationAudioDataContext.fromFolder(
-          'assets/evals/Halion_CleanStratGuitar_nonsilent'),
-      ...await EvaluationAudioDataContext.fromFolder(
-          'assets/evals/HojoGuitar_nonsilent'),
-      ...await EvaluationAudioDataContext.fromFolder(
-          'assets/evals/RealStrat_nonsilent'),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //     'assets/evals/Halion_CleanStratGuitar_nonsilent'),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //     'assets/evals/HojoGuitar_nonsilent'),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //     'assets/evals/RealStrat_nonsilent'),
     ];
   });
 
@@ -118,34 +118,41 @@ void main() {
 
     group('visualize', () {
       Table.bypass = false;
+      const index = 1;
 
       test('v fold', () async {
         await HCDFVisualizer(estimator: estimable('frame')).visualize(
-          contexts[1],
+          contexts[index],
           title: 'frame',
         );
       });
 
       test('v threshold', () async {
-        await HCDFVisualizer(estimator: estimable('threshold'))
-            .visualize(contexts.first);
+        await HCDFVisualizer(estimator: estimable('threshold')).visualize(
+          contexts[index],
+          title: 'threshold',
+        );
       });
 
       test('v cosine', () async {
         await HCDFVisualizer(estimator: estimable('cosine')).visualize(
-          contexts[1],
+          contexts[index],
           title: 'cosine',
         );
       });
 
       test('v tonal', () async {
-        await HCDFVisualizer(estimator: estimable('tonal'))
-            .visualize(contexts.first);
+        await HCDFVisualizer(estimator: estimable('tonal')).visualize(
+          contexts[index],
+          title: 'tonal',
+        );
       });
 
       test('v tiv', () async {
-        await HCDFVisualizer(estimator: estimable('tiv'))
-            .visualize(contexts.first);
+        await HCDFVisualizer(estimator: estimable('tiv')).visualize(
+          contexts[index],
+          title: 'tiv',
+        );
       });
     });
   });

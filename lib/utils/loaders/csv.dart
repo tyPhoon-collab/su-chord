@@ -30,6 +30,8 @@ final class SimpleCSVLoader implements CSVLoader {
   final String path;
   final Converter<List<int>, String>? converter;
 
+  // final String eol;
+
   Converter<List<int>, String> get _converter => converter ?? utf8.decoder;
 
   @override
@@ -37,7 +39,7 @@ final class SimpleCSVLoader implements CSVLoader {
     final input = File(path).openRead();
     final csv = await input
         .transform(_converter)
-        .transform(const CsvToListConverter())
+        .transform(const CsvToListConverter(eol: '\n'))
         .toList();
 
     return csv;

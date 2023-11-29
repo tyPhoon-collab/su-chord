@@ -31,25 +31,25 @@ final class EvaluationAudioDataContext
   static Future<EvaluationAudioDataContext> fromFile(String audioPath) async {
     final parts = audioPath.split(Platform.pathSeparator); //パスを分解
     final soundSourceName = parts[parts.length - 2]; //フォルダに音源名があると仮定する
-    final musicName = parts.last.split('_').first; //現状ではただの数字
-    final timeAnnotationPath =
-        'assets/csv/correct_time_annotation_$soundSourceName.csv';
+    final fileName = parts.last.substring(0, parts.last.indexOf('.'));
+    final musicName = fileName.split('_').first; //現状ではただの数字
+
+    //音声ファイルと全く同じファイル名のアノテーションファイルがassets/csvにあるとする
+    final annotationPath = 'assets/csv/$soundSourceName/$fileName.csv';
+
     final key = int.parse(musicName);
 
-    final data = await audioLoader.load(audioPath, duration: 81);
+    final data = await audioLoader.load(audioPath);
+    final annotation = await csvLoader.load(annotationPath);
 
-    final corrects = await csvLoader.load('assets/csv/correct_only_sharp.csv');
-    final timeAnnotation = await csvLoader.load(timeAnnotationPath);
-    final times = timeAnnotation
+    final corrects = annotation.skip(1).map((e) => e[0].toString()).toList();
+    final times = annotation
         .skip(1)
         .map((e) => Time.fromList(
             e.skip(1).map((e) => double.parse(e.toString()) / 1000).toList()))
         .toList();
 
-    final correct = ChordProgression.fromChordRow(
-      corrects[key].skip(1).map((e) => e.toString()).toList(),
-      times: times,
-    );
+    final correct = ChordProgression.fromChordRow(corrects, times: times);
 
     return EvaluationAudioDataContext(
       key: key,

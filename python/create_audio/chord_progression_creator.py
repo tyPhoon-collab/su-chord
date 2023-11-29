@@ -1,21 +1,21 @@
 from dataclasses import dataclass
 
-from annotation import create_time_annotation_csv_from_durations
 from path_gettable import (
     ChordAudioSourcePathGettable,
     TanakaMLabChordAudioSourcePathGetter,
 )
-from process import (
+from process import (  # TanakaMLabLastOneChordAudioSegmentPreprocessor,
     ChordAudioSegmentPreprocess,
     TanakaMLabChordAudioSegmentPreprocessor,
-    TanakaMLabLastOneChordAudioSegmentPreprocessor,
 )
 from pydub import AudioSegment
-from pydub.playback import play
+
+# from pydub.playback import play
 from type import Chord
 
+from python.create_audio.annotation import create_time_annotation_csv_from_durations
+
 DEFAULT_INPUT_DIR_PATH = "assets/evals/guitar_dataset"
-output_dir_path = "python/outputs"
 
 
 @dataclass
@@ -43,7 +43,7 @@ class ChordProgressionAudioCreator:
         assert audio_path.endswith(".wav") and annotation_path.endswith(".csv")
         sound = self(chords, durations)
         sound.export(audio_path, format="wav")
-        create_time_annotation_csv_from_durations(durations, annotation_path)
+        create_time_annotation_csv_from_durations(list(map(str, chords)), durations, annotation_path)
 
 
 def __print_detail(sound: AudioSegment) -> None:
