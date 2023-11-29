@@ -245,7 +245,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreThreshold: 0.8,
           ),
         );
@@ -257,7 +257,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreThreshold: 0.9,
           ),
         );
@@ -270,7 +270,7 @@ Future<void> main() async {
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: log(15),
+            powerThreshold: log(15),
             scoreThreshold: 0.8,
           ),
         );
@@ -284,7 +284,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
             scoreThreshold: 0.8,
           ),
@@ -297,7 +297,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
             scoreThreshold: 0.9,
           ),
@@ -312,7 +312,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
             scoreThreshold: 0.8,
@@ -326,7 +326,7 @@ Future<void> main() async {
         final estimator = PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.preFrameCheck(
-            threshold: 20,
+            powerThreshold: 20,
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
             scoreThreshold: 0.9,
@@ -343,7 +343,7 @@ Future<void> main() async {
     const bufferChunkSize = 4096;
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      chordChangeDetectable: f.hcdf.realtime(powerThreshold: 20),
+      chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 20),
       templateScalar: HarmonicsChromaScalar(until: 6),
     );
     final data = await DataSet().sample;

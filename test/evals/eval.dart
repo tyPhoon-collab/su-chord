@@ -48,7 +48,7 @@ Future<void> main() async {
     final f = factory8192_0;
     final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
 
-    Evaluator(
+    await Evaluator(
       estimator: SearchTreeChordEstimator(
         chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
         chordChangeDetectable: f.hcdf.eval,
@@ -68,7 +68,7 @@ Future<void> main() async {
 
     group('reassign comb', () {
       test('normal', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             chordChangeDetectable: f.hcdf.eval,
@@ -79,7 +79,7 @@ Future<void> main() async {
       });
 
       test('ln', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable:
                 f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
@@ -93,7 +93,7 @@ Future<void> main() async {
 
     group('tonal', () {
       test('tonal centroid comb', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
@@ -105,7 +105,7 @@ Future<void> main() async {
       });
 
       test('tonal interval space comb musical weight', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -119,7 +119,7 @@ Future<void> main() async {
       });
 
       test('tonal interval space comb symbolic weight', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -133,7 +133,7 @@ Future<void> main() async {
       });
 
       test('tonal interval space comb harte weight', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             scoreCalculator: const ScoreCalculator.cosine(
@@ -149,7 +149,7 @@ Future<void> main() async {
 
     group('reassign', () {
       test('ln template scale', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
             chordChangeDetectable: f.hcdf.eval,
@@ -161,7 +161,7 @@ Future<void> main() async {
       });
 
       test('template scale', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignment(),
             chordChangeDetectable: f.hcdf.eval,
@@ -173,7 +173,7 @@ Future<void> main() async {
       });
 
       test('non reassign', () async {
-        Evaluator(
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignment(
               // scalar: MagnitudeScalar.ln,
@@ -190,8 +190,8 @@ Future<void> main() async {
     });
 
     group('template scalar', () {
-      test('third scaled', () {
-        Evaluator(
+      test('third scaled', () async {
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignCombFilter(),
             chordChangeDetectable: f.hcdf.eval,
@@ -202,8 +202,8 @@ Future<void> main() async {
             .toCSV('test/outputs/third_scalar.csv');
       });
 
-      test('harmonics scaled', () {
-        Evaluator(
+      test('harmonics scaled', () async {
+        await Evaluator(
           estimator: PatternMatchingChordEstimator(
             chromaCalculable:
                 f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
@@ -259,8 +259,8 @@ Future<void> main() async {
       });
     });
 
-    test('pcp scalar', () {
-      Evaluator(
+    test('pcp scalar', () async {
+      await Evaluator(
         estimator: PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
           chordChangeDetectable: f.hcdf.eval,
@@ -281,7 +281,7 @@ Future<void> main() async {
     test('all', () async {
       for (final MapEntry(:key, :value) in estimators.entries) {
         final estimator = await value();
-        Evaluator(
+        await Evaluator(
           estimator: estimator,
         )
             .evaluate(contexts, header: key)
@@ -293,7 +293,7 @@ Future<void> main() async {
       const id = 'main'; // change here
 
       final estimator = await estimators[id]!.call();
-      Evaluator(
+      await Evaluator(
         estimator: estimator,
       ).evaluate(contexts, header: id).toCSV('test/outputs/front_ends/$id.csv');
     });

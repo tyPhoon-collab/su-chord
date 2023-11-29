@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:chord/domains/chord.dart';
+import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/utils/histogram.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
@@ -54,24 +56,44 @@ class PCPChartWriter {
 
 mixin class _UsingTempCSVFileChartWriter {
   Future<void> runWithTempCSVFile(
-    List<List<String>> data,
-    Future<ProcessResult> Function(String filePath) run, {
-    Header? header,
-  }) async {
-    final fileName = const Uuid().v4();
-    final file = Table(
-      data,
-      header: header,
-    ).toCSV('test/outputs/$fileName.csv');
-    final filePath = file.path;
-    debugPrint('created: $filePath');
+    Table table,
+    Future<ProcessResult> Function(String filePath) run,
+  ) async {
+    final file = await _createTempFile(table);
 
-    final result = await run(filePath);
+    final result = await run(file.path);
     _debugPrintIfNotEmpty(result.stdout);
     _debugPrintIfNotEmpty(result.stderr);
 
+    await _deleteFile(file);
+  }
+
+  Future<void> runWithTwoTempCSVFiles(
+    Table table1,
+    Table table2,
+    Future<ProcessResult> Function(String filePath1, String filePath2) run,
+  ) async {
+    final file1 = await _createTempFile(table1);
+    final file2 = await _createTempFile(table2);
+
+    final result = await run(file1.path, file2.path);
+    _debugPrintIfNotEmpty(result.stdout);
+    _debugPrintIfNotEmpty(result.stderr);
+
+    await _deleteFile(file1);
+    await _deleteFile(file2);
+  }
+
+  Future<File> _createTempFile(Table table) async {
+    final fileName = const Uuid().v4();
+    final file = await table.toCSV('test/outputs/$fileName.csv');
+    debugPrint('created: ${file.path}');
+    return file;
+  }
+
+  Future<void> _deleteFile(File file) async {
     await file.delete();
-    debugPrint('deleted: $filePath');
+    debugPrint('deleted: ${file.path}');
   }
 }
 
@@ -88,10 +110,10 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
     num? yMax,
   }) async =>
       runWithTempCSVFile(
-        [
+        Table([
           x.map((e) => e.toString()).toList(),
           y.map((e) => e.toString()).toList(),
-        ],
+        ]),
         (filePath) => Process.run(
           _python,
           [
@@ -132,7 +154,7 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
     num? yMax,
   }) async =>
       runWithTempCSVFile(
-        data.map((e) => e.map((e) => e.toString()).toList()).toList(),
+        Table(data.map((e) => e.map((e) => e.toString()).toList()).toList()),
         (filePath) => Process.run(
           _python,
           [
@@ -157,9 +179,7 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
 
   Future<void> call(Iterable<Point> data, {String? title}) async =>
       runWithTempCSVFile(
-        data
-            .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
-            .toList(),
+        data.toTable(),
         (filePath) => Process.run(
           _python,
           [
@@ -168,7 +188,6 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
             ..._createTitleArgs(title),
           ],
         ),
-        header: ['x', 'y', 'c'],
       );
 }
 
@@ -182,9 +201,7 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
     String? title,
   }) async =>
       runWithTempCSVFile(
-        data
-            .map((e) => [e.x.toString(), e.y.toString(), e.weight.toString()])
-            .toList(),
+        data.toTable(),
         (filePath) => Process.run(
           _python,
           [
@@ -195,7 +212,29 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
             ..._createBinArgs(_Axis.y, yBin),
           ],
         ),
-        header: ['x', 'y', 'c'],
+      );
+}
+
+class HCDFChartWriter with _UsingTempCSVFileChartWriter {
+  const HCDFChartWriter();
+
+  Future<void> call(
+    ChordProgression<Chord> correct,
+    ChordProgression<Chord> predict, {
+    String? title,
+  }) async =>
+      runWithTwoTempCSVFiles(
+        correct.toTable(),
+        predict.toTable(),
+        (filePath1, filePath2) => Process.run(
+          _python,
+          [
+            'python/plots/hcdf.py',
+            filePath1,
+            filePath2,
+            ..._createTitleArgs(title),
+          ],
+        ),
       );
 }
 
@@ -234,4 +273,15 @@ void _debugPrintIfNotEmpty(dynamic output) {
   if (output is String && output.isNotEmpty) {
     debugPrint(output);
   }
+}
+
+extension _PointsToTable on Iterable<Point> {
+  Table toTable() => Table(
+        map((e) => [
+              e.x.toString(),
+              e.y.toString(),
+              e.weight.toString(),
+            ]).toList(),
+        header: ['x', 'y', 'c'],
+      );
 }

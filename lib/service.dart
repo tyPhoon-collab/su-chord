@@ -72,10 +72,19 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final detectableChords = ref.watch(detectableChordsProvider);
 
   return {
-    'matching + reassign ln + template scaled': () async =>
+    'main': () async => PatternMatchingChordEstimator(
+          chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            powerThreshold: 30,
+            scoreThreshold: 0.9,
+          ),
+          templateScalar: HarmonicsChromaScalar(until: 6),
+          templates: detectableChords,
+        ),
+    'matching + reassign + template scaled': () async =>
         PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(),
-          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 40),
+          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 40),
           filters: [
             GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
           ],
@@ -84,21 +93,19 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
         ),
     'matching + reassign comb': () async => PatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 10),
+          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 10),
           templates: detectableChords,
         ),
     'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
           chromaCalculable:
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 3),
+          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 3),
           templates: detectableChords,
         ),
     'search + comb + ln': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.realtime(powerThreshold: 3),
-          noteExtractable: f.extractor.threshold(
-            scalar: MagnitudeScalar.ln,
-          ),
+          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 3),
+          noteExtractable: f.extractor.threshold(scalar: MagnitudeScalar.ln),
           chordSelectable: await f.selector.db,
           detectableChords: detectableChords,
         ),
@@ -108,7 +115,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
 @riverpod
 class SelectingEstimatorLabel extends _$SelectingEstimatorLabel {
   @override
-  String build() => 'matching + reassign ln + template scaled';
+  String build() => 'main';
 
   //ignore: use_setters_to_change_properties
   void change(String newValue) => state = newValue;

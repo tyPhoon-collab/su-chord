@@ -176,21 +176,6 @@ final class HCDFFactory {
   ///評価音源のための簡易的なクロマフィルタ
   ChromaChordChangeDetectable get eval => interval(4.seconds);
 
-  ///リアルタイム向きのクロマフィルタ
-  ///無音検知
-  ///類似度
-  ChromaChordChangeDetectable realtime({
-    required double powerThreshold,
-    double scoreThreshold = 0.9,
-  }) =>
-      preFrameCheck(
-        threshold: powerThreshold,
-        scoreCalculator: const ScoreCalculator.cosine(
-          ToTonalIntervalVector.musical(),
-        ),
-        scoreThreshold: scoreThreshold,
-      );
-
   //TODO Add args
   ChromaChordChangeDetectable triad({
     required double threshold,
@@ -213,12 +198,12 @@ final class HCDFFactory {
       PowerThresholdChordChangeDetector(threshold);
 
   ChromaChordChangeDetectable preFrameCheck({
-    required double threshold,
+    required double powerThreshold,
     ScoreCalculator scoreCalculator = const ScoreCalculator.cosine(),
     double scoreThreshold = 0.8,
   }) =>
       PowerThresholdChordChangeDetector(
-        threshold,
+        powerThreshold,
         onPower: PreFrameCheckChordChangeDetector(
           scoreCalculator: scoreCalculator,
           threshold: scoreThreshold,

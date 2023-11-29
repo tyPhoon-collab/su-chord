@@ -50,6 +50,8 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
   }
 
   static const chordSeparator = '->';
+  static const noChordLabel = 'No Chords';
+  static const header = ['label', 'start', 'end'];
 
   final List<ChordCell<T>> _values;
 
@@ -57,17 +59,6 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
   Iterator<ChordCell<T>> get iterator => _values.iterator;
 
   ChordCell<T> operator [](int index) => _values[index];
-
-  @override
-  String toString() => _values.isEmpty
-      ? 'No Chords'
-      : _values.map((e) => e.toString()).join(chordSeparator);
-
-  String toDetailString() => _values.isEmpty
-      ? 'No Chords'
-      : _values.map((e) => e.toDetailString()).join(chordSeparator);
-
-  Row toRow() => _values.map((e) => e.toString()).toList();
 
   void add(ChordCell<T> chord) {
     assert(_values.isEmpty ||
@@ -180,4 +171,24 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
       .toList());
 
   List<T?> toChordList() => map((e) => e.chord).toList();
+
+  @override
+  String toString() => _values.isEmpty
+      ? noChordLabel
+      : _values.map((e) => e.toString()).join(chordSeparator);
+
+  String toDetailString() => _values.isEmpty
+      ? noChordLabel
+      : _values.map((e) => e.toDetailString()).join(chordSeparator);
+
+  Row toRow() => _values.map((e) => e.toString()).toList();
+
+  Table toTable() => Table(
+        map((e) => [
+              e.chord.toString(),
+              e.time!.start.toString(),
+              e.time!.end.toString(),
+            ]).toList(),
+        header: header,
+      );
 }

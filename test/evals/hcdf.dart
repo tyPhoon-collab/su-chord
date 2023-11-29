@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
@@ -11,17 +12,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'evaluator.dart';
 
 void main() {
-  late final Iterable<EvaluationAudioDataContext> contexts;
+  late final List<EvaluationAudioDataContext> contexts;
 
   setUpAll(() async {
-    // CSV書き込みをするなら以下をコメント化
-    Table.bypass = true;
-
     // 計算時間を出力したいなら以下をコメント化
     Measure.logger = null;
 
     // コード推定結果を出力したいなら以下をコメント化
-    // HCDFEvaluator.progressionWriter = null;
+    HCDFEvaluator.progressionWriter = null;
 
     // コード推定の正解率を出力したいなら以下をコメント化
     // HCDFEvaluator.correctionWriter = null;
@@ -37,10 +35,12 @@ void main() {
 
       ...await EvaluationAudioDataContext.fromFolder(
           'assets/evals/Halion_CleanGuitarVX_nonsilent'),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/Halion_CleanStratGuitar'),
-      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/HojoGuitar'),
-      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/RealStrat'),
+      ...await EvaluationAudioDataContext.fromFolder(
+          'assets/evals/Halion_CleanStratGuitar_nonsilent'),
+      ...await EvaluationAudioDataContext.fromFolder(
+          'assets/evals/HojoGuitar_nonsilent'),
+      ...await EvaluationAudioDataContext.fromFolder(
+          'assets/evals/RealStrat_nonsilent'),
     ];
   });
 
@@ -49,68 +49,103 @@ void main() {
     final base = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       templateScalar: HarmonicsChromaScalar(until: 6),
-      filters: [
-        // GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
-      ],
     );
     const threshold = 30.0;
 
-    test('HCDF fold', () {
-      HCDFEvaluator(
-        estimator:
+    ChordEstimable estimable(String name) => switch (name) {
+          'frame' =>
             base.copyWith(chordChangeDetectable: f.hcdf.frame(threshold)),
-      ).evaluate(contexts, header: 'fold').toCSV('test/outputs/fold.csv');
-    });
-
-    test('HCDF threshold', () {
-      HCDFEvaluator(
-        estimator:
+          'threshold' =>
             base.copyWith(chordChangeDetectable: f.hcdf.threshold(threshold)),
-      )
-          .evaluate(contexts, header: 'threshold')
-          .toCSV('test/outputs/threshold.csv');
+          'cosine' => base.copyWith(
+              chordChangeDetectable: f.hcdf.preFrameCheck(
+                powerThreshold: threshold,
+                scoreThreshold: .9,
+              ),
+            ),
+          'tonal' => base.copyWith(
+              chordChangeDetectable: f.hcdf.preFrameCheck(
+                powerThreshold: threshold,
+                scoreCalculator:
+                    const ScoreCalculator.cosine(ToTonalCentroid()),
+                scoreThreshold: .9,
+              ),
+            ),
+          'tiv' => base.copyWith(
+              chordChangeDetectable: f.hcdf.preFrameCheck(
+                powerThreshold: threshold,
+                scoreCalculator: const ScoreCalculator.cosine(
+                  ToTonalIntervalVector.musical(),
+                ),
+                scoreThreshold: .9,
+              ),
+            ),
+          _ => throw UnimplementedError(),
+        };
+
+    group('score', () {
+      // Table.bypass = true;
+      test('HCDF fold', () async {
+        await HCDFEvaluator(estimator: estimable('frame'))
+            .evaluate(contexts, header: 'fold')
+            .toCSV('test/outputs/HCDF/fold.csv');
+      });
+
+      test('HCDF threshold', () async {
+        await HCDFEvaluator(estimator: estimable('threshold'))
+            .evaluate(contexts, header: 'threshold')
+            .toCSV('test/outputs/HCDF/threshold.csv');
+      });
+
+      test('HCDF cosine', () async {
+        await HCDFEvaluator(estimator: estimable('cosine'))
+            .evaluate(contexts, header: 'pre frame cosine')
+            .toCSV('test/outputs/HCDF/pre_frame_cosine.csv');
+      });
+
+      test('HCDF tonal', () async {
+        await HCDFEvaluator(estimator: estimable('tonal'))
+            .evaluate(contexts, header: 'pre frame tonal cosine')
+            .toCSV('test/outputs/HCDF/pre_frame_tonal_cosine.csv');
+      });
+
+      test('HCDF tiv', () async {
+        await HCDFEvaluator(estimator: estimable('tiv'))
+            .evaluate(contexts, header: 'pre frame TIV cosine')
+            .toCSV('test/outputs/HCDF/pre_frame_tiv_cosine.csv');
+      });
     });
 
-    group('pre frame', () {
-      test('HCDF cosine similarity', () {
-        HCDFEvaluator(
-          estimator: base.copyWith(
-            chordChangeDetectable:
-                f.hcdf.preFrameCheck(threshold: threshold, scoreThreshold: .9),
-          ),
-        )
-            .evaluate(contexts, header: 'pre frame cosine')
-            .toCSV('test/outputs/pre_frame_cosine.csv');
+    group('visualize', () {
+      Table.bypass = false;
+
+      test('v fold', () async {
+        await HCDFVisualizer(estimator: estimable('frame')).visualize(
+          contexts[1],
+          title: 'frame',
+        );
       });
 
-      test('HCDF tonal', () {
-        HCDFEvaluator(
-          estimator: base.copyWith(
-            chordChangeDetectable: f.hcdf.preFrameCheck(
-              threshold: threshold,
-              scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
-              scoreThreshold: .8,
-            ),
-          ),
-        )
-            .evaluate(contexts, header: 'pre frame tonal cosine')
-            .toCSV('test/outputs/pre_frame_tonal_cosine.csv');
+      test('v threshold', () async {
+        await HCDFVisualizer(estimator: estimable('threshold'))
+            .visualize(contexts.first);
       });
 
-      test('HCDF TIV', () {
-        HCDFEvaluator(
-          estimator: base.copyWith(
-            chordChangeDetectable: f.hcdf.preFrameCheck(
-              threshold: threshold,
-              scoreCalculator: const ScoreCalculator.cosine(
-                ToTonalIntervalVector.musical(),
-              ),
-              scoreThreshold: .8,
-            ),
-          ),
-        )
-            .evaluate(contexts, header: 'pre frame TIV cosine')
-            .toCSV('test/outputs/pre_frame_tiv_cosine.csv');
+      test('v cosine', () async {
+        await HCDFVisualizer(estimator: estimable('cosine')).visualize(
+          contexts[1],
+          title: 'cosine',
+        );
+      });
+
+      test('v tonal', () async {
+        await HCDFVisualizer(estimator: estimable('tonal'))
+            .visualize(contexts.first);
+      });
+
+      test('v tiv', () async {
+        await HCDFVisualizer(estimator: estimable('tiv'))
+            .visualize(contexts.first);
       });
     });
   });

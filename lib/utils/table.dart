@@ -23,16 +23,16 @@ class Table extends Iterable<Row> {
     _values.add(row);
   }
 
-  File toCSV(String path) {
+  Future<File> toCSV(String path) async {
     assert(path.endsWith('.csv'));
     if (bypass) return File(path);
 
-    final file = File(path)..create(recursive: true);
+    final file = await File(path).create(recursive: true);
     final contents = const ListToCsvConverter().convert([
       if (header != null) header,
       ..._values,
     ]);
-    file.writeAsString(contents);
+    await file.writeAsString(contents);
 
     return file;
   }

@@ -218,3 +218,23 @@ class HCDFEvaluator {
     table.add(score.toRow()..insert(0, indexLabel));
   }
 }
+
+class HCDFVisualizer {
+  const HCDFVisualizer({required this.estimator});
+
+  final ChordEstimable estimator;
+
+  Future<void> visualize(
+    EvaluationAudioDataContext context, {
+    String? title,
+  }) async {
+    final correct = context.correct;
+    final predict = estimator.estimate(context.data);
+
+    await const HCDFChartWriter().call(
+      correct.simplify(),
+      predict.simplify(),
+      title: title,
+    );
+  }
+}

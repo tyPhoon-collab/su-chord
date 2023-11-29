@@ -81,7 +81,7 @@ void main() {
         validator: (progression) => progression.length == 20,
       ).evaluate(contexts, header: estimator.toString());
 
-      table.toCSV('${directory.path}/$fileName.csv');
+      await table.toCSV('${directory.path}/$fileName.csv');
     }
   });
 }
