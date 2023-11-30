@@ -41,7 +41,10 @@ class DataSet {
 
   Future<AudioData> concat(String folderPath) async {
     return _loader.load(folderPath, buildCachingData: () async {
-      final context = await EvaluationAudioDataContext.fromFolder(folderPath);
+      final context = await EvaluationAudioDataContext.fromFolder(
+        folderPath,
+        const KonokiEADCDelegate(),
+      );
 
       final data = context.fold(
         AudioData.empty(sampleRate: _loader.sampleRate),

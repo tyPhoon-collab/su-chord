@@ -3,12 +3,7 @@ import os
 from typing import Any, Literal
 
 from annotation import create_time_annotation_csv_from_slices
-
-from python.create_audio.path import (
-    get_file_name,
-    get_sorted_audio_paths,
-    get_source_name,
-)
+from path import get_file_name, get_sorted_audio_paths, get_source_name
 
 __FileType = Literal["comp", "solo"]
 
@@ -18,9 +13,9 @@ class __ObjectLike(dict[str, object]):
 
 
 def __get_annotation_path_from_audio_file_path(path: str, file_type: __FileType) -> str:
-    file_name_with_extension = path.split("/")[-1]
-    index = file_name_with_extension.find(file_type)
-    file_name = file_name_with_extension[: index + 4]
+    file_name = get_file_name(path)
+    index = file_name.find(file_type)
+    file_name = file_name[: index + len(file_type)]
 
     return os.path.join(
         "assets",
@@ -62,12 +57,12 @@ def __create_chord_annotation_from_audio_path(path: str, is_simple: bool = True)
 
     source_name = get_source_name(path)
     file_name = get_file_name(path)
-    output_path = os.path.join(
+    output_dir_path = os.path.join(
         "assets",
         "csv",
         source_name,
-        f"{file_name}.csv",
     )
+    os.makedirs(output_dir_path, exist_ok=True)
 
     with open(annotation_path) as f:
         obj = json.load(f, object_hook=__ObjectLike)
@@ -83,7 +78,7 @@ def __create_chord_annotation_from_audio_path(path: str, is_simple: bool = True)
         create_time_annotation_csv_from_slices(
             labels,
             slices,
-            output_path=output_path,
+            output_path=os.path.join(output_dir_path, f"{file_name}.csv"),
         )
 
 

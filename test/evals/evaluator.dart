@@ -13,6 +13,64 @@ import 'package:flutter/foundation.dart';
 import '../data_set.dart';
 import '../writer.dart';
 
+abstract class EvaluationAudioDataContextDelegate {
+  int key(List<String> parts);
+
+  String soundSourceName(List<String> parts);
+
+  String musicName(List<String> parts);
+
+  String annotationPath(List<String> parts);
+}
+
+final class KonokiEADCDelegate implements EvaluationAudioDataContextDelegate {
+  const KonokiEADCDelegate();
+
+  @override
+  int key(List<String> parts) {
+    final musicIndex = parts.last.split('_').first;
+
+    return int.parse(musicIndex);
+  }
+
+  @override
+  String annotationPath(List<String> parts) =>
+      'assets/csv/${soundSourceName(parts)}/${musicName(parts)}.csv';
+
+  @override
+  String musicName(List<String> parts) =>
+      parts.last.substring(0, parts.last.indexOf('.'));
+
+  @override
+  String soundSourceName(List<String> parts) => parts[parts.length - 2];
+}
+
+final class GuitarSetEADCDelegate
+    implements EvaluationAudioDataContextDelegate {
+  const GuitarSetEADCDelegate();
+
+  @override
+  String annotationPath(List<String> parts) =>
+      'assets/csv/${soundSourceName(parts)}/${musicName(parts)}.csv';
+
+  @override
+  int key(List<String> parts) {
+    final fileName = parts.last;
+    final numberString = fileName.split('_').first[1];
+    final kindString = fileName.split('-').first;
+    final orderString = kindString[kindString.length - 1];
+
+    return int.parse(numberString) * 10 + int.parse(orderString);
+  }
+
+  @override
+  String musicName(List<String> parts) =>
+      parts.last.substring(0, parts.last.indexOf('.'));
+
+  @override
+  String soundSourceName(List<String> parts) => parts[parts.length - 2];
+}
+
 ///評価音源に必要な情報をすべて詰め込んだクラス
 @immutable
 final class EvaluationAudioDataContext
@@ -28,19 +86,14 @@ final class EvaluationAudioDataContext
   static final audioLoader = CacheableAudioLoader(sampleRate: 22050);
   static final csvLoader = CacheableCSVLoader();
 
-  static Future<EvaluationAudioDataContext> fromFile(String audioPath) async {
-    final parts = audioPath.split(Platform.pathSeparator); //パスを分解
-    final soundSourceName = parts[parts.length - 2]; //フォルダに音源名があると仮定する
-    final fileName = parts.last.substring(0, parts.last.indexOf('.'));
-    final musicName = fileName.split('_').first; //現状ではただの数字
-
-    //音声ファイルと全く同じファイル名のアノテーションファイルがassets/csvにあるとする
-    final annotationPath = 'assets/csv/$soundSourceName/$fileName.csv';
-
-    final key = int.parse(musicName);
+  static Future<EvaluationAudioDataContext> fromFile(
+    String audioPath,
+    EvaluationAudioDataContextDelegate delegate,
+  ) async {
+    final parts = audioPath.split(Platform.pathSeparator);
 
     final data = await audioLoader.load(audioPath);
-    final annotation = await csvLoader.load(annotationPath);
+    final annotation = await csvLoader.load(delegate.annotationPath(parts));
 
     final corrects = <String>[];
     final times = <Time>[];
@@ -53,26 +106,21 @@ final class EvaluationAudioDataContext
     final correct = ChordProgression.fromChordRow(corrects, times: times);
 
     return EvaluationAudioDataContext(
-      key: key,
+      key: delegate.key(parts),
       data: data,
       correct: correct,
-      soundSourceName: soundSourceName,
-      musicName: musicName,
+      soundSourceName: delegate.soundSourceName(parts),
+      musicName: delegate.musicName(parts),
     );
   }
 
   static Future<List<EvaluationAudioDataContext>> fromFolder(
-      String folderPath) async {
-    final s = Stopwatch()..start();
-    final contexts = Future.wait(_getFiles(folderPath)
-            .map((path) => EvaluationAudioDataContext.fromFile(path)))
-        .then((value) => value.sorted((a, b) => a.compareTo(b)));
-    s.stop();
-    logTest(
-      '$folderPath load took ${s.elapsedMilliseconds}ms',
-      title: 'measure',
-    );
-    return contexts;
+    String folderPath,
+    EvaluationAudioDataContextDelegate delegate,
+  ) async {
+    return Future.wait(_getFiles(folderPath).map(
+      (path) => EvaluationAudioDataContext.fromFile(path, delegate),
+    )).then((value) => value.sorted((a, b) => a.compareTo(b)));
   }
 
   static Iterable<String> _getFiles(String path) {

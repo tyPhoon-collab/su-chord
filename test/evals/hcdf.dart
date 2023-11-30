@@ -27,20 +27,37 @@ void main() {
     // 使用する音源はフォルダごとに管理されている
     contexts = [
       // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/Halion_CleanGuitarVX'),
+      //   'assets/evals/Halion_CleanGuitarVX',
+      //   const KonokiEADCDelegate(),
+      // ),
       // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/Halion_CleanStratGuitar'),
-      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/HojoGuitar'),
-      // ...await EvaluationAudioDataContext.fromFolder('assets/evals/RealStrat'),
-
+      //   'assets/evals/Halion_CleanStratGuitar',
+      //   const KonokiEADCDelegate(),
+      // ),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //   'assets/evals/HojoGuitar',
+      //   const KonokiEADCDelegate(),
+      // ),
+      // ...await EvaluationAudioDataContext.fromFolder(
+      //   'assets/evals/RealStrat',
+      //   const KonokiEADCDelegate(),
+      // ),
       ...await EvaluationAudioDataContext.fromFolder(
-          'assets/evals/Halion_CleanGuitarVX_nonsilent'),
+        'assets/evals/Halion_CleanGuitarVX_nonsilent',
+        const KonokiEADCDelegate(),
+      ),
       // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/Halion_CleanStratGuitar_nonsilent'),
+      //   'assets/evals/Halion_CleanStratGuitar_nonsilent',
+      //   const KonokiEADCDelegate(),
+      // ),
       // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/HojoGuitar_nonsilent'),
+      //   'assets/evals/HojoGuitar_nonsilent',
+      //   const KonokiEADCDelegate(),
+      // ),
       // ...await EvaluationAudioDataContext.fromFolder(
-      //     'assets/evals/RealStrat_nonsilent'),
+      //   'assets/evals/RealStrat_nonsilent',
+      //   const KonokiEADCDelegate(),
+      // ),
     ];
   });
 
