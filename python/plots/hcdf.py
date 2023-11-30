@@ -1,8 +1,10 @@
 import argparse
 import hashlib
 
+import librosa
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.axes import Axes
 from matplotlib.collections import BrokenBarHCollection
 from matplotlib.colors import Colormap
 
@@ -20,7 +22,22 @@ def __str_to_color(string: str, cmap: Colormap | None = None) -> tuple[float, fl
     return cm(level)
 
 
-def __plt_bar(df: pd.DataFrame, y_range: tuple[int, int]) -> BrokenBarHCollection:
+def __plt_chromagram(chromas_path: str, sample_rate: int, win_length: int, hop_length: int, ax: Axes) -> None:
+    data = pd.read_csv(chromas_path, header=None)
+
+    librosa.display.specshow(
+        data.to_numpy().T,
+        x_axis="time",
+        y_axis="chroma",
+        sr=sample_rate,
+        win_length=win_length,
+        hop_length=hop_length if args.hop_length != 0 else args.win_length,
+        cmap="magma",
+        ax=ax,
+    )
+
+
+def __plt_bar(df: pd.DataFrame, y_range: tuple[int, int], ax: Axes | None = None) -> BrokenBarHCollection:
     if len(df.columns) != 3:
         raise ValueError("The CSV file must contain 3 columns: label, start, end")
 
@@ -30,7 +47,9 @@ def __plt_bar(df: pd.DataFrame, y_range: tuple[int, int]) -> BrokenBarHCollectio
 
     x_ranges = [(start, end - start) for start, end in zip(start_data, end_data)]
 
-    collection = plt.broken_barh(
+    ax = ax or plt.gca()
+
+    collection = ax.broken_barh(
         x_ranges,
         y_range,
         facecolor=[__str_to_color(label) for label in label_data],
@@ -47,17 +66,42 @@ def __plt_bar(df: pd.DataFrame, y_range: tuple[int, int]) -> BrokenBarHCollectio
 parser = argparse.ArgumentParser()
 parser.add_argument("correct_path", type=str, help="Path to the CSV file")
 parser.add_argument("predict_path", type=str, help="Path to the CSV file")
+parser.add_argument("--chromas_path", type=str, help="Path to the input data file (CSV format)")
+parser.add_argument("--sample_rate", type=int, help="Sample rate for the data")
+parser.add_argument("--win_length", type=int, help="Window size for stft")
+parser.add_argument("--hop_length", type=int, help="Stride length for stft")
 parser.add_argument("--title", type=str, help="Title for the plot")
 parser.add_argument("--output", type=str, help="Output file path")
 args = parser.parse_args()
 
-plt.figure(figsize=(16, 4))
+plt.figure(figsize=(16, 8))
 
 correct_df = pd.read_csv(args.correct_path)
 predict_df = pd.read_csv(args.predict_path)
 
-__plt_bar(correct_df, (6, BAR_HEIGHT))
-__plt_bar(predict_df, (0, BAR_HEIGHT))
+if args.chromas_path:
+    if args.sample_rate is None or args.win_length is None or args.hop_length is None:
+        raise ValueError("If set chromas path, you need sample rate, win length and hop length")
+
+    ax_top = plt.subplot(2, 1, 1)
+    ax_bottom = plt.subplot(2, 1, 2)
+
+    __plt_chromagram(
+        args.chromas_path,
+        args.sample_rate,
+        args.win_length,
+        args.hop_length,
+        ax=ax_top,
+    )
+
+    __plt_bar(correct_df, (6, BAR_HEIGHT), ax=ax_bottom)
+    __plt_bar(predict_df, (0, BAR_HEIGHT), ax=ax_bottom)
+
+    ax_bottom.sharex(ax_top)
+
+else:
+    __plt_bar(correct_df, (6, BAR_HEIGHT))
+    __plt_bar(predict_df, (0, BAR_HEIGHT))
 
 plt.yticks(
     [0 + BAR_HEIGHT / 2, 6 + BAR_HEIGHT / 2],

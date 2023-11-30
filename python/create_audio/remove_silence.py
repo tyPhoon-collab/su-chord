@@ -15,7 +15,7 @@ from path import DIR_PATHS, get_file_name, get_sorted_audio_paths, get_source_na
 def __create_nonsilent_audio(file_path: str) -> tuple[AudioSegment, list[tuple[int, int]]]:
     sound = AudioSegment.from_file(file_path)
     slices = detect_nonsilent(sound, min_silence_len=100, silence_thresh=-40)
-    nonsilent_sound = sum([sound[slice[0]: slice[1]] for slice in slices])
+    nonsilent_sound = sum([sound[slice[0]:slice[1]] for slice in slices])
 
     nonsilent_slices = []
     seek = 0

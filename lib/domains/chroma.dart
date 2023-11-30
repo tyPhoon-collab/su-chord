@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../utils/histogram.dart';
+import '../utils/table.dart';
 import 'chord.dart';
 import 'equal_temperament.dart';
 
@@ -86,6 +87,8 @@ class Chroma extends Iterable<double> {
   String toString() {
     return _values.map((e) => e.toStringAsFixed(3)).join(', ');
   }
+
+  Row toRow() => _values.map((e) => e.toString()).toList();
 
   @override
   bool operator ==(Object other) {

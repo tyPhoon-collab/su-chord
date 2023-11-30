@@ -25,7 +25,8 @@ void main() {
       ...await EvaluationAudioDataContext.fromFolder(
         'assets/evals/3371780/audio_mono-mic',
         const GuitarSetEADCDelegate(),
-        filter: (path) => path.contains('comp'),
+        // filter: (path) => path.contains('comp'),
+        filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),
       ),
     ];
   });
@@ -35,19 +36,24 @@ void main() {
   test('visualize', () async {
     Table.bypass = false;
     final f = factory4096_0;
-    const index = 2;
 
-    await HCDFVisualizer(
-      estimator: PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-        templateScalar: HarmonicsChromaScalar(until: 6),
-        chordChangeDetectable: f.hcdf.preFrameCheck(
-          powerThreshold: 30,
-          scoreThreshold: .9,
-          scoreCalculator:
-              const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
+    for (final context in contexts) {
+      await HCDFVisualizer(
+        estimator: PatternMatchingChordEstimator(
+          chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+          templateScalar: HarmonicsChromaScalar(until: 6),
+          chordChangeDetectable: f.hcdf.preFrameCheck(
+            powerThreshold: 20,
+            scoreThreshold: .9,
+            // scoreCalculator: const ScoreCalculator.tivCosine(),
+            // ignore: avoid_redundant_argument_values
+            scoreCalculator: const ScoreCalculator.cosine(),
+          ),
         ),
-      ),
-    ).visualize(contexts[index]);
+      ).visualize(
+        context,
+        factoryContext: f.context,
+      );
+    }
   });
 }

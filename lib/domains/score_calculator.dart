@@ -129,6 +129,14 @@ final class ScoreCalculator {
   const ScoreCalculator.cosine([this.mapper])
       : distanceMetrics = const CosineSimilarity();
 
+  const ScoreCalculator.tivCosine()
+      : distanceMetrics = const CosineSimilarity(),
+        mapper = const ToTonalIntervalVector.musical();
+
+  const ScoreCalculator.tonalCentroidCosine()
+      : distanceMetrics = const CosineSimilarity(),
+        mapper = const ToTonalCentroid();
+
   final DistanceMetrics distanceMetrics;
   final ChromaMappable? mapper;
 

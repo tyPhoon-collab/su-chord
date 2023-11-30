@@ -22,10 +22,14 @@ abstract interface class ChordEstimable {
   ChordProgression<Chord> flush();
 }
 
+abstract interface class HasChromaList {
+  List<Chroma> chromas();
+}
+
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
 abstract class ChromaChordEstimator
     with Measure, SampleRateCacheManager
-    implements ChordEstimable, HasDebugViews {
+    implements ChordEstimable, HasDebugViews, HasChromaList {
   ChromaChordEstimator({
     required this.chromaCalculable,
     this.chordChangeDetectable = const FrameChordChangeDetector(),
@@ -123,6 +127,9 @@ abstract class ChromaChordEstimator
           builder: (_) => CalculateTimeTableView(table: calculateTimes),
         )
       ];
+
+  @override
+  List<Chroma> chromas() => _chromas.toList();
 }
 
 abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {

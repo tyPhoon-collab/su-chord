@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
+import 'package:chord/domains/chroma.dart';
 import 'package:chord/utils/histogram.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
@@ -68,20 +69,18 @@ mixin class _UsingTempCSVFileChartWriter {
     await _deleteFile(file);
   }
 
-  Future<void> runWithTwoTempCSVFiles(
-    Table table1,
-    Table table2,
-    Future<ProcessResult> Function(String filePath1, String filePath2) run,
+  Future<void> runWithMultiTempCSVFiles(
+    List<Table> tables,
+    Future<ProcessResult> Function(List<String> filePaths) run,
   ) async {
-    final file1 = await _createTempFile(table1);
-    final file2 = await _createTempFile(table2);
+    final files = await Future.wait(tables.map(_createTempFile));
 
-    final result = await run(file1.path, file2.path);
+    final result = await run(files.map((e) => e.path).toList());
+
     _debugPrintIfNotEmpty(result.stdout);
     _debugPrintIfNotEmpty(result.stderr);
 
-    await _deleteFile(file1);
-    await _deleteFile(file2);
+    await Future.wait(files.map(_deleteFile));
   }
 
   Future<File> _createTempFile(Table table) async {
@@ -223,15 +222,60 @@ class HCDFChartWriter with _UsingTempCSVFileChartWriter {
     ChordProgression<Chord> predict, {
     String? title,
   }) async =>
-      runWithTwoTempCSVFiles(
-        correct.toTable(),
-        predict.toTable(),
-        (filePath1, filePath2) => Process.run(
+      runWithMultiTempCSVFiles(
+        [
+          correct.toTable(),
+          predict.toTable(),
+        ],
+        (filePaths) => Process.run(
           _python,
           [
             'python/plots/hcdf.py',
-            filePath1,
-            filePath2,
+            filePaths[0],
+            filePaths[1],
+            ..._createTitleArgs(title),
+          ],
+        ),
+      );
+}
+
+class HCDFDetailChartWriter with _UsingTempCSVFileChartWriter {
+  const HCDFDetailChartWriter({
+    required this.sampleRate,
+    required this.chunkSize,
+    required this.chunkStride,
+  });
+
+  final int sampleRate;
+  final int chunkSize;
+  final int chunkStride;
+
+  Future<void> call(
+    ChordProgression<Chord> correct,
+    ChordProgression<Chord> predict,
+    List<Chroma> chromas, {
+    String? title,
+  }) async =>
+      runWithMultiTempCSVFiles(
+        [
+          correct.toTable(),
+          predict.toTable(),
+          Table(chromas.map((e) => e.toRow()).toList()),
+        ],
+        (filePaths) => Process.run(
+          _python,
+          [
+            'python/plots/hcdf.py',
+            filePaths[0],
+            filePaths[1],
+            '--chromas_path',
+            filePaths[2],
+            '--sample_rate',
+            sampleRate.toString(),
+            '--win_length',
+            chunkSize.toString(),
+            '--hop_length',
+            chunkStride.toString(),
             ..._createTitleArgs(title),
           ],
         ),
