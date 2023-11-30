@@ -40,14 +40,14 @@ def __map_chord_type_name_from_guitar_set(label: str) -> str:
             raise NotImplementedError(name)
 
 
-def __get_chord_label(json: Any) -> str:
-    note, type = json.value.split(":")
+def __get_chord_label(json_obj: Any) -> str:
+    note, type = json_obj.value.split(":")
 
     return str(note) + __map_chord_type_name_from_guitar_set(type)
 
 
-def __get_slice(json: Any) -> tuple[float, float]:
-    return (json.time, json.time + json.duration)
+def __get_slice(json_obj: Any) -> tuple[float, float]:
+    return json_obj.time, json_obj.time + json_obj.duration
 
 
 def __create_chord_annotation_from_audio_path(path: str, is_simple: bool = True) -> None:

@@ -116,11 +116,14 @@ final class EvaluationAudioDataContext
 
   static Future<List<EvaluationAudioDataContext>> fromFolder(
     String folderPath,
-    EvaluationAudioDataContextDelegate delegate,
-  ) async {
-    return Future.wait(_getFiles(folderPath).map(
-      (path) => EvaluationAudioDataContext.fromFile(path, delegate),
-    )).then((value) => value.sorted((a, b) => a.compareTo(b)));
+    EvaluationAudioDataContextDelegate delegate, {
+    bool Function(String path)? filter,
+  }) async {
+    return Future.wait(
+      _getFiles(folderPath)
+          .where((e) => filter?.call(e) ?? true)
+          .map((path) => EvaluationAudioDataContext.fromFile(path, delegate)),
+    ).then((value) => value.sorted((a, b) => a.compareTo(b)));
   }
 
   static Iterable<String> _getFiles(String path) {

@@ -2,15 +2,12 @@
 
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
-import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
-import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:chord/utils/table.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../writer.dart';
@@ -52,25 +49,6 @@ Future<void> main() async {
         const KonokiEADCDelegate(),
       ),
     ];
-  });
-
-  test('conv', () async {
-    final f = factory8192_0;
-    final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
-
-    await Evaluator(
-      estimator: SearchTreeChordEstimator(
-        chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-        chordChangeDetectable: f.hcdf.eval,
-        noteExtractable: logExtractor,
-        chordSelectable: await f.selector.db,
-      ),
-    )
-        .evaluate(
-          contexts,
-          header: 'search + log comb, $logExtractor, ${f.context}',
-        )
-        .toCSV('test/outputs/search_tree_comb_log.csv');
   });
 
   group('prop', () {
@@ -281,31 +259,6 @@ Future<void> main() async {
       )
           .evaluate(contexts, header: 'compression')
           .toCSV('test/outputs/pcp_compression.csv');
-    });
-  });
-
-  //service.dartに登録されている推定器のテスト
-  group('riverpods front end estimators', () {
-    final estimators = ProviderContainer().read(estimatorsProvider);
-
-    test('all', () async {
-      for (final MapEntry(:key, :value) in estimators.entries) {
-        final estimator = await value();
-        await Evaluator(
-          estimator: estimator,
-        )
-            .evaluate(contexts, header: key)
-            .toCSV('test/outputs/front_ends/$key.csv');
-      }
-    });
-
-    test('one', () async {
-      const id = 'main'; // change here
-
-      final estimator = await estimators[id]!.call();
-      await Evaluator(
-        estimator: estimator,
-      ).evaluate(contexts, header: id).toCSV('test/outputs/front_ends/$id.csv');
     });
   });
 }
