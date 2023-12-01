@@ -93,7 +93,7 @@ class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
       return limitation;
     }
 
-    for (int i = 0; i < length;) {
+    for (int i = 0; i < length && seekingOtherIndex < other.length;) {
       final value = _values[i];
       final another = other[seekingOtherIndex];
 

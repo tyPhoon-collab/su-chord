@@ -15,6 +15,8 @@ void main() {
   late final Iterable<EvaluationAudioDataContext> contexts;
 
   setUpAll(() async {
+    Evaluator.progressionWriter = null;
+
     // 使用する音源はフォルダごとに管理されている
     contexts = [
       ...await EvaluationAudioDataContext.fromFolder(
@@ -38,8 +40,6 @@ void main() {
 
   test('cross validation', () async {
     // Table.bypass = true;
-    Evaluator.progressionWriter = null;
-
     const folderName = '4 chroma calc 3 estimator';
 
     final f = factory4096_0;
@@ -92,6 +92,55 @@ void main() {
       ).evaluate(contexts, header: estimator.toString());
 
       await table.toCSV('${directory.path}/$fileName.csv');
+    }
+  });
+
+  test('for NCSP', () async {
+    const folderName = 'NCSP';
+
+    final factories = [
+      factory2048_0,
+      factory4096_0,
+      factory8192_0,
+    ];
+
+    final folderPath =
+        'test/outputs/cross_validations/${folderName.sanitize()}';
+
+    final directory = await Directory(folderPath).create(recursive: true);
+
+    // logTest('${f.context} $folderPath', title: 'OUTPUT FOLDER PATH');
+
+    for (final f in factories) {
+      logTest(f.context);
+
+      for (final estimator in [
+        for (final chromaCalculable in [
+          for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
+            f.guitar.stftCombFilter(scalar: scalar),
+            f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
+            f.guitar.reassignCombFilter(scalar: scalar),
+            f.guitar.reassignment(scalar: scalar),
+          ]
+        ])
+          PatternMatchingChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+            templateScalar: HarmonicsChromaScalar(until: 6),
+          )
+      ]) {
+        final fileName = estimator.sanitize();
+
+        logTest(estimator);
+
+        final table = Evaluator(
+          estimator: estimator,
+          validator: (progression) => progression.length == 20,
+        ).evaluate(contexts, header: estimator.toString());
+
+        await table
+            .toCSV('${directory.path}/${f.context.sanitize()}/$fileName.csv');
+      }
     }
   });
 }

@@ -15,56 +15,70 @@ import '../data_set.dart';
 import '../writer.dart';
 
 abstract class EvaluationAudioDataContextDelegate {
+  const EvaluationAudioDataContextDelegate();
+
+  double? get duration => null;
+
+  double? get offset => null;
+
+  ///ソート用のキー
+  ///交差検証時に扱いやすくするため、任意に定義できるようにしている
   int key(List<String> parts);
 
   String soundSourceName(List<String> parts);
 
   String musicName(List<String> parts);
 
-  String annotationPath(List<String> parts);
+  String annotationPath(List<String> parts) =>
+      'assets/csv/${soundSourceName(parts)}/${musicName(parts)}.csv';
 }
 
-final class KonokiEADCDelegate implements EvaluationAudioDataContextDelegate {
+final class KonokiEADCDelegate extends EvaluationAudioDataContextDelegate {
   const KonokiEADCDelegate();
 
   @override
-  int key(List<String> parts) {
-    final musicIndex = parts.last
-        .split('_')
-        .first;
+  double? get duration => 81;
 
-    return int.parse(musicIndex);
+  @override
+  int key(List<String> parts) {
+    final musicIndex = parts.last.split('_').first;
+    final soundSourceName = this.soundSourceName(parts);
+
+    late final int order;
+    if (soundSourceName.startsWith('Halion_CleanGuitar')) {
+      order = 0;
+    } else if (soundSourceName.startsWith('Halion_CleanStratGuitar')) {
+      order = 1;
+    } else if (soundSourceName.startsWith('Hojo')) {
+      order = 2;
+    } else if (soundSourceName.startsWith('Real')) {
+      order = 3;
+    } else {
+      throw UnimplementedError('$soundSourceName is not handled');
+    }
+
+    return int.parse(musicIndex) * 100 + order;
   }
 
   @override
-  String annotationPath(List<String> parts) =>
-      'assets/csv/${soundSourceName(parts)}/${musicName(parts)}.csv';
+  String musicName(List<String> parts) => parts.last.split('_').first;
 
   @override
-  String musicName(List<String> parts) =>
-      parts.last.substring(0, parts.last.indexOf('.'));
+  String annotationPath(List<String> parts) =>
+      'assets/csv/${soundSourceName(parts)}/${parts.last.substring(0, parts.last.indexOf('.'))}.csv';
 
   @override
   String soundSourceName(List<String> parts) => parts[parts.length - 2];
 }
 
-final class GuitarSetEADCDelegate
-    implements EvaluationAudioDataContextDelegate {
+final class GuitarSetEADCDelegate extends EvaluationAudioDataContextDelegate {
   const GuitarSetEADCDelegate();
-
-  @override
-  String annotationPath(List<String> parts) =>
-      'assets/csv/${soundSourceName(parts)}/${musicName(parts)}.csv';
 
   @override
   int key(List<String> parts) {
     final fileName = parts.last;
-    final numberString = fileName
-        .split('_')
-        .first[1];
-    final kindString = fileName
-        .split('-')
-        .first;
+    final numberString = fileName.split('_').first[1];
+    final kindString = fileName.split('-').first;
     final orderString = kindString[kindString.length - 1];
 
     return int.parse(numberString) * 10 + int.parse(orderString);
@@ -93,11 +107,17 @@ final class EvaluationAudioDataContext
   static final audioLoader = CacheableAudioLoader(sampleRate: 22050);
   static final csvLoader = CacheableCSVLoader();
 
-  static Future<EvaluationAudioDataContext> fromFile(String audioPath,
-      EvaluationAudioDataContextDelegate delegate,) async {
+  static Future<EvaluationAudioDataContext> fromFile(
+    String audioPath,
+    EvaluationAudioDataContextDelegate delegate,
+  ) async {
     final parts = audioPath.split(Platform.pathSeparator);
 
-    final data = await audioLoader.load(audioPath);
+    final data = await audioLoader.load(
+      audioPath,
+      duration: delegate.duration,
+      offset: delegate.offset,
+    );
     final annotation = await csvLoader.load(delegate.annotationPath(parts));
 
     final corrects = <String>[];
@@ -119,10 +139,11 @@ final class EvaluationAudioDataContext
     );
   }
 
-  static Future<List<EvaluationAudioDataContext>> fromFolder(String folderPath,
-      EvaluationAudioDataContextDelegate delegate, {
-        bool Function(String path)? filter,
-      }) async {
+  static Future<List<EvaluationAudioDataContext>> fromFolder(
+    String folderPath,
+    EvaluationAudioDataContextDelegate delegate, {
+    bool Function(String path)? filter,
+  }) async {
     return Future.wait(
       _getFiles(folderPath)
           .where((e) => filter?.call(e) ?? true)
@@ -184,7 +205,8 @@ class Evaluator {
   final ChordEstimable estimator;
   final bool Function(ChordProgression)? validator;
 
-  Table evaluate(Iterable<EvaluationAudioDataContext> contexts, {
+  Table evaluate(
+    Iterable<EvaluationAudioDataContext> contexts, {
     String header = 'no title',
   }) {
     final table = Table.empty([header]);
@@ -214,12 +236,13 @@ class Evaluator {
     return table;
   }
 
-  void _add(Table table,
-      ChordProgression<Chord> progression,
-      String indexLabel,) {
+  void _add(
+    Table table,
+    ChordProgression<Chord> progression,
+    String indexLabel,
+  ) {
     progressionWriter?.call(progression);
-    table.add(progression.toRow()
-      ..insert(0, indexLabel));
+    table.add(progression.toRow()..insert(0, indexLabel));
   }
 }
 
@@ -235,22 +258,23 @@ class HCDFEvaluator {
 
   final ChordEstimable estimator;
 
-  Table evaluate(Iterable<EvaluationAudioDataContext> contexts, {
+  Table evaluate(
+    Iterable<EvaluationAudioDataContext> contexts, {
     String header = 'no title',
   }) {
     final table = Table.empty([header, ...FScore.csvHeader]);
 
     FScore rate = FScore.zero;
     for (final context in contexts) {
-      final correct = context.correct;
-      final predict = estimator.estimate(context.data);
+      final correct = context.correct.simplify();
+      final predict = estimator.estimate(context.data).simplify();
 
       progressionWriter?.call(
-        correct.simplify().toDetailString(),
+        correct.toDetailString(),
         title: 'correct',
       );
       progressionWriter?.call(
-        predict.simplify().toDetailString(),
+        predict.toDetailString(),
         title: 'predict',
       );
 
@@ -268,8 +292,7 @@ class HCDFEvaluator {
   }
 
   void _add(Table table, FScore score, String indexLabel) {
-    table.add(score.toRow()
-      ..insert(0, indexLabel));
+    table.add(score.toRow()..insert(0, indexLabel));
   }
 }
 
@@ -278,12 +301,13 @@ class HCDFVisualizer {
 
   final ChordEstimable estimator;
 
-  Future<void> visualize(EvaluationAudioDataContext context, {
+  Future<void> visualize(
+    EvaluationAudioDataContext context, {
     String? title,
     EstimatorFactoryContext? factoryContext,
   }) async {
-    final correct = context.correct;
-    final predict = estimator.estimate(context.data, false);
+    final correct = context.correct.simplify();
+    final predict = estimator.estimate(context.data, false).simplify();
 
     if (factoryContext != null) {
       if (estimator case final HasChromaList haver) {
@@ -291,12 +315,7 @@ class HCDFVisualizer {
           sampleRate: factoryContext.sampleRate,
           chunkSize: factoryContext.chunkSize,
           chunkStride: factoryContext.chunkStride,
-        ).call(
-          correct.simplify(),
-          predict.simplify(),
-          haver.chromas(),
-          title: title,
-        );
+        ).call(correct, predict, haver.chromas(), title: title);
       } else {
         throw ArgumentError('estimator does not implements HasChromaList');
       }
