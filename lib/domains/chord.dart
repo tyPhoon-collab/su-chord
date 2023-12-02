@@ -14,8 +14,9 @@ typedef Degrees = Iterable<Degree>;
 ///テンションなどはChordクラスで管理する
 ///dim7, m7b5もこちらに含める
 //m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
-//TODO 追加予定
-//omit5
+//TODO ChordOperationを追加する
+//omit5など
+//sus系もOperationで管理する？
 enum ChordType {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
@@ -68,7 +69,7 @@ enum ChordType {
     for (final type in values) {
       if (type.label == label) return type;
     }
-    throw ArgumentError('label is invalid');
+    throw ArgumentError('Invalid label in ChordType $label');
   }
 
   static const triads = [
@@ -114,14 +115,14 @@ enum ChordQuality {
     for (final quality in values) {
       if (quality.label == label) return quality;
     }
-    throw ArgumentError('label is invalid');
+    throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
   factory ChordQuality.fromDegree(Degree degree) {
     for (final quality in values) {
       if (quality.degree == degree) return quality;
     }
-    throw ArgumentError('degree is invalid');
+    throw ArgumentError('Invalid degree $degree');
   }
 
   static const tonicTensions = {
@@ -149,10 +150,49 @@ class ChordQualities extends Iterable<ChordQuality> {
       : assert(values.where((e) => !e.combinable).length <= 1);
 
   factory ChordQualities.parse(String label) {
-    //TODO 全てのQualitiesに対応させる。現在は評価実験に出てくるもののみ
-    if (label.isEmpty) return empty;
-    label = label.replaceAll('add', '');
-    return ChordQualities({ChordQuality.parse(label)});
+    final parts = label.split('add');
+
+    assert(parts.length <= 2);
+
+    final qualities = <ChordQuality>{};
+
+    qualities.addAll(
+      switch (parts[0]) {
+        '' => [],
+        '9' => [ChordQuality.seventh, ChordQuality.ninth],
+        '11' => [
+            ChordQuality.seventh,
+            ChordQuality.ninth,
+            ChordQuality.eleventh
+          ],
+        '13' => [
+            ChordQuality.seventh,
+            ChordQuality.ninth,
+            ChordQuality.eleventh,
+            ChordQuality.thirteenth
+          ],
+        'M9' => [ChordQuality.majorSeventh, ChordQuality.ninth],
+        'M11' => [
+            ChordQuality.majorSeventh,
+            ChordQuality.ninth,
+            ChordQuality.eleventh
+          ],
+        'M13' => [
+            ChordQuality.majorSeventh,
+            ChordQuality.ninth,
+            ChordQuality.eleventh,
+            ChordQuality.thirteenth
+          ],
+        _ => [ChordQuality.parse(parts[0])],
+      },
+    );
+    if (parts.length == 2) {
+      qualities.addAll(parts[1]
+          .split(',')
+          .where((e) => e.isNotEmpty)
+          .map(ChordQuality.parse));
+    }
+    return ChordQualities(qualities);
   }
 
   static ChordQualities? fromTypeAndNotes({
@@ -217,7 +257,7 @@ class ChordBase<T> implements Transposable<T> {
   factory ChordBase.parse(String chord) {
     //TODO 全てに対応できるようにする
     final exp = RegExp(
-        r'^((?:m|dim7|dim|aug|m7b5)?)((?:6|7|M7)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
+        r'^((?:m|dim7|dim|aug|m7b5)?)((?:6|7|9|11|13|M7|M9|M11|M13)?)((?:sus4|sus2)?)((?:add9|aad11|add13)?)$');
     final match = exp.firstMatch(chord);
 
     if (match == null) throw ArgumentError('invalid in ChordBase: $chord');

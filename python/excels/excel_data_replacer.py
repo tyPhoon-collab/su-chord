@@ -61,7 +61,8 @@ class ExcelDataReplacer:
                 cell.value = value
 
     def write(self, output_path: str) -> None:
-        assert output_path.endswith(".xlsx")
+        if not output_path.endswith(".xlsx"):
+            raise ValueError(f"Invalid output path: {output_path}")
 
         wb = self._get_workbook(output_path)
         ws: Worksheet = wb["Sheet1"]
