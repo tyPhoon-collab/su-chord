@@ -4,13 +4,14 @@ import hashlib
 import librosa
 import matplotlib.pyplot as plt
 import pandas as pd
+from args import output
 from matplotlib.axes import Axes
 from matplotlib.collections import BrokenBarHCollection
 from matplotlib.colors import Colormap
 
-from args import output
-
-BAR_HEIGHT = 4
+__BAR_HEIGHT = 3
+__FIG_SIZE = (16, 8)
+__BAR_OFFSET = __BAR_HEIGHT + 2
 
 
 def __str_to_color(string: str, cmap: Colormap | None = None) -> tuple[float, float, float, float]:
@@ -74,10 +75,12 @@ parser.add_argument("--title", type=str, help="Title for the plot")
 parser.add_argument("--output", type=str, help="Output file path")
 args = parser.parse_args()
 
-plt.figure(figsize=(16, 8))
+plt.figure(figsize=__FIG_SIZE)
 
 correct_df = pd.read_csv(args.correct_path)
 predict_df = pd.read_csv(args.predict_path)
+
+as_suptitle = False
 
 if args.chromas_path:
     if args.sample_rate is None or args.win_length is None or args.hop_length is None:
@@ -94,20 +97,22 @@ if args.chromas_path:
         ax=ax_top,
     )
 
-    __plt_bar(correct_df, (6, BAR_HEIGHT), ax=ax_bottom)
-    __plt_bar(predict_df, (0, BAR_HEIGHT), ax=ax_bottom)
+    __plt_bar(correct_df, (__BAR_OFFSET, __BAR_HEIGHT), ax=ax_bottom)
+    __plt_bar(predict_df, (0, __BAR_HEIGHT), ax=ax_bottom)
 
     ax_bottom.sharex(ax_top)
 
+    as_suptitle = True
+
 else:
-    __plt_bar(correct_df, (6, BAR_HEIGHT))
-    __plt_bar(predict_df, (0, BAR_HEIGHT))
+    __plt_bar(correct_df, (__BAR_OFFSET, __BAR_HEIGHT))
+    __plt_bar(predict_df, (0, __BAR_HEIGHT))
 
 plt.yticks(
-    [0 + BAR_HEIGHT / 2, 6 + BAR_HEIGHT / 2],
+    [0 + __BAR_HEIGHT / 2, __BAR_OFFSET + __BAR_HEIGHT / 2],
     labels=["predict", "correct"],
 )
 
 plt.subplots_adjust(left=0.05, right=0.95)
 
-output(args)
+output(args, as_suptitle)

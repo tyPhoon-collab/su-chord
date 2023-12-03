@@ -21,9 +21,13 @@ def set_y_limit(args: Namespace) -> None:
         plt.ylim(top=args.y_max)
 
 
-def output(args: Namespace) -> None:
-    if args.title:
-        plt.title(args.title)
+def output(args: Namespace, as_suptitle: bool = False) -> None:
+    title = args.title
+    if title:
+        if as_suptitle:
+            plt.suptitle(title)
+        else:
+            plt.title(title)
 
     if args.output:
         plt.savefig(args.output)

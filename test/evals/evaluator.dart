@@ -12,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../data_set.dart';
+import '../util.dart';
 import '../writer.dart';
 
 abstract class EvaluationAudioDataContextDelegate {
@@ -106,6 +107,8 @@ final class EvaluationAudioDataContext
 
   static final audioLoader = CacheableAudioLoader(sampleRate: 22050);
   static final csvLoader = CacheableCSVLoader();
+
+  String get fileName => '$musicName $soundSourceName'.sanitize();
 
   static Future<EvaluationAudioDataContext> fromFile(
     String audioPath,

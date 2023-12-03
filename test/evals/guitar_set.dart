@@ -26,7 +26,8 @@ void main() {
         'assets/evals/3371780/audio_mono-mic',
         const GuitarSetEADCDelegate(),
         filter: (path) => path.contains('comp'),
-        // filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),  //デバッグ用、一曲のみロードする
+        // filter: (path) =>
+        //     path.contains('00_BN1-129-Eb_comp_mic.wav'), //デバッグ用、一曲のみロードする
       ),
     ];
   });
@@ -50,12 +51,13 @@ void main() {
   test('visualize', () async {
     Table.bypass = false;
 
-    logTest(contexts.length);
+    logTest(contexts.length, title: 'CONTEXT LENGTH');
 
     for (final context in contexts) {
       await HCDFVisualizer(estimator: base).visualize(
         context,
         factoryContext: f.context,
+        title: context.fileName,
       );
     }
   });
