@@ -153,7 +153,7 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
     num? yMax,
   }) async =>
       runWithTempCSVFile(
-        Table(data.map((e) => e.map((e) => e.toString()).toList()).toList()),
+        Table.fromMatrix(data),
         (filePath) => Process.run(
           _python,
           [
@@ -178,7 +178,7 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
 
   Future<void> call(Iterable<Point> data, {String? title}) async =>
       runWithTempCSVFile(
-        data.toTable(),
+        Table.fromPoints(data),
         (filePath) => Process.run(
           _python,
           [
@@ -200,7 +200,7 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
     String? title,
   }) async =>
       runWithTempCSVFile(
-        data.toTable(),
+        Table.fromPoints(data),
         (filePath) => Process.run(
           _python,
           [
@@ -317,15 +317,4 @@ void _debugPrintIfNotEmpty(dynamic output) {
   if (output is String && output.isNotEmpty) {
     debugPrint(output);
   }
-}
-
-extension _PointsToTable on Iterable<Point> {
-  Table toTable() => Table(
-        map((e) => [
-              e.x.toString(),
-              e.y.toString(),
-              e.weight.toString(),
-            ]).toList(),
-        header: ['x', 'y', 'c'],
-      );
 }

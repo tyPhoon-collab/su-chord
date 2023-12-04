@@ -78,7 +78,7 @@ Future<void> main() async {
         chordChangeDetectable: f.hcdf.eval,
       );
       final progress = estimator.estimate(await DataSet().sample);
-      debugPrint('deltaTime: ${f.context.dt}');
+      debugPrint('deltaTime: ${f.context.deltaTime}');
       debugPrint(progress.toDetailString());
       expect(progress.length, 20);
     });
@@ -143,7 +143,7 @@ Future<void> main() async {
         chromaCalculable: f.guitar.reassignCombFilter(),
         chordChangeDetectable: f.hcdf.frame(20),
         filters: [
-          GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+          GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
         ],
       );
       final progression = estimator.estimate(await DataSet().sample);

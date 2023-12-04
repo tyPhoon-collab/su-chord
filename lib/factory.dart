@@ -48,7 +48,9 @@ final class EstimatorFactoryContext {
 
   int get _chunkStride => chunkStride == 0 ? chunkSize : chunkStride;
 
-  double get dt => _chunkStride / sampleRate;
+  double get deltaTime => _chunkStride / sampleRate;
+
+  double get deltaFrequency => sampleRate / chunkSize;
 
   @override
   String toString() =>
@@ -211,7 +213,7 @@ final class HCDFFactory {
       );
 
   ChromaChordChangeDetectable interval(Duration duration) =>
-      IntervalChordChangeDetector(interval: duration, dt: context.dt);
+      IntervalChordChangeDetector(interval: duration, dt: context.deltaTime);
 }
 
 final class ChordSelectorFactory {

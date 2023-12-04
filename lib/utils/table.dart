@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 
+import 'histogram.dart';
+
 typedef Row = List<String>;
 typedef Header = Row;
 
@@ -9,6 +11,19 @@ class Table extends Iterable<Row> {
   const Table(this._values, {this.header});
 
   Table.empty(this.header) : _values = [];
+
+  Table.fromMatrix(Iterable<Iterable<num>> data, {this.header})
+      : _values = data.map((e) => e.map((e) => e.toString()).toList()).toList();
+
+  Table.fromPoints(Iterable<Point> points)
+      : header = ['x', 'y', 'c'],
+        _values = points
+            .map((e) => [
+                  e.x.toString(),
+                  e.y.toString(),
+                  e.weight.toString(),
+                ])
+            .toList();
 
   static bool bypass = false;
 

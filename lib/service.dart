@@ -86,7 +86,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chromaCalculable: f.guitar.reassignment(),
           chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 40),
           filters: [
-            GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+            GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
           ],
           templateScalar: HarmonicsChromaScalar(until: 6),
           templates: detectableChords,

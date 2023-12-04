@@ -65,8 +65,8 @@ void main() {
       test('spotting', () async {
         final f = factory4096_0;
         final data = await const SimpleAudioLoader(
-            path:
-            'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
+                path:
+                    'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
             .load(sampleRate: 22050);
 
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
@@ -80,8 +80,8 @@ void main() {
       test('spot compare', () async {
         final factories = [factory8192_0, factory4096_0];
         final data = await const SimpleAudioLoader(
-            path:
-            'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
+                path:
+                    'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
             .load(
           sampleRate: 22050,
           duration: 4.1,
@@ -124,9 +124,7 @@ void main() {
               final chord = Chord.parse('C');
 
               await writer(
-                HarmonicsChromaScalar()
-                    .call(chord.unitPCP)
-                    .l2normalized,
+                HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
                 title: '4 harmonics scaled template of $chord',
               );
             });
@@ -214,7 +212,7 @@ void main() {
       ).reassign(await DataSet().G);
       await writer(
         points,
-        xBin: List.generate(mags.length, (i) => i * f.context.dt),
+        xBin: List.generate(mags.length, (i) => i * f.context.deltaTime),
         yBin: ChromaContext.guitar.toEqualTemperamentBin(),
         title: 'parts of reassignment',
       );
@@ -243,8 +241,7 @@ void main() {
       ];
 
       await Future.wait(
-        estimators.map((e) async =>
-            writer(
+        estimators.map((e) async => writer(
               e.call(await DataSet().G_Em_Bm_C),
               title: 'chromagram $e ${f.context}',
             )),
@@ -267,7 +264,7 @@ void main() {
         await writer(chromas, title: 'chromagram threshold');
       });
       test('gaussian', () async {
-        final filter = GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt);
+        final filter = GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime);
         final chromas = filter(f.guitar
             .reassignment(scalar: MagnitudeScalar.ln)
             .call(await DataSet().G_Em_Bm_C));
@@ -275,14 +272,14 @@ void main() {
       });
       test('multi', () async {
         final filters = [
-          GaussianFilter.dt(stdDev: 0.5, dt: f.context.dt),
+          GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
           const ThresholdFilter(30),
         ];
         final chromas = filters.fold(
           f.guitar
               .reassignment(scalar: MagnitudeScalar.ln)
               .call(await DataSet().G_Em_Bm_C),
-              (value, filter) => filter(value),
+          (value, filter) => filter(value),
         );
         await writer(chromas, title: 'chromagram multi');
       });
@@ -295,14 +292,15 @@ void main() {
     group('HCDF', () {
       final f = factory4096_0;
 
-      (List<double> time, List<double> score) getScore(List<Chroma> chroma,
-          ScoreCalculator scoreCalculator, {
-            double? nanTo,
-            double Function(double)? mapper,
-          }) {
+      (List<double> time, List<double> score) getScore(
+        List<Chroma> chroma,
+        ScoreCalculator scoreCalculator, {
+        double? nanTo,
+        double Function(double)? mapper,
+      }) {
         Iterable<double> scores = List.generate(
           chroma.length - 1,
-              (i) => scoreCalculator(chroma[i + 1], chroma[i]),
+          (i) => scoreCalculator(chroma[i + 1], chroma[i]),
         );
 
         if (nanTo != null) {
@@ -312,8 +310,8 @@ void main() {
           scores = scores.map(mapper);
         }
 
-        final times =
-        List.generate(chroma.length - 1, (i) => f.context.dt * (i + 1));
+        final times = List.generate(
+            chroma.length - 1, (i) => f.context.deltaTime * (i + 1));
 
         return (times, scores.toList());
       }
@@ -347,7 +345,7 @@ void main() {
         test('tonal interval vector', () async {
           final chroma = cc(await DataSet().sampleSilent);
           const scoreCalculator =
-          ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+              ScoreCalculator.cosine(ToTonalIntervalVector.musical());
 
           final score = getScore(
             chroma,
@@ -371,7 +369,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-                (index) => calc.frequency(index, f.context.sampleRate),
+            (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS A',
@@ -387,7 +385,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-                (index) => calc.frequency(index, f.context.sampleRate),
+            (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS B',
@@ -403,7 +401,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-                (index) => calc.frequency(index, f.context.sampleRate),
+            (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS C',
@@ -419,7 +417,7 @@ void main() {
         await writer(
           List.generate(
             ltas.length,
-                (index) => calc.frequency(index, f.context.sampleRate),
+            (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS D',
