@@ -62,19 +62,32 @@ void main() {
         ]);
       });
 
-      test('spotting', () async {
-        final f = factory4096_0;
-        final data = await const SimpleAudioLoader(
-                path:
-                    'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav')
-            .load(sampleRate: 22050);
+      group('spotting', () {
+        Future<void> plotSpot(String path, int index, {String? title}) async {
+          final data =
+              await SimpleAudioLoader(path: path).load(sampleRate: 22050);
 
-        final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
+          final cc =
+              factory4096_0.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
-        await writer(
-          average(cc(data.cutEvaluationAudioByIndex(10))).first.l2normalized,
-          title: '12-Dadd9',
-        );
+          await writer(
+            average(cc(data.cutEvaluationAudioByIndex(index)))
+                .first
+                .l2normalized,
+            title: title,
+          );
+        }
+
+        test('12 A Dadd9', () async {
+          await plotSpot(
+            'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav',
+            10,
+          );
+        });
+
+        test('11 D Cadd9', () async {
+          await plotSpot('assets/evals/HojoGuitar/11_Hojo.wav', 1);
+        });
       });
 
       test('spot compare', () async {
