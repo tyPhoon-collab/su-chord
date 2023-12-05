@@ -141,7 +141,7 @@ class TriadChordChangeDetector implements ChromaChordChangeDetectable {
   });
 
   final _templates = [
-    for (final root in Note.values)
+    for (final root in Note.sharpNotes)
       for (final type in ChordType.triads)
         Chord.fromType(type: type, root: root)
   ];

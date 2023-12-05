@@ -6,7 +6,6 @@ import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
-typedef Notes = Iterable<Note>;
 typedef Degree = int;
 typedef Degrees = Iterable<Degree>;
 
@@ -88,7 +87,7 @@ enum ChordType {
   bool validate(ChordQualities qualities) =>
       qualities.every((e) => availableTensions.contains(e));
 
-  Notes toNotes(Note root) => degrees.map((i) => root.transpose(i));
+  Notes toNotes(Note root) => degrees.map((i) => root.transpose(i)).toList();
 }
 
 ///コードタイプに追加で付与されうる音

@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 
 import '../utils/histogram.dart';
 
+typedef Notes = List<Note>;
+
 abstract interface class Transposable<T> {
   T transpose(int degree);
 }
@@ -132,22 +134,45 @@ enum DegreeName implements Transposable<DegreeName> {
 
 enum NaturalNote { C, D, E, F, G, A, B }
 
-//TODO フラットを追加する
+/// Note
+/// Do not use values, index. It will be nonintuitive
 enum Note implements Transposable<Note> {
-  C(naturalNote: NaturalNote.C),
-  Cs(naturalNote: NaturalNote.C, accidental: Accidental.sharp),
-  D(naturalNote: NaturalNote.D),
-  Ds(naturalNote: NaturalNote.D, accidental: Accidental.sharp),
-  E(naturalNote: NaturalNote.E),
-  F(naturalNote: NaturalNote.F),
-  Fs(naturalNote: NaturalNote.F, accidental: Accidental.sharp),
-  G(naturalNote: NaturalNote.G),
-  Gs(naturalNote: NaturalNote.G, accidental: Accidental.sharp),
-  A(naturalNote: NaturalNote.A),
-  As(naturalNote: NaturalNote.A, accidental: Accidental.sharp),
-  B(naturalNote: NaturalNote.B);
+  Bs.sharp(NaturalNote.B, 0),
+  C.natural(NaturalNote.C, 0),
+  Cs.sharp(NaturalNote.C, 1),
+  Db.flat(NaturalNote.D, 1),
+  D.natural(NaturalNote.D, 2),
+  Ds.sharp(NaturalNote.D, 3),
+  Eb.flat(NaturalNote.E, 3),
+  E.natural(NaturalNote.E, 4),
+  Es.sharp(NaturalNote.E, 5),
+  Fb.flat(NaturalNote.F, 4),
+  F.natural(NaturalNote.F, 5),
+  Fs.sharp(NaturalNote.F, 6),
+  Gb.flat(NaturalNote.G, 6),
+  G.natural(NaturalNote.G, 7),
+  Gs.sharp(NaturalNote.G, 8),
+  Ab.flat(NaturalNote.A, 8),
+  A.natural(NaturalNote.A, 9),
+  As.sharp(NaturalNote.A, 10),
+  Bb.flat(NaturalNote.B, 10),
+  B.natural(NaturalNote.B, 11),
+  Cb.flat(NaturalNote.C, 11);
 
-  const Note({required this.naturalNote, this.accidental = Accidental.natural});
+  const Note({
+    required this.naturalNote,
+    required this.accidental,
+    required this.noteIndex,
+  });
+
+  const Note.natural(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.natural;
+
+  const Note.sharp(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.sharp;
+
+  const Note.flat(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.flat;
 
   factory Note.parse(String label) {
     for (final note in values) {
@@ -156,13 +181,15 @@ enum Note implements Transposable<Note> {
     throw ArgumentError();
   }
 
-  factory Note.fromIndex(int index) {
-    assert(index < 12);
-    return values[index];
-  }
-
   final NaturalNote naturalNote;
   final Accidental accidental;
+  final int noteIndex;
+
+  static Notes sharpNotes = const [C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B];
+
+  static Notes flatNotes = const [C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B];
+
+  static int length = 12;
 
   @override
   String toString() => naturalNote.name + accidental.label;
@@ -171,21 +198,44 @@ enum Note implements Transposable<Note> {
   ///ex)
   ///Note.C.to(2) -> Note.D
   @override
-  Note transpose(int degree) =>
-      Note.fromIndex((index + degree) % Note.values.length);
+  Note transpose(int degree) => Note.sharpNotes[(noteIndex + degree) % length];
 
   ///度数の差。一般にCが基準であるため、それに準拠
   ///1オクターブで見た時の差とし、音高が高い方が正とする
   ///ex)
   ///D -> A = 7
   ///D -> C = -2
-  int degreeTo(Note other) => other.index - index;
+  int degreeTo(Note other) => other.noteIndex - noteIndex;
+
+  Note toSharp() => switch (accidental) {
+        Accidental.natural || Accidental.sharp => this,
+        Accidental.flat => sharpNotes[noteIndex],
+      };
+
+  Note toFlat() => switch (accidental) {
+        Accidental.natural || Accidental.flat => this,
+        Accidental.sharp => flatNotes[noteIndex],
+      };
 
   ///負の場合、+12するdegreeTo
   int positiveDegreeTo(Note other) {
     final degree = degreeTo(other);
-    return degree.isNegative ? 12 + degree : degree;
+    return degree.isNegative ? length + degree : degree;
   }
+}
+
+enum Degree {
+  P1,
+  m2,
+  M2,
+  m3,
+  M3,
+  P4,
+  d5,
+  P5,
+  M6,
+  m7,
+  M7;
 }
 
 /// 範囲は lowest.hz <= x <= highest.hz

@@ -416,7 +416,7 @@ void main() {
             chord: Chord.D,
             time: const Time(3, 5),
           )),
-          FScore.zero,
+          FScore(0, 2, 0),
         );
       });
     });

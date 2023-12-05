@@ -51,7 +51,7 @@ class DetectableChords extends _$DetectableChords {
 
   static Set<Chord> _fromQualities(Set<String> qualities) {
     return Set.unmodifiable([
-      for (final root in Note.values)
+      for (final root in Note.sharpNotes)
         for (final quality in qualities) Chord.parse('$root$quality')
     ]);
   }

@@ -16,6 +16,20 @@ void main() {
       expect(Note.C.transpose(-3), Note.A);
     });
 
+    group('to', () {
+      group('to sharp', () {
+        test('natural', () => expect(Note.C.toSharp(), Note.C));
+        test('flat', () => expect(Note.Cb.toSharp(), Note.B));
+        test('sharp', () => expect(Note.Cs.toSharp(), Note.Cs));
+      });
+
+      group('to flat', () {
+        test('natural', () => expect(Note.C.toFlat(), Note.C));
+        test('flat', () => expect(Note.Cb.toFlat(), Note.Cb));
+        test('sharp', () => expect(Note.Cs.toFlat(), Note.Db));
+      });
+    });
+
     group('degree', () {
       test('C to G is 7', () {
         const note = Note.C;
