@@ -14,23 +14,26 @@ abstract interface class CSVLoader {
     const path = 'assets/csv/chord_progression.csv';
     return (kIsWeb || Platform.isIOS || Platform.isAndroid)
         ? const FlutterCSVLoader(path: path)
-        : const SimpleCSVLoader(path: path);
+        : const SimpleCSVLoader(path: path, eol: '\r\n');
   }
 
-  static const corrects =
-      SimpleCSVLoader(path: 'assets/csv/correct_only_sharp.csv');
+  static const corrects = SimpleCSVLoader(
+    path: 'assets/csv/correct_only_sharp.csv',
+    eol: '\r\n',
+  );
 }
 
 final class SimpleCSVLoader implements CSVLoader {
   const SimpleCSVLoader({
     required this.path,
+    this.eol = '\n',
     this.converter,
   });
 
   final String path;
   final Converter<List<int>, String>? converter;
 
-  // final String eol;
+  final String eol;
 
   Converter<List<int>, String> get _converter => converter ?? utf8.decoder;
 
@@ -39,7 +42,7 @@ final class SimpleCSVLoader implements CSVLoader {
     final input = File(path).openRead();
     final csv = await input
         .transform(_converter)
-        .transform(const CsvToListConverter(eol: '\n'))
+        .transform(CsvToListConverter(eol: eol))
         .toList();
 
     return csv;

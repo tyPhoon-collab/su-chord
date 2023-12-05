@@ -113,7 +113,9 @@ class OsawaDataSet {
   final CacheableAudioLoader _loader;
 
   // ignore: non_constant_identifier_names
-  Future<AudioData> get C3 => _loader.load('assets/evals/guitar_note_c3.wav');
+  Future<AudioData> get C3 =>
+      _loader.load('assets/evals/osawa/guitar_note_c3.wav');
 
-  Future<AudioData> get C => _loader.load('assets/evals/guitar_normal_c.wav');
+  Future<AudioData> get C =>
+      _loader.load('assets/evals/osawa/guitar_normal_c.wav');
 }

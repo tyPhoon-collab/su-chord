@@ -5,12 +5,12 @@ import 'package:fftea/fftea.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../data_set.dart';
 import '../util.dart';
 
 void main() {
   test('stft', () async {
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    final data = await loader.load();
+    final data = await DataSet().osawa.C;
 
     const chunkSize = 2048;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));
@@ -26,8 +26,7 @@ void main() {
   // 音階ごとの周波数
   // https://tomari.org/main/java/oto.html
   test('stft one note', () async {
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_note_c3.wav');
-    final data = await loader.load();
+    final data = await DataSet().osawa.C3;
 
     const chunkSize = 2048;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));
@@ -49,8 +48,7 @@ void main() {
   });
 
   test('stft comb filter', () async {
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
-    final data = await loader.load();
+    final data = await DataSet().osawa.C;
 
     const chunkSize = 2048;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));
@@ -66,7 +64,7 @@ void main() {
   test('stft stream', () async {
     const chunkSize = 10000;
     final stft = STFT(chunkSize, Window.hanning(chunkSize));
-    final data = await AudioLoader.sample.load();
+    final data = await AudioLoader.sample.load(duration: 2);
 
     void callback(Float64x2List freq) {
       debugPrint(freq.length.toString());
