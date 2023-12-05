@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 
 import '../utils/histogram.dart';
 import '../utils/table.dart';
-import 'chord.dart';
 import 'equal_temperament.dart';
 
 typedef Magnitude = List<double>;
@@ -111,7 +110,7 @@ class PCP extends Chroma {
   factory PCP.fromNotes(Notes notes) {
     final values = List.filled(12, 0.0);
 
-    final indexes = notes.map((e) => Note.C.degreeTo(e));
+    final indexes = notes.map((e) => Note.C.degreeIndexTo(e));
     for (final i in indexes) {
       values[i] = 1;
     }

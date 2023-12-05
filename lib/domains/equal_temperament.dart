@@ -9,11 +9,16 @@ import '../utils/histogram.dart';
 typedef Notes = List<Note>;
 
 abstract interface class Transposable<T> {
-  T transpose(int degree);
+  T transpose(int degreeIndex);
+}
+
+abstract interface class DegreeIndex<T> {
+  int degreeIndexTo(T other);
 }
 
 @immutable
-class MusicalScale implements Transposable<MusicalScale> {
+class MusicalScale
+    implements Transposable<MusicalScale>, DegreeIndex<MusicalScale> {
   const MusicalScale(this.note, this.pitch);
 
   static const A0 = MusicalScale(Note.A, 0);
@@ -26,7 +31,7 @@ class MusicalScale implements Transposable<MusicalScale> {
   static List<double> hzList(MusicalScale lowest, MusicalScale highest) {
     final hz = lowest.toHz();
     return List.generate(
-      lowest.degreeTo(highest) + 1,
+      lowest.degreeIndexTo(highest) + 1,
       (i) => hz * pow(ratio, i),
     );
   }
@@ -40,8 +45,8 @@ class MusicalScale implements Transposable<MusicalScale> {
     if (degree == 0) return this;
 
     final newNote = note.transpose(degree);
-    var newPitch = pitch + degree ~/ 12;
-    final noteDegreeTo = note.degreeTo(newNote);
+    var newPitch = pitch + degree ~/ Note.length;
+    final noteDegreeTo = note.degreeIndexTo(newNote);
     if (degree > 0 && noteDegreeTo.isNegative) {
       newPitch += 1;
     } else if (degree.isNegative && noteDegreeTo > 0) {
@@ -68,10 +73,11 @@ class MusicalScale implements Transposable<MusicalScale> {
   ///ex)
   ///A0 -> C1 = 3
   ///C3 -> C4 = 12
-  int degreeTo(MusicalScale other) =>
-      note.degreeTo(other.note) + 12 * (other.pitch - pitch);
+  @override
+  int degreeIndexTo(MusicalScale other) =>
+      note.degreeIndexTo(other.note) + Note.length * (other.pitch - pitch);
 
-  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
+  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeIndexTo(this));
 }
 
 enum Accidental {
@@ -85,8 +91,7 @@ enum Accidental {
 }
 
 //ディグリーネームにおいて、シャープの表記は一般的でない
-//またかなり適当な実装なので、後でなんとかする
-//TODO シャープの実装（Noteと共通化）
+//適当な実装なので、後でなんとかする
 enum DegreeName implements Transposable<DegreeName> {
   I(label: 'I'),
   bII(label: 'bII'),
@@ -136,7 +141,7 @@ enum NaturalNote { C, D, E, F, G, A, B }
 
 /// Note
 /// Do not use values, index. It will be nonintuitive
-enum Note implements Transposable<Note> {
+enum Note implements Transposable<Note>, DegreeIndex<Note> {
   Bs.sharp(NaturalNote.B, 0),
   C.natural(NaturalNote.C, 0),
   Cs.sharp(NaturalNote.C, 1),
@@ -205,7 +210,14 @@ enum Note implements Transposable<Note> {
   ///ex)
   ///D -> A = 7
   ///D -> C = -2
-  int degreeTo(Note other) => other.noteIndex - noteIndex;
+  @override
+  int degreeIndexTo(Note other) => other.noteIndex - noteIndex;
+
+  ///負の場合、+12する
+  int positiveDegreeIndexTo(Note other) {
+    final degree = degreeIndexTo(other);
+    return degree.isNegative ? length + degree : degree;
+  }
 
   Note toSharp() => switch (accidental) {
         Accidental.natural || Accidental.sharp => this,
@@ -216,26 +228,37 @@ enum Note implements Transposable<Note> {
         Accidental.natural || Accidental.flat => this,
         Accidental.sharp => flatNotes[noteIndex],
       };
-
-  ///負の場合、+12するdegreeTo
-  int positiveDegreeTo(Note other) {
-    final degree = degreeTo(other);
-    return degree.isNegative ? length + degree : degree;
-  }
 }
 
-enum Degree {
-  P1,
-  m2,
-  M2,
-  m3,
-  M3,
-  P4,
-  d5,
-  P5,
-  M6,
-  m7,
-  M7;
+///名前がついている有名な音程のみを列挙する
+///他の音程はintを用いて表すことにする
+///特にChordType、ChordQualitiesに用いる
+enum NamedDegree {
+  P1(0),
+  m2(1),
+  M2(2),
+  m3(3),
+  M3(4),
+  P4(5),
+  aug4(6),
+  dim5(6),
+  P5(7),
+  aug5(8),
+  m6(8),
+  M6(9),
+  m7(10),
+  M7(11),
+  b9(13),
+  M9(14),
+  s9(15),
+  M11(17),
+  s11(18),
+  b13(20),
+  M13(21);
+
+  const NamedDegree(this.degreeIndex);
+
+  final int degreeIndex;
 }
 
 /// 範囲は lowest.hz <= x <= highest.hz

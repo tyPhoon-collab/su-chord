@@ -6,33 +6,34 @@ import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
-typedef Degree = int;
-typedef Degrees = Iterable<Degree>;
+typedef Degrees = Iterable<NamedDegree>;
 
 ///基本的なコードタイプ
 ///テンションなどはChordクラスで管理する
 ///dim7, m7b5もこちらに含める
 //m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
 //TODO ChordOperationを追加する
-//omit5など
-//sus系もOperationで管理する？
+//omit系
 enum ChordType {
-  //0  1 2  3 4 5  6 7  8 9 10 11
-  //C C# D D# E F F# G G# A A# B
-  major(degrees: [0, 4, 7], label: ''),
+  major([_r, NamedDegree.M3, NamedDegree.P5], label: ''),
   minor(
-    degrees: [0, 3, 7],
+    [_r, NamedDegree.m3, NamedDegree.P5],
     label: 'm',
     availableTensions: {
       ...ChordQuality.normalTensions,
       ...ChordQuality.tonicTensions
     },
   ),
-  diminish(degrees: [0, 3, 6], label: 'dim', availableTensions: {}),
-  diminish7(degrees: [0, 3, 6, 9], label: 'dim7', availableTensions: {}),
-  augment(degrees: [0, 4, 8], label: 'aug'),
+  diminish([_r, NamedDegree.m3, NamedDegree.dim5],
+      label: 'dim', availableTensions: {}),
+  diminish7(
+    [_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.M6],
+    label: 'dim7',
+    availableTensions: {},
+  ),
+  augment([_r, NamedDegree.M3, NamedDegree.aug5], label: 'aug'),
   sus2(
-    degrees: [0, 2, 7],
+    [_r, NamedDegree.M2, NamedDegree.P5],
     label: 'sus2',
     availableTensions: {
       ...ChordQuality.normalTensions,
@@ -42,7 +43,7 @@ enum ChordType {
     isOperation: true,
   ),
   sus4(
-    degrees: [0, 5, 7],
+    [_r, NamedDegree.P4, NamedDegree.P5],
     label: 'sus4',
     availableTensions: {
       ...ChordQuality.normalTensions,
@@ -52,13 +53,13 @@ enum ChordType {
     isOperation: true,
   ),
   minorSeventhFlatFive(
-    degrees: [0, 3, 6, 10],
+    [_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.m7],
     label: 'm7b5',
     availableTensions: ChordQuality.tonicTensions,
   );
 
-  const ChordType({
-    required this.degrees,
+  const ChordType(
+    this.degrees, {
     required this.label,
     this.availableTensions = const {...ChordQuality.values},
     this.isOperation = false,
@@ -70,6 +71,8 @@ enum ChordType {
     }
     throw ArgumentError('Invalid label in ChordType $label');
   }
+
+  static const _r = NamedDegree.P1; //root alias
 
   static const triads = [
     major,
@@ -87,7 +90,8 @@ enum ChordType {
   bool validate(ChordQualities qualities) =>
       qualities.every((e) => availableTensions.contains(e));
 
-  Notes toNotes(Note root) => degrees.map((i) => root.transpose(i)).toList();
+  Notes toNotes(Note root) =>
+      degrees.map((d) => root.transpose(d.degreeIndex)).toList();
 }
 
 ///コードタイプに追加で付与されうる音
@@ -96,19 +100,22 @@ enum ChordType {
 enum ChordQuality {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
-  sixth(degree: 9, label: '6', combinable: false),
-  seventh(degree: 10, label: '7', combinable: false),
-  majorSeventh(degree: 11, label: 'M7', combinable: false),
-  flatNinth(degree: 13, label: 'b9'),
-  ninth(degree: 14, label: '9'),
-  sharpNinth(degree: 15, label: '#9'),
-  eleventh(degree: 17, label: '11'),
-  sharpEleventh(degree: 18, label: '#11'),
-  flatThirteenth(degree: 20, label: 'b13'),
-  thirteenth(degree: 21, label: '13');
+  sixth(NamedDegree.M6, label: '6', combinable: false),
+  seventh(NamedDegree.m7, label: '7', combinable: false),
+  majorSeventh(NamedDegree.M7, label: 'M7', combinable: false),
+  flatNinth(NamedDegree.b9, label: 'b9'),
+  ninth(NamedDegree.M9, label: '9'),
+  sharpNinth(NamedDegree.s9, label: '#9'),
+  eleventh(NamedDegree.M11, label: '11'),
+  sharpEleventh(NamedDegree.s11, label: '#11'),
+  flatThirteenth(NamedDegree.b13, label: 'b13'),
+  thirteenth(NamedDegree.M13, label: '13');
 
   const ChordQuality(
-      {required this.degree, required this.label, this.combinable = true});
+    this.degree, {
+    required this.label,
+    this.combinable = true,
+  });
 
   factory ChordQuality.parse(String label) {
     for (final quality in values) {
@@ -117,11 +124,11 @@ enum ChordQuality {
     throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
-  factory ChordQuality.fromDegree(Degree degree) {
+  factory ChordQuality.fromDegreeIndex(int degreeIndex) {
     for (final quality in values) {
-      if (quality.degree == degree) return quality;
+      if (quality.degree.degreeIndex == degreeIndex) return quality;
     }
-    throw ArgumentError('Invalid degree $degree');
+    throw ArgumentError('Invalid degree $degreeIndex');
   }
 
   static const tonicTensions = {
@@ -136,11 +143,11 @@ enum ChordQuality {
     ChordQuality.majorSeventh,
   };
 
-  final Degree degree;
+  final NamedDegree degree;
   final String label;
   final bool combinable;
 
-  Note toNote(Note root) => root.transpose(degree);
+  Note toNote(Note root) => root.transpose(degree.degreeIndex);
 }
 
 @immutable
@@ -200,10 +207,10 @@ class ChordQualities extends Iterable<ChordQuality> {
     required Notes notes,
   }) {
     try {
-      final indexes = notes.map((e) => root.positiveDegreeTo(e)).toSet()
-        ..removeAll(type.degrees);
+      final indexes = notes.map((e) => root.positiveDegreeIndexTo(e)).toSet()
+        ..removeAll(type.degrees.map((e) => e.degreeIndex).toSet());
       final degrees = indexes.map((e) => e < 9 ? e + 12 : e);
-      final values = degrees.map(ChordQuality.fromDegree).toSet();
+      final values = degrees.map(ChordQuality.fromDegreeIndex).toSet();
       return ChordQualities(values);
     } catch (e) {
       return null;
@@ -383,8 +390,8 @@ class Chord extends ChordBase<Chord> {
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
         ),
         notes = List.unmodifiable([
-          ...type.degrees.map((e) => root.transpose(e)),
-          ...?qualities?.map((e) => root.transpose(e.degree)),
+          ...type.degrees.map((e) => root.transpose(e.degreeIndex)),
+          ...?qualities?.map((e) => root.transpose(e.degree.degreeIndex)),
         ]);
 
   factory Chord.parse(String chord) {
@@ -422,9 +429,11 @@ class Chord extends ChordBase<Chord> {
     Notes notes,
     Note root,
   ) {
-    final degrees = notes.map((e) => root.positiveDegreeTo(e));
+    final degrees = notes.map((e) => root.positiveDegreeIndexTo(e));
     return ChordType.values
-        .where((type) => type.degrees.every((e) => degrees.contains(e)))
+        .where((type) => type.degrees
+            .map((e) => e.degreeIndex)
+            .every((e) => degrees.contains(e)))
         .map((type) => (
               type: type,
               qualities: ChordQualities.fromTypeAndNotes(
