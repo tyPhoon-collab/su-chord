@@ -20,8 +20,8 @@ enum ChordType {
     [_r, NamedDegree.m3, NamedDegree.P5],
     label: 'm',
     availableTensions: {
-      ...ChordQuality.normalTensions,
-      ...ChordQuality.tonicTensions
+      ...ChordTension.normalTensions,
+      ...ChordTension.tonicTensions
     },
   ),
   diminish([_r, NamedDegree.m3, NamedDegree.dim5],
@@ -36,9 +36,9 @@ enum ChordType {
     [_r, NamedDegree.M2, NamedDegree.P5],
     label: 'sus2',
     availableTensions: {
-      ...ChordQuality.normalTensions,
-      ChordQuality.eleventh,
-      ChordQuality.thirteenth
+      ...ChordTension.normalTensions,
+      ChordTension.eleventh,
+      ChordTension.thirteenth
     },
     isOperation: true,
   ),
@@ -46,22 +46,22 @@ enum ChordType {
     [_r, NamedDegree.P4, NamedDegree.P5],
     label: 'sus4',
     availableTensions: {
-      ...ChordQuality.normalTensions,
-      ChordQuality.ninth,
-      ChordQuality.thirteenth
+      ...ChordTension.normalTensions,
+      ChordTension.ninth,
+      ChordTension.thirteenth
     },
     isOperation: true,
   ),
   minorSeventhFlatFive(
     [_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.m7],
     label: 'm7b5',
-    availableTensions: ChordQuality.tonicTensions,
+    availableTensions: ChordTension.tonicTensions,
   );
 
   const ChordType(
     this.degrees, {
     required this.label,
-    this.availableTensions = const {...ChordQuality.values},
+    this.availableTensions = const {...ChordTension.values},
     this.isOperation = false,
   });
 
@@ -84,11 +84,11 @@ enum ChordType {
 
   final Degrees degrees;
   final String label;
-  final Set<ChordQuality> availableTensions;
+  final Set<ChordTension> availableTensions;
   final bool isOperation; //操作系を表すコードタイプはテンションとコードタイプの表記が逆転する
 
-  bool validate(ChordQualities qualities) =>
-      qualities.every((e) => availableTensions.contains(e));
+  bool validate(ChordTensions tensions) =>
+      tensions.every((e) => availableTensions.contains(e));
 
   Notes toNotes(Note root) =>
       degrees.map((d) => root.transpose(d.degreeIndex)).toList();
@@ -97,7 +97,7 @@ enum ChordType {
 ///コードタイプに追加で付与されうる音
 ///combinableがfalse同士は、どんな状況であっても音楽理論的に共存し得ない
 ///これらの管理はChordQualitiesが行う
-enum ChordQuality {
+enum ChordTension {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
   sixth(NamedDegree.M6, label: '6', combinable: false),
@@ -111,20 +111,20 @@ enum ChordQuality {
   flatThirteenth(NamedDegree.b13, label: 'b13'),
   thirteenth(NamedDegree.M13, label: '13');
 
-  const ChordQuality(
+  const ChordTension(
     this.degree, {
     required this.label,
     this.combinable = true,
   });
 
-  factory ChordQuality.parse(String label) {
+  factory ChordTension.parse(String label) {
     for (final quality in values) {
       if (quality.label == label) return quality;
     }
     throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
-  factory ChordQuality.fromDegreeIndex(int degreeIndex) {
+  factory ChordTension.fromDegreeIndex(int degreeIndex) {
     for (final quality in values) {
       if (quality.degree.degreeIndex == degreeIndex) return quality;
     }
@@ -132,15 +132,15 @@ enum ChordQuality {
   }
 
   static const tonicTensions = {
-    ChordQuality.ninth,
-    ChordQuality.eleventh,
-    ChordQuality.thirteenth,
+    ChordTension.ninth,
+    ChordTension.eleventh,
+    ChordTension.thirteenth,
   };
 
   static const normalTensions = {
-    ChordQuality.sixth,
-    ChordQuality.seventh,
-    ChordQuality.majorSeventh,
+    ChordTension.sixth,
+    ChordTension.seventh,
+    ChordTension.majorSeventh,
   };
 
   final NamedDegree degree;
@@ -151,57 +151,57 @@ enum ChordQuality {
 }
 
 @immutable
-class ChordQualities extends Iterable<ChordQuality> {
-  ChordQualities(this.values)
+class ChordTensions extends Iterable<ChordTension> {
+  ChordTensions(this.values)
       : assert(values.where((e) => !e.combinable).length <= 1);
 
-  factory ChordQualities.parse(String label) {
+  factory ChordTensions.parse(String label) {
     final parts = label.split('add');
 
     assert(parts.length <= 2);
 
-    final qualities = <ChordQuality>{};
+    final qualities = <ChordTension>{};
 
     qualities.addAll(
       switch (parts[0]) {
         '' => [],
-        '9' => [ChordQuality.seventh, ChordQuality.ninth],
+        '9' => [ChordTension.seventh, ChordTension.ninth],
         '11' => [
-            ChordQuality.seventh,
-            ChordQuality.ninth,
-            ChordQuality.eleventh
+            ChordTension.seventh,
+            ChordTension.ninth,
+            ChordTension.eleventh
           ],
         '13' => [
-            ChordQuality.seventh,
-            ChordQuality.ninth,
-            ChordQuality.eleventh,
-            ChordQuality.thirteenth
+            ChordTension.seventh,
+            ChordTension.ninth,
+            ChordTension.eleventh,
+            ChordTension.thirteenth
           ],
-        'M9' => [ChordQuality.majorSeventh, ChordQuality.ninth],
+        'M9' => [ChordTension.majorSeventh, ChordTension.ninth],
         'M11' => [
-            ChordQuality.majorSeventh,
-            ChordQuality.ninth,
-            ChordQuality.eleventh
+            ChordTension.majorSeventh,
+            ChordTension.ninth,
+            ChordTension.eleventh
           ],
         'M13' => [
-            ChordQuality.majorSeventh,
-            ChordQuality.ninth,
-            ChordQuality.eleventh,
-            ChordQuality.thirteenth
+            ChordTension.majorSeventh,
+            ChordTension.ninth,
+            ChordTension.eleventh,
+            ChordTension.thirteenth
           ],
-        _ => [ChordQuality.parse(parts[0])],
+        _ => [ChordTension.parse(parts[0])],
       },
     );
     if (parts.length == 2) {
       qualities.addAll(parts[1]
           .split(',')
           .where((e) => e.isNotEmpty)
-          .map(ChordQuality.parse));
+          .map(ChordTension.parse));
     }
-    return ChordQualities(qualities);
+    return ChordTensions(qualities);
   }
 
-  static ChordQualities? fromTypeAndNotes({
+  static ChordTensions? fromTypeAndNotes({
     required ChordType type,
     required Note root,
     required Notes notes,
@@ -210,26 +210,26 @@ class ChordQualities extends Iterable<ChordQuality> {
       final indexes = notes.map((e) => root.positiveDegreeIndexTo(e)).toSet()
         ..removeAll(type.degrees.map((e) => e.degreeIndex).toSet());
       final degrees = indexes.map((e) => e < 9 ? e + 12 : e);
-      final values = degrees.map(ChordQuality.fromDegreeIndex).toSet();
-      return ChordQualities(values);
+      final values = degrees.map(ChordTension.fromDegreeIndex).toSet();
+      return ChordTensions(values);
     } catch (e) {
       return null;
     }
   }
 
-  static final empty = ChordQualities(const {});
-  static final seventh = ChordQualities(const {ChordQuality.seventh});
-  static final majorSeventh = ChordQualities(const {ChordQuality.majorSeventh});
+  static final empty = ChordTensions(const {});
+  static final seventh = ChordTensions(const {ChordTension.seventh});
+  static final majorSeventh = ChordTensions(const {ChordTension.majorSeventh});
 
-  final Set<ChordQuality> values;
+  final Set<ChordTension> values;
   late final String label = _label();
 
   @override
-  Iterator<ChordQuality> get iterator => values.iterator;
+  Iterator<ChordTension> get iterator => values.iterator;
 
   @override
   bool operator ==(Object other) {
-    if (other is ChordQualities) {
+    if (other is ChordTensions) {
       return setEquals(values.toSet(), other.values.toSet());
     }
     return false;
@@ -257,8 +257,12 @@ class ChordQualities extends Iterable<ChordQuality> {
 class ChordBase<T> implements Transposable<T> {
   ChordBase({
     required this.type,
-    ChordQualities? qualities,
-  }) : qualities = qualities ?? ChordQualities.empty;
+    ChordTensions? tensions,
+  }) : tensions = tensions ?? ChordTensions.empty;
+
+  ChordBase.of(ChordBase base)
+      : type = base.type,
+        tensions = base.tensions;
 
   factory ChordBase.parse(String chord) {
     //TODO 全てに対応できるようにする
@@ -272,35 +276,62 @@ class ChordBase<T> implements Transposable<T> {
       final type = ChordType.parse(
         match.group(1)!.isNotEmpty ? match.group(1)! : match.group(3)!,
       );
-      final qualities = ChordQualities.parse(
+      final qualities = ChordTensions.parse(
         match.group(2)! + match.group(4)!,
       );
 
-      return ChordBase(type: type, qualities: qualities);
+      return ChordBase(type: type, tensions: qualities);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  factory ChordBase.fromNotes(
+    Notes notes,
+    Note root,
+  ) {
+    try {
+      final degrees = notes.map((e) => root.positiveDegreeIndexTo(e));
+      return ChordBase.of(
+        ChordType.values
+            .where((type) => type.degrees
+                .map((e) => e.degreeIndex)
+                .every((e) => degrees.contains(e)))
+            .map((type) => ChordBase(
+                  type: type,
+                  tensions: ChordTensions.fromTypeAndNotes(
+                    type: type,
+                    root: root,
+                    notes: notes,
+                  ),
+                ))
+            .where((base) => base.type.validate(base.tensions))
+            .first,
+      );
     } catch (e) {
       rethrow;
     }
   }
 
   final ChordType type;
-  final ChordQualities qualities;
+  final ChordTensions tensions;
 
   bool baseEqual(ChordBase other) {
-    return type == other.type && qualities == other.qualities;
+    return type == other.type && tensions == other.tensions;
   }
 
   Chord toChord(Note root) =>
-      Chord.fromType(type: type, root: root, qualities: qualities);
+      Chord.fromType(type: type, root: root, tensions: tensions);
 
   DegreeChord toDegreeChord(DegreeName degreeName) =>
-      DegreeChord(degreeName, type: type, qualities: qualities);
+      DegreeChord(degreeName, type: type, tensions: tensions);
 
   @override
   String toString() {
     if (type.isOperation) {
-      return qualities.label + type.label;
+      return tensions.label + type.label;
     }
-    return type.label + qualities.label;
+    return type.label + tensions.label;
   }
 
   @override
@@ -312,7 +343,7 @@ class ChordBase<T> implements Transposable<T> {
   }
 
   @override
-  int get hashCode => type.hashCode ^ qualities.hashCode;
+  int get hashCode => type.hashCode ^ tensions.hashCode;
 
   @override
   T transpose(int degree) {
@@ -322,7 +353,7 @@ class ChordBase<T> implements Transposable<T> {
 
 @immutable
 class DegreeChord extends ChordBase<DegreeChord> {
-  DegreeChord(this.degreeName, {required super.type, super.qualities});
+  DegreeChord(this.degreeName, {required super.type, super.tensions});
 
   factory DegreeChord.parse(String chord) {
     final exp = RegExp(r'^([#b]?(?:VII|VI|V|IV|I{0,3}|))(.*?)$');
@@ -359,39 +390,45 @@ class DegreeChord extends ChordBase<DegreeChord> {
     return DegreeChord(
       degreeName.transpose(degree),
       type: type,
-      qualities: qualities,
+      tensions: tensions,
     );
   }
 
   Chord toChordFromKey(Note key) => Chord.fromType(
         type: type,
         root: key.transpose(degreeName.index),
-        qualities: qualities,
+        tensions: tensions,
       );
 }
 
 @immutable
 class Chord extends ChordBase<Chord> {
-  Chord({
+  factory Chord.fromNotesAndRoot({
     required Notes notes,
-    required this.root,
-    super.qualities,
-  })  : assert(notes.contains(root)),
-        notes = List.unmodifiable(notes),
-        super(
-            type: _fromNotes(notes, root)
-                .firstWhere((record) =>
-                    record.qualities == (qualities ?? ChordQualities.empty))
-                .type);
+    required Note root,
+  }) {
+    assert(notes.contains(root), 'root must be contained in notes');
 
-  Chord.fromType({required super.type, required this.root, super.qualities})
+    try {
+      final base = ChordBase.fromNotes(notes, root);
+      return Chord.fromType(
+        type: base.type,
+        root: root,
+        tensions: base.tensions,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Chord.fromType({required super.type, required this.root, super.tensions})
       : assert(
-          qualities == null || type.validate(qualities),
-          'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $qualities',
+          tensions == null || type.validate(tensions),
+          'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $tensions',
         ),
         notes = List.unmodifiable([
           ...type.degrees.map((e) => root.transpose(e.degreeIndex)),
-          ...?qualities?.map((e) => root.transpose(e.degree.degreeIndex)),
+          ...?tensions?.map((e) => root.transpose(e.degree.degreeIndex)),
         ]);
 
   factory Chord.parse(String chord) {
@@ -413,38 +450,13 @@ class Chord extends ChordBase<Chord> {
     final chords = <Chord>[];
 
     for (final root in notes) {
-      for (final record in _fromNotes(notes, root)) {
-        chords.add(Chord.fromType(
-          type: record.type,
-          root: root,
-          qualities: record.qualities,
-        ));
-      }
+      try {
+        final mayBeChord = Chord.fromNotesAndRoot(notes: notes, root: root);
+        chords.add(mayBeChord);
+      } catch (_) {}
     }
 
     return chords;
-  }
-
-  static Iterable<({ChordType type, ChordQualities qualities})> _fromNotes(
-    Notes notes,
-    Note root,
-  ) {
-    final degrees = notes.map((e) => root.positiveDegreeIndexTo(e));
-    return ChordType.values
-        .where((type) => type.degrees
-            .map((e) => e.degreeIndex)
-            .every((e) => degrees.contains(e)))
-        .map((type) => (
-              type: type,
-              qualities: ChordQualities.fromTypeAndNotes(
-                type: type,
-                root: root,
-                notes: notes,
-              )
-            ))
-        .toList()
-        .whereType<({ChordType type, ChordQualities qualities})>()
-        .where((record) => record.type.validate(record.qualities));
   }
 
   static final C = Chord.parse('C');
@@ -478,7 +490,7 @@ class Chord extends ChordBase<Chord> {
   Chord transpose(int degree) => Chord.fromType(
         type: type,
         root: root.transpose(degree),
-        qualities: qualities,
+        tensions: tensions,
       );
 }
 
@@ -558,10 +570,6 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
       }
     }
 
-    return FScore(
-      truthPositiveTime,
-      falsePositiveTime,
-      falseNegativeTime,
-    );
+    return FScore(truthPositiveTime, falsePositiveTime, falseNegativeTime);
   }
 }

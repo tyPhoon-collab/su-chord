@@ -86,7 +86,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities.seventh,
+          tensions: ChordTensions.seventh,
         ).toString(),
         'C7',
       );
@@ -97,7 +97,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities.majorSeventh,
+          tensions: ChordTensions.majorSeventh,
         ).toString(),
         'CM7',
       );
@@ -108,7 +108,7 @@ void main() {
         Chord.fromType(
           type: ChordType.sus4,
           root: Note.C,
-          qualities: ChordQualities.seventh,
+          tensions: ChordTensions.seventh,
         ).toString(),
         'C7sus4',
       );
@@ -119,7 +119,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities(const {ChordQuality.ninth}),
+          tensions: ChordTensions(const {ChordTension.ninth}),
         ).toString(),
         'Cadd9',
       );
@@ -130,9 +130,9 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities(const {
-            ChordQuality.ninth,
-            ChordQuality.eleventh,
+          tensions: ChordTensions(const {
+            ChordTension.ninth,
+            ChordTension.eleventh,
           }),
         ).toString(),
         'C(9,11)',
@@ -266,7 +266,7 @@ void main() {
         equals(Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities.majorSeventh,
+          tensions: ChordTensions.majorSeventh,
         )),
       );
     });
@@ -278,7 +278,7 @@ void main() {
         equals(Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities.seventh,
+          tensions: ChordTensions.seventh,
         )),
       );
     });
@@ -291,7 +291,7 @@ void main() {
         equals(Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          qualities: ChordQualities(const {ChordQuality.ninth}),
+          tensions: ChordTensions(const {ChordTension.ninth}),
         )),
       );
     });
@@ -325,7 +325,7 @@ void main() {
         equals(Chord.fromType(
           type: ChordType.minor,
           root: Note.C,
-          qualities: ChordQualities.seventh,
+          tensions: ChordTensions.seventh,
         )),
       );
     });
