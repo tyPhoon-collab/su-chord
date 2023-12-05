@@ -6,12 +6,19 @@ import 'package:flutter/widgets.dart';
 
 import '../utils/histogram.dart';
 
+typedef Notes = List<Note>;
+
 abstract interface class Transposable<T> {
-  T transpose(int degree);
+  T transpose(int degreeIndex);
+}
+
+abstract interface class DegreeIndex<T> {
+  int degreeIndexTo(T other);
 }
 
 @immutable
-class MusicalScale implements Transposable<MusicalScale> {
+class MusicalScale
+    implements Transposable<MusicalScale>, DegreeIndex<MusicalScale> {
   const MusicalScale(this.note, this.pitch);
 
   static const A0 = MusicalScale(Note.A, 0);
@@ -24,7 +31,7 @@ class MusicalScale implements Transposable<MusicalScale> {
   static List<double> hzList(MusicalScale lowest, MusicalScale highest) {
     final hz = lowest.toHz();
     return List.generate(
-      lowest.degreeTo(highest) + 1,
+      lowest.degreeIndexTo(highest) + 1,
       (i) => hz * pow(ratio, i),
     );
   }
@@ -38,8 +45,8 @@ class MusicalScale implements Transposable<MusicalScale> {
     if (degree == 0) return this;
 
     final newNote = note.transpose(degree);
-    var newPitch = pitch + degree ~/ 12;
-    final noteDegreeTo = note.degreeTo(newNote);
+    var newPitch = pitch + degree ~/ Note.length;
+    final noteDegreeTo = note.degreeIndexTo(newNote);
     if (degree > 0 && noteDegreeTo.isNegative) {
       newPitch += 1;
     } else if (degree.isNegative && noteDegreeTo > 0) {
@@ -66,10 +73,11 @@ class MusicalScale implements Transposable<MusicalScale> {
   ///ex)
   ///A0 -> C1 = 3
   ///C3 -> C4 = 12
-  int degreeTo(MusicalScale other) =>
-      note.degreeTo(other.note) + 12 * (other.pitch - pitch);
+  @override
+  int degreeIndexTo(MusicalScale other) =>
+      note.degreeIndexTo(other.note) + Note.length * (other.pitch - pitch);
 
-  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeTo(this));
+  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeIndexTo(this));
 }
 
 enum Accidental {
@@ -83,8 +91,7 @@ enum Accidental {
 }
 
 //ディグリーネームにおいて、シャープの表記は一般的でない
-//またかなり適当な実装なので、後でなんとかする
-//TODO シャープの実装（Noteと共通化）
+//適当な実装なので、後でなんとかする
 enum DegreeName implements Transposable<DegreeName> {
   I(label: 'I'),
   bII(label: 'bII'),
@@ -132,22 +139,45 @@ enum DegreeName implements Transposable<DegreeName> {
 
 enum NaturalNote { C, D, E, F, G, A, B }
 
-//TODO フラットを追加する
-enum Note implements Transposable<Note> {
-  C(naturalNote: NaturalNote.C),
-  Cs(naturalNote: NaturalNote.C, accidental: Accidental.sharp),
-  D(naturalNote: NaturalNote.D),
-  Ds(naturalNote: NaturalNote.D, accidental: Accidental.sharp),
-  E(naturalNote: NaturalNote.E),
-  F(naturalNote: NaturalNote.F),
-  Fs(naturalNote: NaturalNote.F, accidental: Accidental.sharp),
-  G(naturalNote: NaturalNote.G),
-  Gs(naturalNote: NaturalNote.G, accidental: Accidental.sharp),
-  A(naturalNote: NaturalNote.A),
-  As(naturalNote: NaturalNote.A, accidental: Accidental.sharp),
-  B(naturalNote: NaturalNote.B);
+/// Note
+/// Do not use values, index. It will be nonintuitive
+enum Note implements Transposable<Note>, DegreeIndex<Note> {
+  Bs.sharp(NaturalNote.B, 0),
+  C.natural(NaturalNote.C, 0),
+  Cs.sharp(NaturalNote.C, 1),
+  Db.flat(NaturalNote.D, 1),
+  D.natural(NaturalNote.D, 2),
+  Ds.sharp(NaturalNote.D, 3),
+  Eb.flat(NaturalNote.E, 3),
+  E.natural(NaturalNote.E, 4),
+  Es.sharp(NaturalNote.E, 5),
+  Fb.flat(NaturalNote.F, 4),
+  F.natural(NaturalNote.F, 5),
+  Fs.sharp(NaturalNote.F, 6),
+  Gb.flat(NaturalNote.G, 6),
+  G.natural(NaturalNote.G, 7),
+  Gs.sharp(NaturalNote.G, 8),
+  Ab.flat(NaturalNote.A, 8),
+  A.natural(NaturalNote.A, 9),
+  As.sharp(NaturalNote.A, 10),
+  Bb.flat(NaturalNote.B, 10),
+  B.natural(NaturalNote.B, 11),
+  Cb.flat(NaturalNote.C, 11);
 
-  const Note({required this.naturalNote, this.accidental = Accidental.natural});
+  const Note({
+    required this.naturalNote,
+    required this.accidental,
+    required this.noteIndex,
+  });
+
+  const Note.natural(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.natural;
+
+  const Note.sharp(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.sharp;
+
+  const Note.flat(this.naturalNote, this.noteIndex)
+      : accidental = Accidental.flat;
 
   factory Note.parse(String label) {
     for (final note in values) {
@@ -156,13 +186,15 @@ enum Note implements Transposable<Note> {
     throw ArgumentError();
   }
 
-  factory Note.fromIndex(int index) {
-    assert(index < 12);
-    return values[index];
-  }
-
   final NaturalNote naturalNote;
   final Accidental accidental;
+  final int noteIndex;
+
+  static Notes sharpNotes = const [C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B];
+
+  static Notes flatNotes = const [C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B];
+
+  static int length = 12;
 
   @override
   String toString() => naturalNote.name + accidental.label;
@@ -171,21 +203,62 @@ enum Note implements Transposable<Note> {
   ///ex)
   ///Note.C.to(2) -> Note.D
   @override
-  Note transpose(int degree) =>
-      Note.fromIndex((index + degree) % Note.values.length);
+  Note transpose(int degree) => Note.sharpNotes[(noteIndex + degree) % length];
 
   ///度数の差。一般にCが基準であるため、それに準拠
   ///1オクターブで見た時の差とし、音高が高い方が正とする
   ///ex)
   ///D -> A = 7
   ///D -> C = -2
-  int degreeTo(Note other) => other.index - index;
+  @override
+  int degreeIndexTo(Note other) => other.noteIndex - noteIndex;
 
-  ///負の場合、+12するdegreeTo
-  int positiveDegreeTo(Note other) {
-    final degree = degreeTo(other);
-    return degree.isNegative ? 12 + degree : degree;
+  ///負の場合、+12する
+  int positiveDegreeIndexTo(Note other) {
+    final degree = degreeIndexTo(other);
+    return degree.isNegative ? length + degree : degree;
   }
+
+  Note toSharp() => switch (accidental) {
+        Accidental.natural || Accidental.sharp => this,
+        Accidental.flat => sharpNotes[noteIndex],
+      };
+
+  Note toFlat() => switch (accidental) {
+        Accidental.natural || Accidental.flat => this,
+        Accidental.sharp => flatNotes[noteIndex],
+      };
+}
+
+///名前がついている有名な音程のみを列挙する
+///他の音程はintを用いて表すことにする
+///特にChordType、ChordQualitiesに用いる
+enum NamedDegree {
+  P1(0),
+  m2(1),
+  M2(2),
+  m3(3),
+  M3(4),
+  P4(5),
+  aug4(6),
+  dim5(6),
+  P5(7),
+  aug5(8),
+  m6(8),
+  M6(9),
+  m7(10),
+  M7(11),
+  b9(13),
+  M9(14),
+  s9(15),
+  M11(17),
+  s11(18),
+  b13(20),
+  M13(21);
+
+  const NamedDegree(this.degreeIndex);
+
+  final int degreeIndex;
 }
 
 /// 範囲は lowest.hz <= x <= highest.hz

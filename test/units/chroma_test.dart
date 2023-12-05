@@ -73,7 +73,7 @@ void main() {
       Chord.fromType(
         type: ChordType.major,
         root: Note.C,
-        qualities: ChordQualities.majorSeventh,
+        tensions: ChordTensions.majorSeventh,
       ),
     ];
 

@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('load', () async {
-    const loader = SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+    const loader =
+        SimpleAudioLoader(path: 'assets/evals/osawa/guitar_normal_c.wav');
     final data = await loader.load();
 
     expect(data.buffer, isNotEmpty);
@@ -28,7 +29,7 @@ void main() {
   group('down sampling', () {
     test('load down sampling 44100 to 22050', () async {
       const loader =
-          SimpleAudioLoader(path: 'assets/evals/guitar_normal_c.wav');
+          SimpleAudioLoader(path: 'assets/evals/osawa/guitar_normal_c.wav');
       final data = await loader.load();
       const sr = 22050;
       final duration = data.duration;

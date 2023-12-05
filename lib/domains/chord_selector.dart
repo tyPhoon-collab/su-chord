@@ -90,8 +90,8 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
     final DBSearchTrees nodes = {};
 
     for (final degreeChordProgression in progressions) {
-      for (int i = 0; i < 12; i++) {
-        final progression = degreeChordProgression.toChord(Note.fromIndex(i));
+      for (int i = 0; i < Note.length; i++) {
+        final progression = degreeChordProgression.toChord(Note.sharpNotes[i]);
         final firstChord = progression.first.chord!;
         var node = nodes.putIfAbsent(firstChord, () => TreeNode(firstChord));
         for (final chord in progression.toChordList().sublist(1)) {

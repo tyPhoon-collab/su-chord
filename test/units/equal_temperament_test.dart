@@ -16,16 +16,30 @@ void main() {
       expect(Note.C.transpose(-3), Note.A);
     });
 
+    group('to', () {
+      group('to sharp', () {
+        test('natural', () => expect(Note.C.toSharp(), Note.C));
+        test('flat', () => expect(Note.Cb.toSharp(), Note.B));
+        test('sharp', () => expect(Note.Cs.toSharp(), Note.Cs));
+      });
+
+      group('to flat', () {
+        test('natural', () => expect(Note.C.toFlat(), Note.C));
+        test('flat', () => expect(Note.Cb.toFlat(), Note.Cb));
+        test('sharp', () => expect(Note.Cs.toFlat(), Note.Db));
+      });
+    });
+
     group('degree', () {
       test('C to G is 7', () {
         const note = Note.C;
-        final int degree = note.degreeTo(Note.G);
+        final int degree = note.degreeIndexTo(Note.G);
         expect(degree, 7);
       });
 
       test('D to C is -2', () {
         const note = Note.D;
-        final int degree = note.degreeTo(Note.C);
+        final int degree = note.degreeIndexTo(Note.C);
         expect(degree, -2);
       });
     });
@@ -55,19 +69,19 @@ void main() {
     group('degree', () {
       test('A0 to C1 is 3', () {
         const scale = MusicalScale.A0;
-        final int degree = scale.degreeTo(MusicalScale.C1);
+        final int degree = scale.degreeIndexTo(MusicalScale.C1);
         expect(degree, 3);
       });
 
       test('C1 to C2 is 12', () {
         const scale = MusicalScale.C1;
-        final int degree = scale.degreeTo(const MusicalScale(Note.C, 2));
+        final int degree = scale.degreeIndexTo(const MusicalScale(Note.C, 2));
         expect(degree, 12);
       });
 
       test('C3 to C2 is -12', () {
         const scale = MusicalScale(Note.C, 3);
-        final int degree = scale.degreeTo(const MusicalScale(Note.C, 2));
+        final int degree = scale.degreeIndexTo(const MusicalScale(Note.C, 2));
         expect(degree, -12);
       });
     });

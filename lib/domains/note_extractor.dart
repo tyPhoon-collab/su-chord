@@ -1,4 +1,3 @@
-import 'chord.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
@@ -24,7 +23,8 @@ class ThresholdByMaxRatioExtractor implements NoteExtractable {
         .toList()
         .sublist(0, maxNotesCount)
         .where((e) => chroma[e] >= threshold)
-        .map((e) => Note.fromIndex(e));
+        .map((i) => Note.sharpNotes[i])
+        .toList();
 
     return notes;
   }

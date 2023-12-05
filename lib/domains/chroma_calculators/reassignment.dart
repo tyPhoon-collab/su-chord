@@ -90,6 +90,6 @@ class ReassignmentChromaCalculator
         sum += value[index];
       }
       return sum;
-    })).shift(-chromaContext.lowest.note.degreeTo(Note.C));
+    })).shift(-chromaContext.lowest.note.degreeIndexTo(Note.C));
   }
 }

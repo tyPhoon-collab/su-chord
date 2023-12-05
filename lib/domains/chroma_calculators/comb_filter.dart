@@ -52,7 +52,7 @@ class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
                   chromaContext.lowest.transpose(i),
                 ),
               ),
-            ).shift(-chromaContext.lowest.note.degreeTo(Note.C)))
+            ).shift(-chromaContext.lowest.note.degreeIndexTo(Note.C)))
         .toList();
   }
 
