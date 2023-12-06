@@ -14,7 +14,7 @@ import '../data_set.dart';
 import '../util.dart';
 import '../writer.dart';
 
-abstract class EvaluationAudioDataContextDelegate {
+abstract interface class EvaluationAudioDataContextDelegate {
   const EvaluationAudioDataContextDelegate();
 
   double? get duration => null;
@@ -23,7 +23,7 @@ abstract class EvaluationAudioDataContextDelegate {
 
   ///ソート用のキー
   ///交差検証時に扱いやすくするため、任意に定義できるようにしている
-  int key(List<String> parts);
+  int key(List<String> parts) => 0;
 
   String soundSourceName(List<String> parts);
 
@@ -93,6 +93,8 @@ final class GuitarSetEADCDelegate extends EvaluationAudioDataContextDelegate {
 }
 
 ///評価音源に必要な情報をすべて詰め込んだクラス
+///基本的に[fromFile]を使用する。処理の中身は一部を移譲していて
+///[EvaluationAudioDataContextDelegate]を渡す設計になっている
 @immutable
 final class EvaluationAudioDataContext
     implements Comparable<EvaluationAudioDataContext> {
@@ -193,8 +195,6 @@ final class EvaluationAudioDataContext
   }
 }
 
-//描画するライブラリが乏しいため、全体的な統計や評価はExcelで行う
-//そのために必要なデータの書き出しや、基本的な統計量を提示する
 class Evaluator {
   const Evaluator({
     required this.estimator,
@@ -248,8 +248,6 @@ class Evaluator {
   }
 }
 
-//描画するライブラリが乏しいため、全体的な統計や評価はExcelで行う
-//そのために必要なデータの書き出しや、基本的な統計量を提示する
 class HCDFEvaluator {
   const HCDFEvaluator({
     required this.estimator,
@@ -303,7 +301,7 @@ class HCDFVisualizer {
 
   final ChordEstimable estimator;
 
-  ///もしfactoryContextがnullの場合は、クロマグラムの表示をしない
+  ///もし[writerContext]がnullの場合は、クロマグラムの表示をしない
   Future<void> visualize(
     EvaluationAudioDataContext context, {
     String? title,

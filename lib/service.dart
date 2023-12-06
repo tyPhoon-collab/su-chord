@@ -8,6 +8,7 @@ import 'domains/estimator/pattern_matching.dart';
 import 'domains/estimator/search.dart';
 import 'domains/filters/filter.dart';
 import 'domains/magnitudes_calculator.dart';
+import 'domains/score_calculator.dart';
 import 'factory.dart';
 
 part 'service.g.dart';
@@ -77,6 +78,8 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 30,
             scoreThreshold: 0.9,
+            scoreCalculator:
+                const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
           templateScalar: HarmonicsChromaScalar(until: 6),
           templates: detectableChords,
