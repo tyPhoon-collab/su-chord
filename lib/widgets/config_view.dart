@@ -7,60 +7,56 @@ import '../recorder_service.dart';
 import '../recorders/recorder.dart';
 import '../service.dart';
 
-class ConfigView extends StatelessWidget {
+class ConfigView extends ConsumerWidget {
   const ConfigView({super.key});
 
   @override
-  Widget build(BuildContext context) => Consumer(
-        builder: (context, ref, child) {
-          final recorder = ref.watch(globalRecorderProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recorder = ref.watch(globalRecorderProvider);
 
-          return ListView(
-            children: [
-              CheckboxListTile(
-                value: ref.watch(isVisibleDebugProvider),
-                onChanged: (value) {
-                  if (value == null) return;
-                  ref.read(isVisibleDebugProvider.notifier).toggle();
-                },
-                title: const Text('Show Debug View'),
-                secondary: const Icon(Icons.auto_graph_sharp),
-              ),
-              const ListTile(
-                leading: Icon(Icons.functions_outlined),
-                title: Text('Estimator'),
-                subtitle: _ChordEstimatorSelector(),
-              ),
-              CheckboxListTile(
-                value: ref.watch(isSimplifyChordProgressionProvider),
-                onChanged: (value) {
-                  if (value == null) return;
-                  ref
-                      .read(isSimplifyChordProgressionProvider.notifier)
-                      .toggle();
-                },
-                title: const Text('Simplify Chord Progression'),
-                secondary: const Icon(Icons.short_text_outlined),
-              ),
-              if (recorder is InputDeviceSelectable)
-                ListTile(
-                  leading: const Icon(Icons.mic_none_outlined),
-                  title: const Text('Microphone Device'),
-                  trailing: _MicrophoneDeviceSelector(
-                    recorder: recorder as InputDeviceSelectable,
-                    onRequest: recorder.request,
-                  ),
-                ),
-              ListTile(
-                leading: const Icon(Icons.music_note_outlined),
-                title: const Text('Chord Settings'),
-                trailing: const Icon(Icons.open_in_new_outlined),
-                onTap: () => Get.dialog(const _ChordSettingsDialog()),
-              ),
-            ],
-          );
-        },
-      );
+    return ListView(
+      children: [
+        CheckboxListTile(
+          value: ref.watch(isVisibleDebugProvider),
+          onChanged: (value) {
+            if (value == null) return;
+            ref.read(isVisibleDebugProvider.notifier).toggle();
+          },
+          title: const Text('Show Debug View'),
+          secondary: const Icon(Icons.auto_graph_sharp),
+        ),
+        const ListTile(
+          leading: Icon(Icons.functions_outlined),
+          title: Text('Estimator'),
+          subtitle: _ChordEstimatorSelector(),
+        ),
+        CheckboxListTile(
+          value: ref.watch(isSimplifyChordProgressionProvider),
+          onChanged: (value) {
+            if (value == null) return;
+            ref.read(isSimplifyChordProgressionProvider.notifier).toggle();
+          },
+          title: const Text('Simplify Chord Progression'),
+          secondary: const Icon(Icons.short_text_outlined),
+        ),
+        if (recorder case final InputDeviceSelectable selectable)
+          ListTile(
+            leading: const Icon(Icons.mic_none_outlined),
+            title: const Text('Microphone Device'),
+            trailing: _MicrophoneDeviceSelector(
+              recorder: selectable,
+              onRequest: recorder.request,
+            ),
+          ),
+        ListTile(
+          leading: const Icon(Icons.music_note_outlined),
+          title: const Text('Chord Settings'),
+          trailing: const Icon(Icons.open_in_new_outlined),
+          onTap: () => Get.dialog(const _ChordSettingsDialog()),
+        ),
+      ],
+    );
+  }
 }
 
 class _ChordSettingsDialog extends ConsumerWidget {

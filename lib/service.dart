@@ -131,15 +131,15 @@ Future<ChordEstimable> estimator(EstimatorRef ref) {
   return estimators[label]!.call();
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class IsVisibleDebug extends _$IsVisibleDebug {
   @override
-  bool build() => true;
+  bool build() => false;
 
   void toggle() => state = !state;
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class IsSimplifyChordProgression extends _$IsSimplifyChordProgression {
   @override
   bool build() => true;

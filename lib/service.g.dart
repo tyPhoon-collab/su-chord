@@ -40,15 +40,15 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'168e5a0fea3a1d8a2e0127768935f3ef7a8298b0';
+String _$estimatorsHash() => r'bb65d2742b6fab9e5c2d671576b33c342f6e3efa';
 
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
 ///
 /// Copied from [estimators].
 @ProviderFor(estimators)
-final estimatorsProvider = AutoDisposeProvider<
-    Map<String, Future<ChordEstimable> Function()>>.internal(
+final estimatorsProvider =
+    AutoDisposeProvider<Map<String, AsyncValueGetter<ChordEstimable>>>.internal(
   estimators,
   name: r'estimatorsProvider',
   debugGetCreateSourceHash:
@@ -58,7 +58,7 @@ final estimatorsProvider = AutoDisposeProvider<
 );
 
 typedef EstimatorsRef
-    = AutoDisposeProviderRef<Map<String, Future<ChordEstimable> Function()>>;
+    = AutoDisposeProviderRef<Map<String, AsyncValueGetter<ChordEstimable>>>;
 String _$estimatorHash() => r'205044e4790dc73798d8b93c2a46031cd6bed838';
 
 /// See also [estimator].
@@ -73,7 +73,7 @@ final estimatorProvider = AutoDisposeFutureProvider<ChordEstimable>.internal(
 );
 
 typedef EstimatorRef = AutoDisposeFutureProviderRef<ChordEstimable>;
-String _$detectableChordsHash() => r'803c74aff32167306b3638ec4ecd76d0f139b681';
+String _$detectableChordsHash() => r'23c453fd7c3f5a3a18f41b95fbade767a9277dd3';
 
 /// See also [DetectableChords].
 @ProviderFor(DetectableChords)
@@ -90,7 +90,7 @@ final detectableChordsProvider =
 
 typedef _$DetectableChords = AutoDisposeNotifier<Set<Chord>>;
 String _$selectingEstimatorLabelHash() =>
-    r'111796f7a1c6128575aff2231cab2d4ae501a888';
+    r'7c9ac57307575dce45d545efa6ddaa392d09cdef';
 
 /// See also [SelectingEstimatorLabel].
 @ProviderFor(SelectingEstimatorLabel)
@@ -106,12 +106,11 @@ final selectingEstimatorLabelProvider =
 );
 
 typedef _$SelectingEstimatorLabel = AutoDisposeNotifier<String>;
-String _$isVisibleDebugHash() => r'26698fcb57e9c4ad065783e8477404eaee88a583';
+String _$isVisibleDebugHash() => r'61426de2a898ee7f761dab58f773d2b4a0d01e81';
 
 /// See also [IsVisibleDebug].
 @ProviderFor(IsVisibleDebug)
-final isVisibleDebugProvider =
-    AutoDisposeNotifierProvider<IsVisibleDebug, bool>.internal(
+final isVisibleDebugProvider = NotifierProvider<IsVisibleDebug, bool>.internal(
   IsVisibleDebug.new,
   name: r'isVisibleDebugProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -121,14 +120,14 @@ final isVisibleDebugProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$IsVisibleDebug = AutoDisposeNotifier<bool>;
+typedef _$IsVisibleDebug = Notifier<bool>;
 String _$isSimplifyChordProgressionHash() =>
-    r'40509d7fa4d3331c0e220002afe29713dc1e38a1';
+    r'f59f7d3740cc07b2c5d35563b8743d447b990c20';
 
 /// See also [IsSimplifyChordProgression].
 @ProviderFor(IsSimplifyChordProgression)
 final isSimplifyChordProgressionProvider =
-    AutoDisposeNotifierProvider<IsSimplifyChordProgression, bool>.internal(
+    NotifierProvider<IsSimplifyChordProgression, bool>.internal(
   IsSimplifyChordProgression.new,
   name: r'isSimplifyChordProgressionProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -138,6 +137,6 @@ final isSimplifyChordProgressionProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$IsSimplifyChordProgression = AutoDisposeNotifier<bool>;
+typedef _$IsSimplifyChordProgression = Notifier<bool>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

@@ -5,16 +5,16 @@ import '../domains/chord.dart';
 import '../domains/chord_progression.dart';
 
 class ChordProgressionView extends StatelessWidget {
-  const ChordProgressionView({super.key, required this.progression});
+  const ChordProgressionView(this._progression, {super.key});
 
-  final ChordProgression<Chord> progression;
+  final ChordProgression<Chord> _progression;
 
   @override
   Widget build(BuildContext context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(progression.toString()),
-          ChordView(chord: progression.lastOrNull?.chord),
+          Text(_progression.toString()),
+          ChordView(chord: _progression.lastOrNull?.chord),
         ],
       );
 }

@@ -6,7 +6,7 @@ part of 'recorder_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$globalRecorderHash() => r'c0eccc2d39dda587fa6c9945d02f66e4b537332b';
+String _$globalRecorderHash() => r'8f21e61de5faaad2c45a150953e16355daca02ee';
 
 /// See also [GlobalRecorder].
 @ProviderFor(GlobalRecorder)
@@ -23,4 +23,4 @@ final globalRecorderProvider =
 
 typedef _$GlobalRecorder = AutoDisposeNotifier<Recorder>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

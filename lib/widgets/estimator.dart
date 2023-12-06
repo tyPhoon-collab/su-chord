@@ -189,14 +189,14 @@ class _EstimatedView extends ConsumerWidget {
         shrinkWrap: true,
         children: [
           ChordProgressionView(
-            progression: ref.watch(isSimplifyChordProgressionProvider)
+            ref.watch(isSimplifyChordProgressionProvider)
                 ? progression.simplify()
                 : progression,
           ),
-          SingleChildScrollView(
-            child: _EstimatorDebugView(
-              visible: ref.watch(isVisibleDebugProvider),
-              estimator: estimator,
+          Visibility(
+            visible: ref.watch(isVisibleDebugProvider),
+            child: SingleChildScrollView(
+              child: _EstimatorDebugView(estimator),
             ),
           ),
         ],
@@ -206,44 +206,39 @@ class _EstimatedView extends ConsumerWidget {
 }
 
 class _EstimatorDebugView extends ConsumerWidget {
-  const _EstimatorDebugView({
-    required this.visible,
-    required this.estimator,
-  });
+  const _EstimatorDebugView(this._estimator);
 
-  final bool visible;
-  final ChordEstimable estimator;
-
-  HasDebugViews get views => estimator as HasDebugViews;
+  final ChordEstimable _estimator;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) =>
-      estimator is HasDebugViews
-          ? Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: [
-                DebugChip(
-                  titleText: 'Estimator Details',
-                  builder: (_) => Text(estimator.toString()),
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (_estimator case final HasDebugViews has) {
+      return Wrap(
+        spacing: 8.0,
+        runSpacing: 8.0,
+        children: [
+          DebugChip(
+            titleText: 'Estimator Details',
+            builder: (_) => Text(_estimator.toString()),
+          ),
+          ...has.build(),
+          DebugChip(
+            titleText: 'Amplitude',
+            builder: (_) => StreamBuilder(
+              stream: ref.watch(globalRecorderProvider).stream,
+              builder: (_, snapshot) => SizedBox(
+                height: 64,
+                child: AmplitudeChart(
+                  data: snapshot.data?.buffer ?? Float64List.fromList(const []),
                 ),
-                ...views.build(),
-                DebugChip(
-                  titleText: 'Amplitude',
-                  builder: (_) => StreamBuilder(
-                    stream: ref.watch(globalRecorderProvider).stream,
-                    builder: (_, snapshot) => SizedBox(
-                      height: 64,
-                      child: AmplitudeChart(
-                        data: snapshot.data?.buffer ??
-                            Float64List.fromList(const []),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : const SizedBox();
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox();
+  }
 }
 
 class _WelcomeView extends StatelessWidget {

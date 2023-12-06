@@ -311,11 +311,11 @@ class HCDFVisualizer {
     final predict = estimator.estimate(context.data, false).simplify();
 
     if (writerContext != null) {
-      if (estimator case final HasChromaList haver) {
+      if (estimator case final HasChromaList has) {
         await HCDFDetailChartWriter(writerContext).call(
           correct,
           predict,
-          haver.chromas(),
+          has.chromas(),
           title: title,
         );
       } else {
