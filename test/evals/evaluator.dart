@@ -4,7 +4,6 @@ import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/estimator/estimator.dart';
-import 'package:chord/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/score.dart';
 import 'package:chord/utils/table.dart';
@@ -304,21 +303,23 @@ class HCDFVisualizer {
 
   final ChordEstimable estimator;
 
+  ///もしfactoryContextがnullの場合は、クロマグラムの表示をしない
   Future<void> visualize(
     EvaluationAudioDataContext context, {
     String? title,
-    EstimatorFactoryContext? factoryContext,
+    LibROSASpecShowContext? writerContext,
   }) async {
     final correct = context.correct.simplify();
     final predict = estimator.estimate(context.data, false).simplify();
 
-    if (factoryContext != null) {
+    if (writerContext != null) {
       if (estimator case final HasChromaList haver) {
-        await HCDFDetailChartWriter(
-          sampleRate: factoryContext.sampleRate,
-          chunkSize: factoryContext.chunkSize,
-          chunkStride: factoryContext.chunkStride,
-        ).call(correct, predict, haver.chromas(), title: title);
+        await HCDFDetailChartWriter(writerContext).call(
+          correct,
+          predict,
+          haver.chromas(),
+          title: title,
+        );
       } else {
         throw ArgumentError('estimator does not implements HasChromaList');
       }

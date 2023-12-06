@@ -11,6 +11,7 @@ from matplotlib.colors import Colormap
 
 __BAR_HEIGHT = 3
 __FIG_SIZE = (16, 8)
+__FIG_HALF_SIZE = (16, 4)
 __BAR_OFFSET = __BAR_HEIGHT + 2
 
 
@@ -75,7 +76,6 @@ parser.add_argument("--title", type=str, help="Title for the plot")
 parser.add_argument("--output", type=str, help="Output file path")
 args = parser.parse_args()
 
-plt.figure(figsize=__FIG_SIZE)
 
 correct_df = pd.read_csv(args.correct_path)
 predict_df = pd.read_csv(args.predict_path)
@@ -85,6 +85,8 @@ as_suptitle = False
 if args.chromas_path:
     if args.sample_rate is None or args.win_length is None or args.hop_length is None:
         raise ValueError("If set chromas path, you need sample rate, win length and hop length")
+
+    plt.figure(figsize=__FIG_SIZE)
 
     ax_top = plt.subplot(2, 1, 1)
     ax_bottom = plt.subplot(2, 1, 2)
@@ -105,6 +107,8 @@ if args.chromas_path:
     as_suptitle = True
 
 else:
+    plt.figure(figsize=__FIG_HALF_SIZE)
+
     __plt_bar(correct_df, (__BAR_OFFSET, __BAR_HEIGHT))
     __plt_bar(predict_df, (0, __BAR_HEIGHT))
 

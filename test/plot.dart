@@ -178,11 +178,7 @@ void main() {
 
   group('spec', () {
     final f = factory4096_0;
-    final writer = SpecChartWriter(
-      sampleRate: f.context.sampleRate,
-      chunkSize: f.context.chunkSize,
-      chunkStride: f.context.chunkStride,
-    );
+    final writer = SpecChartWriter(LibROSASpecShowContext.of(f.context));
 
     test('scalar, stft vs reassignment', () async {
       const scalar = MagnitudeScalar.dB;
@@ -234,11 +230,7 @@ void main() {
 
   group('chromagram', () {
     final f = factory4096_0;
-    final writer = SpecChartWriter.chroma(
-      sampleRate: f.context.sampleRate,
-      chunkSize: f.context.chunkSize,
-      chunkStride: f.context.chunkStride,
-    );
+    final writer = SpecChartWriter.chroma(LibROSASpecShowContext.of(f.context));
 
     test('chromagram compare', () async {
       final estimators = [

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/factory.dart';
 import 'package:chord/utils/histogram.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
@@ -126,24 +127,31 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
       );
 }
 
-/// LibROSA based
-class SpecChartWriter with _UsingTempCSVFileChartWriter {
-  const SpecChartWriter({
+class LibROSASpecShowContext {
+  const LibROSASpecShowContext({
     required this.sampleRate,
     required this.chunkSize,
     required this.chunkStride,
-    this.yAxis,
   });
 
-  const SpecChartWriter.chroma({
-    required this.sampleRate,
-    required this.chunkSize,
-    required this.chunkStride,
-  }) : yAxis = 'chroma';
+  LibROSASpecShowContext.of(EstimatorFactoryContext context)
+      : sampleRate = context.sampleRate,
+        chunkSize = context.chunkSize,
+        chunkStride = context.chunkStride;
 
   final int sampleRate;
   final int chunkSize;
   final int chunkStride;
+}
+
+/// LibROSA based
+class SpecChartWriter with _UsingTempCSVFileChartWriter {
+  const SpecChartWriter(this._context, {this.yAxis});
+
+  const SpecChartWriter.chroma(this._context) : yAxis = 'chroma';
+
+  final LibROSASpecShowContext _context;
+
   final String? yAxis;
 
   Future<void> call(
@@ -159,9 +167,9 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
           [
             'python/plots/spec.py',
             filePath,
-            sampleRate.toString(),
-            chunkSize.toString(),
-            chunkStride.toString(),
+            _context.sampleRate.toString(),
+            _context.chunkSize.toString(),
+            _context.chunkStride.toString(),
             ..._createTitleArgs(title),
             ..._createLimitArgs(_Axis.y, yMin, yMax),
             if (yAxis case final String yAxis) ...[
@@ -240,15 +248,9 @@ class HCDFChartWriter with _UsingTempCSVFileChartWriter {
 }
 
 class HCDFDetailChartWriter with _UsingTempCSVFileChartWriter {
-  const HCDFDetailChartWriter({
-    required this.sampleRate,
-    required this.chunkSize,
-    required this.chunkStride,
-  });
+  const HCDFDetailChartWriter(this._context);
 
-  final int sampleRate;
-  final int chunkSize;
-  final int chunkStride;
+  final LibROSASpecShowContext _context;
 
   Future<void> call(
     ChordProgression<Chord> correct,
@@ -271,11 +273,11 @@ class HCDFDetailChartWriter with _UsingTempCSVFileChartWriter {
             '--chromas_path',
             filePaths[2],
             '--sample_rate',
-            sampleRate.toString(),
+            _context.sampleRate.toString(),
             '--win_length',
-            chunkSize.toString(),
+            _context.chunkSize.toString(),
             '--hop_length',
-            chunkStride.toString(),
+            _context.chunkStride.toString(),
             ..._createTitleArgs(title),
           ],
         ),
