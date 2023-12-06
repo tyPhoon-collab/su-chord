@@ -6,34 +6,38 @@ import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
-typedef Degrees = Iterable<NamedDegree>;
-
-///基本的なコードタイプ
+///基本的なコードタイプを列挙する
+///度数とラベル、各コードタイプにおいて、有効なテンションの情報を保持している
 ///テンションなどはChordクラスで管理する
 ///dim7, m7b5もこちらに含める
 //m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
-//TODO ChordOperationを追加する
-//omit系
 enum ChordType {
-  major([_r, NamedDegree.M3, NamedDegree.P5], label: ''),
+  major.all({_r, NamedDegree.M3, NamedDegree.P5}, label: ''),
   minor(
-    [_r, NamedDegree.m3, NamedDegree.P5],
+    {_r, NamedDegree.m3, NamedDegree.P5},
     label: 'm',
     availableTensions: {
       ...ChordTension.normalTensions,
       ...ChordTension.tonicTensions
     },
   ),
-  diminish([_r, NamedDegree.m3, NamedDegree.dim5],
-      label: 'dim', availableTensions: {}),
+  diminish(
+    {_r, NamedDegree.m3, NamedDegree.dim5},
+    label: 'dim',
+    availableTensions: {},
+  ),
   diminish7(
-    [_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.M6],
+    {_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.M6},
     label: 'dim7',
     availableTensions: {},
   ),
-  augment([_r, NamedDegree.M3, NamedDegree.aug5], label: 'aug'),
+  augment(
+    {_r, NamedDegree.M3, NamedDegree.aug5},
+    label: 'aug',
+    availableTensions: {ChordTension.seventh},
+  ),
   sus2(
-    [_r, NamedDegree.M2, NamedDegree.P5],
+    {_r, NamedDegree.M2, NamedDegree.P5},
     label: 'sus2',
     availableTensions: {
       ...ChordTension.normalTensions,
@@ -43,7 +47,7 @@ enum ChordType {
     isOperation: true,
   ),
   sus4(
-    [_r, NamedDegree.P4, NamedDegree.P5],
+    {_r, NamedDegree.P4, NamedDegree.P5},
     label: 'sus4',
     availableTensions: {
       ...ChordTension.normalTensions,
@@ -53,7 +57,7 @@ enum ChordType {
     isOperation: true,
   ),
   minorSeventhFlatFive(
-    [_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.m7],
+    {_r, NamedDegree.m3, NamedDegree.dim5, NamedDegree.m7},
     label: 'm7b5',
     availableTensions: ChordTension.tonicTensions,
   );
@@ -61,9 +65,15 @@ enum ChordType {
   const ChordType(
     this.degrees, {
     required this.label,
-    this.availableTensions = const {...ChordTension.values},
+    required this.availableTensions,
     this.isOperation = false,
   });
+
+  const ChordType.all(
+    this.degrees, {
+    required this.label,
+  })  : availableTensions = const {...ChordTension.values},
+        isOperation = false;
 
   factory ChordType.parse(String label) {
     for (final type in values) {
@@ -82,7 +92,7 @@ enum ChordType {
     sus4,
   ];
 
-  final Degrees degrees;
+  final Set<NamedDegree> degrees;
   final String label;
   final Set<ChordTension> availableTensions;
   final bool isOperation; //操作系を表すコードタイプはテンションとコードタイプの表記が逆転する
@@ -151,7 +161,7 @@ enum ChordTension {
 }
 
 @immutable
-class ChordTensions extends Iterable<ChordTension> {
+final class ChordTensions extends Iterable<ChordTension> {
   ChordTensions(this.values)
       : assert(values.where((e) => !e.combinable).length <= 1);
 
@@ -352,7 +362,7 @@ class ChordBase<T> implements Transposable<T> {
 }
 
 @immutable
-class DegreeChord extends ChordBase<DegreeChord> {
+final class DegreeChord extends ChordBase<DegreeChord> {
   DegreeChord(this.degreeName, {required super.type, super.tensions});
 
   factory DegreeChord.parse(String chord) {
@@ -402,7 +412,7 @@ class DegreeChord extends ChordBase<DegreeChord> {
 }
 
 @immutable
-class Chord extends ChordBase<Chord> {
+final class Chord extends ChordBase<Chord> {
   factory Chord.fromNotesAndRoot({
     required Notes notes,
     required Note root,
