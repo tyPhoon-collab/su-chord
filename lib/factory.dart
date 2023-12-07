@@ -160,7 +160,7 @@ final class ChromaCalculatorFactory {
     isReassignFrequency = true,
     isReassignTime = false,
   }) =>
-      ReassignmentChromaCalculator(
+      ReassignmentETScaleChromaCalculator(
         reassignmentCalculator: ReassignmentCalculator.hanning(
           chunkSize: _chunkSize,
           chunkStride: _chunkStride,

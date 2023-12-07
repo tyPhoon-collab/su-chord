@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
-  final rc = ReassignmentChromaCalculator(
+  final rc = ReassignmentETScaleChromaCalculator(
     reassignmentCalculator: ReassignmentCalculator.hanning(),
   );
 

@@ -1,5 +1,3 @@
-
-
 mixin SampleRateCacheManager {
   int? _cachedSampleRate;
 
