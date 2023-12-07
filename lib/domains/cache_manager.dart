@@ -1,19 +1,4 @@
-import 'package:flutter/foundation.dart';
 
-import 'chroma.dart';
-
-mixin MagnitudesCacheManager {
-  @protected
-  final Magnitudes cachedMagnitudes = [];
-
-  void updateCacheMagnitudes(Magnitudes magnitudes, bool flush) {
-    if (flush) {
-      cachedMagnitudes.clear();
-    } else {
-      cachedMagnitudes.addAll(magnitudes);
-    }
-  }
-}
 
 mixin SampleRateCacheManager {
   int? _cachedSampleRate;

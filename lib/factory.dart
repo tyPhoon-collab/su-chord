@@ -161,12 +161,14 @@ final class ChromaCalculatorFactory {
     isReassignTime = false,
   }) =>
       ReassignmentChromaCalculator(
-        chunkSize: _chunkSize,
-        chunkStride: _chunkStride,
+        reassignmentCalculator: ReassignmentCalculator.hanning(
+          chunkSize: _chunkSize,
+          chunkStride: _chunkStride,
+          isReassignFrequency: isReassignFrequency,
+          isReassignTime: isReassignTime,
+          scalar: scalar ?? MagnitudeScalar.none,
+        ),
         chromaContext: chromaContext,
-        isReassignFrequency: isReassignFrequency,
-        isReassignTime: isReassignTime,
-        scalar: scalar ?? MagnitudeScalar.none,
       );
 }
 

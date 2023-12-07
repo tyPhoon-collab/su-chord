@@ -8,21 +8,18 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
+  final cfc = CombFilterChromaCalculator(
+    magnitudesCalculable: MagnitudesCalculator(),
+  );
   test('one note', () async {
-    final chroma =
-        CombFilterChromaCalculator(magnitudesCalculable: MagnitudesCalculator())
-            .call(await DataSet().osawa.C3)
-            .first;
+    final chroma = cfc(await DataSet().osawa.C3).first;
 
     debugPrint(chroma.toString());
     expect(chroma.maxIndex, 0);
   });
 
   test('chord', () async {
-    final chroma =
-        CombFilterChromaCalculator(magnitudesCalculable: MagnitudesCalculator())
-            .call(await DataSet().osawa.C)
-            .first;
+    final chroma = cfc(await DataSet().osawa.C).first;
 
     expect(chroma, isNotNull);
   });

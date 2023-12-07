@@ -16,8 +16,6 @@ abstract interface class MagnitudesCalculable implements HasMagnitudes {
 abstract interface class HasMagnitudes {
   MagnitudeScalar get magnitudeScalar;
 
-  Magnitudes get cachedMagnitudes; // for debug view
-
   double deltaTime(int sampleRate);
 
   double indexOfFrequency(double freq, int sampleRate);
@@ -53,7 +51,6 @@ enum MagnitudeScalar {
 }
 
 class MagnitudesCalculator extends STFTCalculator
-    with MagnitudesCacheManager
     implements MagnitudesCalculable {
   MagnitudesCalculator({
     super.chunkSize,
@@ -77,8 +74,6 @@ class MagnitudesCalculator extends STFTCalculator
     stft.stream(data.buffer, callback, chunkStride);
     if (flush) stft.flush(callback);
 
-    updateCacheMagnitudes(magnitudes, flush);
-
     return magnitudes;
   }
 
@@ -92,7 +87,7 @@ class MagnitudesCalculator extends STFTCalculator
 }
 
 class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
-    with MagnitudesCacheManager, SampleRateCacheManager
+    with SampleRateCacheManager
     implements MagnitudesCalculable {
   ReassignmentMagnitudesCalculator({
     super.chunkSize,
@@ -146,8 +141,6 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
       binX: binX,
       binY: _binY,
     ).values;
-
-    updateCacheMagnitudes(reassignedMagnitudes, flush);
 
     return reassignedMagnitudes;
   }
