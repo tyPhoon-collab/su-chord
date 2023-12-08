@@ -73,6 +73,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
   PatternMatchingChordEstimator({
     required super.chromaCalculable,
     super.chordChangeDetectable,
+    super.overridable,
     super.chordSelectable,
     super.filters,
     this.templateScalar,
@@ -110,6 +111,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     ChromaMappable? templateScalar,
     ChromaCalculable? chromaCalculable,
     ChromaChordChangeDetectable? chordChangeDetectable,
+    ChromaChordEstimatorOverridable? overridable,
     ChordSelectable? chordSelectable,
     List<ChromaListFilter>? filters,
   }) =>
@@ -120,6 +122,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
         chromaCalculable: chromaCalculable ?? this.chromaCalculable,
         chordChangeDetectable:
             chordChangeDetectable ?? this.chordChangeDetectable,
+        overridable: overridable ?? this.overridable,
         chordSelectable: chordSelectable ?? this.chordSelectable,
         filters: filters ?? this.filters,
       );

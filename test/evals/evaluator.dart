@@ -109,7 +109,7 @@ final class EvaluationAudioDataContext
   static final audioLoader = CacheableAudioLoader(sampleRate: 22050);
   static final csvLoader = CacheableCSVLoader();
 
-  String get fileName => '$musicName $soundSourceName'.sanitize();
+  String get outputFileName => '$musicName $soundSourceName'.sanitize();
 
   static Future<EvaluationAudioDataContext> fromFile(
     String audioPath,

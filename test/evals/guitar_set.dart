@@ -1,8 +1,11 @@
+import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/utils/loaders/audio.dart';
+import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../writer.dart';
@@ -13,7 +16,7 @@ Future<void> main() async {
     'assets/evals/3371780/audio_mono-mic',
     const GuitarSetEADCDelegate(),
     filter: (path) => path.contains('comp'),
-    // filter: (path) => path.contain('00_BN1-129-Eb_comp_mic.wav'),
+    // filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),
     // filter: (path) => path.contains('01_Rock3-117-Bb_comp_mic.wav'),
     // filter: (path) => path.contains('05_BN1-129-Eb_comp_mic.wav'),
   );
@@ -91,13 +94,31 @@ Future<void> main() async {
     });
   });
 
+  group('toy', () {
+    final toy = base.copyWith(overridable: _ToyOverride(contexts));
+    test('toy score', () async {
+      Table.bypass = true;
+      HCDFEvaluator.progressionWriter = null;
+
+      await HCDFEvaluator(estimator: toy)
+          .evaluate(contexts, header: 'toy')
+          .toCSV('test/outputs/HCDF/toy.csv');
+    });
+
+    test('toy visualize', () async {
+      await HCDFVisualizer(estimator: toy).visualize(
+        contexts[0],
+      );
+    });
+  });
+
   group('visualize', () {
     test('all', () async {
       for (final context in contexts) {
         await HCDFVisualizer(estimator: base).visualize(
           context,
           writerContext: LibROSASpecShowContext.of(f.context),
-          title: context.fileName,
+          title: context.outputFileName,
         );
       }
     });
@@ -141,4 +162,24 @@ Future<void> main() async {
       });
     });
   });
+}
+
+final class _ToyOverride implements ChromaChordEstimatorOverridable {
+  const _ToyOverride(this.contexts);
+
+  final List<EvaluationAudioDataContext> contexts;
+
+  @override
+  List<Slice>? slices(ChromaChordEstimator estimator, AudioData audioData) {
+    if (audioData.path == null) return null;
+
+    for (final context in contexts) {
+      if (audioData.path!.contains(context.musicName)) {
+        final dt = estimator.chromaCalculable.deltaTime(audioData.sampleRate);
+        return context.correct.map((e) => e.time!.toSlice(dt)).toList();
+      }
+    }
+
+    return null;
+  }
 }

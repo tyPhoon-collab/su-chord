@@ -3,12 +3,19 @@ import 'package:wav/wav.dart';
 
 @immutable
 class AudioData {
-  const AudioData({required this.buffer, required this.sampleRate});
+  const AudioData({
+    required this.buffer,
+    required this.sampleRate,
+    this.path,
+  });
 
-  AudioData.empty({this.sampleRate = 22050}) : buffer = Float64List(0);
+  AudioData.empty({this.sampleRate = 22050})
+      : buffer = Float64List(0),
+        path = null;
 
   final Float64List buffer;
   final int sampleRate;
+  final String? path;
 
   double get duration => buffer.length / sampleRate;
 
@@ -21,7 +28,7 @@ class AudioData {
     final start = ((offset ?? 0) * sampleRate).toInt();
     final end = start + (duration * sampleRate).toInt();
     final newBuffer = buffer.sublist(start, end);
-    return AudioData(buffer: newBuffer, sampleRate: sampleRate);
+    return copyWith(buffer: newBuffer);
   }
 
   AudioData cutByIndex([
@@ -36,7 +43,7 @@ class AudioData {
       endIndex = buffer.length - 1;
     }
     final newBuffer = buffer.sublist(startIndex, endIndex);
-    return AudioData(buffer: newBuffer, sampleRate: sampleRate);
+    return copyWith(buffer: newBuffer);
   }
 
   AudioData downSample(int? newSampleRate) {
@@ -62,7 +69,7 @@ class AudioData {
       i += factor;
     }
 
-    return AudioData(
+    return copyWith(
       buffer: Float64List.fromList(newData),
       sampleRate: newSampleRate,
     );
@@ -71,9 +78,18 @@ class AudioData {
   AudioData concat(AudioData other) {
     assert(other.sampleRate == sampleRate);
 
+    return copyWith(buffer: Float64List.fromList([...buffer, ...other.buffer]));
+  }
+
+  AudioData copyWith({
+    Float64List? buffer,
+    int? sampleRate,
+    String? path,
+  }) {
     return AudioData(
-      buffer: Float64List.fromList([...buffer, ...other.buffer]),
-      sampleRate: sampleRate,
+      buffer: buffer ?? this.buffer,
+      sampleRate: sampleRate ?? this.sampleRate,
+      path: path ?? this.path,
     );
   }
 }
@@ -105,7 +121,7 @@ final class SimpleAudioLoader implements AudioLoader {
     final wav = await _read();
     final sr = wav.samplesPerSecond;
     final buffer = wav.toMono();
-    return AudioData(buffer: buffer, sampleRate: sr)
+    return AudioData(buffer: buffer, sampleRate: sr, path: path)
         .cut(duration: duration, offset: offset)
         .downSample(sampleRate);
   }

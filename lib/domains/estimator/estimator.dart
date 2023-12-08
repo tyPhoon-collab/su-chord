@@ -6,6 +6,7 @@ import '../../service.dart';
 import '../../utils/loaders/audio.dart';
 import '../../utils/measure.dart';
 import '../../widgets/plot_view.dart';
+import '../annotation.dart';
 import '../cache_manager.dart';
 import '../chord.dart';
 import '../chord_progression.dart';
@@ -26,6 +27,11 @@ abstract interface class HasChromaList {
   List<Chroma> chromas();
 }
 
+abstract interface class ChromaChordEstimatorOverridable {
+  List<Slice>? slices(
+      covariant ChromaChordEstimator estimator, AudioData audioData);
+}
+
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
 abstract class ChromaChordEstimator
     with Measure, SampleRateCacheManager
@@ -34,6 +40,7 @@ abstract class ChromaChordEstimator
     required this.chromaCalculable,
     this.chordChangeDetectable = const FrameChordChangeDetector(),
     this.filters = const [],
+    this.overridable,
   });
 
   //service.dartから読み込んでいる。フロントエンドと同じコードタイプをデフォルトで扱える
@@ -43,6 +50,10 @@ abstract class ChromaChordEstimator
   final ChromaCalculable chromaCalculable;
   final Iterable<ChromaListFilter> filters;
   final ChromaChordChangeDetectable chordChangeDetectable;
+
+  ///実験のしやすさのために、いくつかのプロパティを強制的に上書きする
+  ///例えば、コードチェンジを推定ではなく、指定するなど
+  final ChromaChordEstimatorOverridable? overridable;
 
   List<Chroma> _chromas = [];
   List<Chroma> _filteredChromas = [];
@@ -74,7 +85,9 @@ abstract class ChromaChordEstimator
 
     final slices = measure(
       'HCDF calc',
-      () => chordChangeDetectable(_filteredChromas),
+      () =>
+          overridable?.slices(this, data) ??
+          chordChangeDetectable(_filteredChromas),
     );
 
     _slicedChromas = average(_filteredChromas, slices);
@@ -137,6 +150,7 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
     required super.chromaCalculable,
     super.chordChangeDetectable,
     super.filters,
+    super.overridable,
     this.chordSelectable = const FirstChordSelector(),
   });
 
