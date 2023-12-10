@@ -15,41 +15,28 @@ import 'comparator.dart';
 import 'evaluator.dart';
 
 Future<void> main() async {
-  late final Iterable<EvaluationAudioDataContext> contexts;
+  final contexts = [
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanGuitarVX',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanStratGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/HojoGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/RealStrat',
+      const KonokiEADCDelegate(),
+    ),
+  ];
 
-  setUpAll(() async {
-    // CSV書き込みをするなら以下をコメント化
-    Table.bypass = true;
-
-    // 計算時間を出力したいなら以下をコメント化
-    Measure.logger = null;
-
-    // コード推定結果を出力したいなら以下をコメント化
-    Evaluator.progressionWriter = null;
-
-    // コード推定の正解率を出力したいなら以下をコメント化
-    // _Evaluator.correctionWriter = null;
-
-    // 使用する音源はフォルダごとに管理されている
-    contexts = [
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanGuitarVX',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanStratGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/HojoGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/RealStrat',
-        const KonokiEADCDelegate(),
-      ),
-    ];
-  });
+  Table.bypass = true;
+  Measure.logger = null;
+  Evaluator.progressionWriter = null;
 
   group('prop', () {
     final f = factory4096_0;
@@ -148,18 +135,6 @@ Future<void> main() async {
             .toCSV('test/outputs/reassign.csv');
       });
 
-      test('template scale', () async {
-        await Evaluator(
-          estimator: PatternMatchingChordEstimator(
-            chromaCalculable: f.guitar.reassignment(),
-            chordChangeDetectable: f.hcdf.eval,
-            templateScalar: HarmonicsChromaScalar(until: 6),
-          ),
-        )
-            .evaluate(contexts, header: 'reassign')
-            .toCSV('test/outputs/reassign.csv');
-      });
-
       test('non reassign', () async {
         await Evaluator(
           estimator: PatternMatchingChordEstimator(
@@ -190,17 +165,51 @@ Future<void> main() async {
             .toCSV('test/outputs/third_scalar.csv');
       });
 
-      test('harmonics scaled', () async {
-        await Evaluator(
-          estimator: PatternMatchingChordEstimator(
-            chromaCalculable:
-                f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-            chordChangeDetectable: f.hcdf.eval,
-            templateScalar: HarmonicsChromaScalar(),
-          ),
-        )
-            .evaluate(contexts, header: 'harmonics scaled')
-            .toCSV('test/outputs/harmonics_scalar.csv');
+      group('harmonics scaled', () {
+        late final estimator = PatternMatchingChordEstimator(
+          chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+          chordChangeDetectable: f.hcdf.eval,
+        );
+
+        test('0.6 4', () async {
+          await Evaluator(
+            estimator: estimator.copyWith(
+              templateScalar: HarmonicsChromaScalar(),
+            ),
+          )
+              .evaluate(contexts, header: 'harmonics scaled')
+              .toCSV('test/outputs/harmonics_scalar_4.csv');
+        });
+
+        test('0.6 6', () async {
+          await Evaluator(
+            estimator: estimator.copyWith(
+              templateScalar: HarmonicsChromaScalar(until: 6),
+            ),
+          )
+              .evaluate(contexts, header: 'harmonics scaled')
+              .toCSV('test/outputs/harmonics_scalar_6.csv');
+        });
+
+        test('0.7 6', () async {
+          await Evaluator(
+            estimator: estimator.copyWith(
+              templateScalar: HarmonicsChromaScalar(factor: 0.7, until: 6),
+            ),
+          )
+              .evaluate(contexts, header: 'harmonics scaled')
+              .toCSV('test/outputs/harmonics_scalar_6_07.csv');
+        });
+
+        test('0.8 6', () async {
+          await Evaluator(
+            estimator: estimator.copyWith(
+              templateScalar: HarmonicsChromaScalar(factor: 0.8, until: 6),
+            ),
+          )
+              .evaluate(contexts, header: 'harmonics scaled')
+              .toCSV('test/outputs/harmonics_scalar_6_08.csv');
+        });
       });
     });
 

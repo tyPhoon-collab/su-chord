@@ -20,7 +20,7 @@ abstract interface class ChromaCalculable {
 ///継承して使用する
 ///実際にSTFTの計算をする際は、パッケージの実装の都合上、stft変数から行うので
 ///STFTの計算をする関数自体はこのクラスにはない
-abstract class STFTCalculator {
+class STFTCalculator {
   STFTCalculator.hanning({
     this.chunkSize = 2048,
     this.chunkStride = 1024,

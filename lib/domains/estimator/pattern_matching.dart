@@ -34,7 +34,8 @@ class HarmonicsChromaScalar implements ChromaMappable {
   HarmonicsChromaScalar({
     this.factor = 0.6,
     this.until = 4,
-  })  : assert(until <= 6),
+  })  : assert(factor < 1),
+        assert(until <= 6),
         _factors = List.generate(
           until,
           (index) => (

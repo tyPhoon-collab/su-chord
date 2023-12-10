@@ -152,6 +152,17 @@ void main() {
                 title: '6 harmonics scaled template of $chord',
               );
             });
+
+            test('ln 6th', () async {
+              final chord = Chord.parse('C');
+
+              await writer(
+                HarmonicsChromaScalar(factor: 0.8, until: 6)
+                    .call(chord.unitPCP)
+                    .l2normalized,
+                // title: '6 harmonics scaled template of $chord',
+              );
+            });
           });
         });
       });
