@@ -34,8 +34,10 @@ class HarmonicsChromaScalar implements ChromaMappable {
   HarmonicsChromaScalar({
     this.factor = 0.6,
     this.until = 4,
-  })  : assert(factor < 1),
-        assert(until <= 6),
+  })  : assert(
+          0 < until && until <= 6,
+          'only 0-6 harmonics can incorporate for pcp this class',
+        ),
         _factors = List.generate(
           until,
           (index) => (
@@ -79,30 +81,41 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     super.filters,
     this.templateScalar,
     this.scoreCalculator = const ScoreCalculator.cosine(),
+    this.scoreThreshold,
     Set<Chord>? templates,
   })  : assert(templates == null || templates.isNotEmpty),
         templates = templates ?? ChromaChordEstimator.defaultDetectableChords;
 
   final Set<Chord> templates;
   final ScoreCalculator scoreCalculator;
+  final double? scoreThreshold;
   final ChromaMappable? templateScalar;
 
-  late final templateChromas = groupBy(
+  late final _templateChromas = groupBy(
     templates,
     (p0) => templateScalar?.call(p0.unitPCP) ?? p0.unitPCP,
   );
+  late final _threshold = scoreThreshold ?? double.negativeInfinity;
 
   @override
   String toString() =>
       '$scoreCalculator matching ${templateScalar ?? 'none'} template scaled, ${super.toString()}';
 
+  //TODO 計算量削減
   @override
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
-    return maxBy(
-      templateChromas.entries,
-      (entry) => scoreCalculator(chroma, entry.key),
-    )!
-        .value;
+    List<Chord>? chords;
+    double maxScore = double.negativeInfinity;
+
+    for (final MapEntry(:key, :value) in _templateChromas.entries) {
+      final score = scoreCalculator(chroma, key);
+      if (score >= _threshold && score > maxScore) {
+        maxScore = score;
+        chords = value;
+      }
+    }
+
+    return chords ?? const [];
   }
 
   @visibleForTesting

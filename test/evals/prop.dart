@@ -20,18 +20,18 @@ Future<void> main() async {
       'assets/evals/Halion_CleanGuitarVX',
       const KonokiEADCDelegate(),
     ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/Halion_CleanStratGuitar',
-      const KonokiEADCDelegate(),
-    ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/HojoGuitar',
-      const KonokiEADCDelegate(),
-    ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/RealStrat',
-      const KonokiEADCDelegate(),
-    ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/Halion_CleanStratGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/HojoGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/RealStrat',
+    //   const KonokiEADCDelegate(),
+    // ),
   ];
 
   Table.bypass = true;

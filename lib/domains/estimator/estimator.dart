@@ -58,14 +58,14 @@ abstract class ChromaChordEstimator
   List<Chroma> _chromas = [];
   List<Chroma> _filteredChromas = [];
   List<Chroma> _slicedChromas = [];
-  double _dt = 0;
+  double _deltaTime = 0;
 
   @override
   String toString() => chromaCalculable.toString();
 
   @override
   void onSampleRateChanged(int newSampleRate) {
-    _dt = chromaCalculable.deltaTime(newSampleRate);
+    _deltaTime = chromaCalculable.deltaTime(newSampleRate);
   }
 
   @override
@@ -101,7 +101,7 @@ abstract class ChromaChordEstimator
     return ChordProgression(progression
         .mapIndexed((i, chord) => ChordCell(
               chord: chord,
-              time: slices[i].toTime(_dt),
+              time: slices[i].toTime(_deltaTime),
             ))
         .toList());
   }

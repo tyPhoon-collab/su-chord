@@ -41,9 +41,10 @@ class FrameChordChangeDetector implements ChromaChordChangeDetectable {
 
 ///秒数によってコード区間を設定する
 class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
-  IntervalChordChangeDetector({required this.interval, required this.dt}) {
+  IntervalChordChangeDetector(
+      {required this.interval, required this.deltaTime}) {
     _intervalSeconds = interval.inMicroseconds / 1000000;
-    if (_intervalSeconds <= dt) {
+    if (_intervalSeconds <= deltaTime) {
       debugPrint('Interval is less than dt. This filter will be ignored');
     }
   }
@@ -51,13 +52,13 @@ class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
   @override
   String toString() => 'interval HCDF $interval';
 
-  final double dt;
+  final double deltaTime;
   final Duration interval;
   late final double _intervalSeconds;
 
   @override
   List<Slice> call(List<Chroma> chroma) {
-    if (_intervalSeconds <= dt) {
+    if (_intervalSeconds <= deltaTime) {
       return const FrameChordChangeDetector().call(chroma);
     }
 
@@ -67,7 +68,7 @@ class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
     int count = 0;
 
     for (; count < chroma.length; count++) {
-      accumulatedTime += dt;
+      accumulatedTime += deltaTime;
 
       if (accumulatedTime >= _intervalSeconds) {
         slices.add(Slice(seek, count + 1));

@@ -47,7 +47,8 @@ final class Time extends SequenceAnnotation<double> {
 
   double get duration => end - start;
 
-  Slice toSlice(double dt) => Slice(start ~/ dt, end ~/ dt);
+  Slice toSlice(double deltaTime) =>
+      Slice(start ~/ deltaTime, end ~/ deltaTime);
 
   Time copyWith({double? start, double? end}) =>
       Time(start ?? this.start, end ?? this.end);
@@ -58,7 +59,7 @@ final class Slice extends SequenceAnnotation<int> {
 
   int get size => end - start;
 
-  Time toTime(double dt) => Time(start * dt, end * dt);
+  Time toTime(double deltaTime) => Time(start * deltaTime, end * deltaTime);
 
   Slice operator +(int value) => Slice(start + value, end + value);
 }

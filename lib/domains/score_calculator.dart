@@ -143,8 +143,7 @@ final class ScoreCalculator {
   @override
   String toString() => '${mapper != null ? '$mapper ' : ''}$distanceMetrics';
 
-  double call(Chroma chroma, Chroma other) =>
-      distanceMetrics(_map(chroma), _map(other));
+  double call(Chroma a, Chroma b) => distanceMetrics(_map(a), _map(b));
 
   Chroma _map(Chroma c) => mapper?.call(c) ?? c;
 }

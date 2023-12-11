@@ -215,7 +215,8 @@ final class HCDFFactory {
       );
 
   ChromaChordChangeDetectable interval(Duration duration) =>
-      IntervalChordChangeDetector(interval: duration, dt: context.deltaTime);
+      IntervalChordChangeDetector(
+          interval: duration, deltaTime: context.deltaTime);
 }
 
 final class ChordSelectorFactory {

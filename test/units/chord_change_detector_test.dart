@@ -35,7 +35,8 @@ Future<void> main() async {
 
   group('interval', () {
     test('just', () {
-      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1);
+      final ccd =
+          IntervalChordChangeDetector(interval: 2.seconds, deltaTime: 1);
       final chromas = List.filled(4, Chroma.empty); // 4 sec
       expect(
         ccd(chromas),
@@ -44,7 +45,8 @@ Future<void> main() async {
     });
 
     test('over', () {
-      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 1.1);
+      final ccd =
+          IntervalChordChangeDetector(interval: 2.seconds, deltaTime: 1.1);
       final chromas = List.filled(4, Chroma.empty); // 4.4 sec
       expect(
         ccd(chromas),
@@ -53,7 +55,8 @@ Future<void> main() async {
     });
 
     test('less', () {
-      final ccd = IntervalChordChangeDetector(interval: 2.seconds, dt: 0.9);
+      final ccd =
+          IntervalChordChangeDetector(interval: 2.seconds, deltaTime: 0.9);
       final chromas = List.filled(4, Chroma.empty); // 3.6 sec
       expect(
         ccd(chromas),
@@ -62,7 +65,8 @@ Future<void> main() async {
     });
 
     test('less than dt', () {
-      final ccd = IntervalChordChangeDetector(interval: 0.1.seconds, dt: 1);
+      final ccd =
+          IntervalChordChangeDetector(interval: 0.1.seconds, deltaTime: 1);
       final chromas = List.filled(4, Chroma.empty);
       expect(ccd(chromas), [
         const Slice(0, 1),
