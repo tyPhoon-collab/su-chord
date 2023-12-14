@@ -117,7 +117,10 @@ void main() {
       group('template', () {
         test('template', () async {
           final chord = Chord.parse('C');
-          await writer(chord.unitPCP.l2normalized, title: 'Template of $chord');
+          await writer(
+            chord.unitPCP.l2normalized,
+            // title: 'Template of $chord',
+          );
         });
 
         group('scalar', () {
@@ -138,7 +141,7 @@ void main() {
 
               await writer(
                 HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
-                title: '4 harmonics scaled template of $chord',
+                // title: '4 harmonics scaled template of $chord',
               );
             });
 
@@ -149,11 +152,11 @@ void main() {
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
-                title: '6 harmonics scaled template of $chord',
+                // title: '6 harmonics scaled template of $chord',
               );
             });
 
-            test('ln 6th', () async {
+            test('0.8 6th', () async {
               final chord = Chord.parse('C');
 
               await writer(
@@ -174,14 +177,22 @@ void main() {
           final chromas = f.guitar.reassignCombFilter().call(await DataSet().G);
 
           final pcp = average(chromas).first;
-          await writer(pcp.l2normalized, title: 'PCP of G');
+          await writer(
+            pcp.l2normalized,
+            title: 'PCP of G',
+          );
         });
 
         test('PCP of C', () async {
-          final chromas = f.guitar.reassignCombFilter().call(await DataSet().C);
+          final chromas = f.guitar
+              .reassignment(scalar: MagnitudeScalar.ln)
+              .call(await DataSet().C);
 
           final pcp = average(chromas).first;
-          await writer(pcp.l2normalized, title: 'PCP of C');
+          await writer(
+            pcp.l2normalized,
+            // title: 'PCP of C',
+          );
         });
       });
     });
@@ -219,8 +230,33 @@ void main() {
       final mags2 = f.magnitude.reassignment().call(data);
 
       await Future.wait([
-        writer(mags1, title: 'mags ${f.context}'),
-        writer(mags2, title: 'reassignment ${f.context}'),
+        writer(
+          mags1,
+          // title: 'mags ${f.context}',
+        ),
+        writer(
+          mags2,
+          // title: 'reassignment ${f.context}',
+        ),
+      ]);
+    });
+
+    test('ln mags, stft vs reassignment', () async {
+      final data = await DataSet().G_Em_Bm_C;
+
+      final mags1 = f.magnitude.stft(scalar: MagnitudeScalar.ln).call(data);
+      final mags2 =
+          f.magnitude.reassignment(scalar: MagnitudeScalar.ln).call(data);
+
+      await Future.wait([
+        writer(
+          mags1,
+          // title: 'mags ${f.context}',
+        ),
+        writer(
+          mags2,
+          // title: 'reassignment ${f.context}',
+        ),
       ]);
     });
 

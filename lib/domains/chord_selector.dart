@@ -24,7 +24,7 @@ class FirstChordSelector implements ChordSelectable {
 
 typedef DBSearchTrees = Map<Chord, TreeNode<Chord>>;
 
-///論文を元にDBの構築をし、コードの絞り込みを実装する
+///DBファイルからコードの絞り込みを実装する
 ///計算量削減と重複を最小限に抑えるために探索木により定義する
 ///また、探索木の構築は特定のフォーマットに従ったファイルから行い
 ///再帰的にDBに当てはまりうるコード群を取得し、論理積をとる
@@ -94,7 +94,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
         final progression = degreeChordProgression.toChord(Note.sharpNotes[i]);
         final firstChord = progression.first.chord!;
         var node = nodes.putIfAbsent(firstChord, () => TreeNode(firstChord));
-        for (final chord in progression.toChordList().sublist(1)) {
+        for (final chord in progression.toChordList().skip(1)) {
           node = node.putChildIfAbsent(chord!, () => TreeNode(chord));
         }
       }

@@ -95,6 +95,7 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
     super.isReassignFrequency,
     super.isReassignTime,
     super.scalar,
+    super.aMin,
     this.overrideChunkSize,
   })  : assert(overrideChunkSize == null || isReassignFrequency),
         assert(!isReassignTime, 'not supported now'),

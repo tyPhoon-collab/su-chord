@@ -3,8 +3,7 @@ import argparse
 import librosa.display
 import matplotlib.pyplot as plt
 import pandas as pd
-
-from args import set_y_limit, output
+from args import output, set_y_limit
 
 parser = argparse.ArgumentParser(description="Generate and display a spectrogram from a 2D array data file")
 parser.add_argument("data_file", type=str, help="Path to the input data file (CSV format)")

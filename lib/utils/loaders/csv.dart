@@ -14,7 +14,7 @@ abstract interface class CSVLoader {
     const path = 'assets/csv/chord_progression.csv';
     return (kIsWeb || Platform.isIOS || Platform.isAndroid)
         ? const FlutterCSVLoader(path: path)
-        : const SimpleCSVLoader(path: path, eol: '\r\n');
+        : const SimpleCSVLoader(path: path);
   }
 
   static const corrects = SimpleCSVLoader(

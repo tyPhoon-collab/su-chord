@@ -143,4 +143,76 @@ void main() {
       }
     }
   });
+
+  test('for ICS', () async {
+    const folderName = 'ICS';
+
+    final factories = [
+      factory1024_0,
+      factory2048_0,
+      factory4096_0,
+      factory8192_0,
+      factory16384_0,
+    ];
+
+    final folderPath =
+        'test/outputs/cross_validations/${folderName.sanitize()}';
+
+    final directory = await Directory(folderPath).create(recursive: true);
+
+    // logTest('${f.context} $folderPath', title: 'OUTPUT FOLDER PATH');
+
+    for (final f in factories) {
+      logTest(f.context);
+
+      for (final estimator in [
+        for (final chromaCalculable in [
+          for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
+            f.guitar.stftCombFilter(scalar: scalar),
+            f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
+            f.guitar.reassignCombFilter(scalar: scalar),
+            f.guitar.reassignment(scalar: scalar),
+          ]
+        ]) ...[
+          SearchTreeChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+            chordSelectable: await f.selector.db,
+            noteExtractable: switch (chromaCalculable) {
+              final HasMagnitudes value =>
+                f.extractor.threshold(scalar: value.magnitudeScalar),
+              _ => const ThresholdByMaxRatioExtractor(),
+            },
+          ),
+          PatternMatchingChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+          ),
+          PatternMatchingChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+            // ignore: avoid_redundant_argument_values
+            templateScalar: HarmonicsChromaScalar(until: 4),
+          ),
+          PatternMatchingChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+            templateScalar: HarmonicsChromaScalar(until: 6),
+          ),
+        ]
+      ]) {
+        final fileName = estimator.sanitize();
+
+        logTest(estimator);
+
+        final table = Evaluator(
+          estimator: estimator,
+          validator: (progression) => progression.length == 20,
+        ).evaluate(contexts, header: estimator.toString());
+
+        await table
+            .toCSV('${directory.path}/${f.context.sanitize()}/$fileName.csv');
+      }
+    }
+  });
 }

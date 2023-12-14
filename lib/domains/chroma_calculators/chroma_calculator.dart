@@ -46,6 +46,7 @@ class ReassignmentCalculator extends STFTCalculator {
     this.isReassignTime = false,
     this.isReassignFrequency = true,
     this.scalar = MagnitudeScalar.none,
+    this.aMin = 1e-5,
   }) : super.hanning() {
     if (isReassignFrequency) {
       final windowD = Float64List.fromList(
@@ -70,6 +71,7 @@ class ReassignmentCalculator extends STFTCalculator {
   final MagnitudeScalar scalar;
   final bool isReassignTime;
   final bool isReassignFrequency;
+  final double aMin;
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
@@ -112,7 +114,7 @@ class ReassignmentCalculator extends STFTCalculator {
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
-        if (magnitudes[i][j] < 1e-3 || s[i][j] == Float64x2.zero()) continue;
+        if (magnitudes[i][j] < aMin || s[i][j] == Float64x2.zero()) continue;
 
         points.add(Point(
           x: isReassignTime

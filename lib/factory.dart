@@ -11,6 +11,12 @@ import 'domains/note_extractor.dart';
 import 'domains/score_calculator.dart';
 import 'utils/loaders/csv.dart';
 
+final factory1024_0 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 1024,
+  chunkStride: 0,
+  sampleRate: 22050,
+));
+
 final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 2048,
   chunkStride: 1024,
@@ -31,6 +37,12 @@ final factory4096_0 = EstimatorFactory(const EstimatorFactoryContext(
 
 final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 8192,
+  chunkStride: 0,
+  sampleRate: 22050,
+));
+
+final factory16384_0 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 16384,
   chunkStride: 0,
   sampleRate: 22050,
 ));
@@ -99,13 +111,21 @@ final class MagnitudesFactory {
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
     int? overrideChunkSize = 8192,
-  }) =>
-      ReassignmentMagnitudesCalculator(
-        chunkSize: context.chunkSize,
-        chunkStride: context.chunkStride,
-        scalar: scalar,
-        overrideChunkSize: overrideChunkSize,
-      );
+    bool useGreaterChunkSize = true,
+  }) {
+    //overrideChunkSizeがchunkSizeより小さい場合は、chunkSizeを用いる
+    if (useGreaterChunkSize &&
+        overrideChunkSize != null &&
+        overrideChunkSize < context.chunkSize) {
+      overrideChunkSize = null;
+    }
+    return ReassignmentMagnitudesCalculator(
+      chunkSize: context.chunkSize,
+      chunkStride: context.chunkStride,
+      scalar: scalar,
+      overrideChunkSize: overrideChunkSize,
+    );
+  }
 }
 
 final class ChromaCalculatorFactory {

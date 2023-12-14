@@ -42,6 +42,7 @@ plt.ylim(Y_TICKS[0], Y_TICKS[-1])
 
 plt.gca().set_yticks(Y_TICKS)
 
+plt.xlabel("Time")
 plt.ylabel("Frequency")
 
 # グラフの表示
