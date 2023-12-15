@@ -21,6 +21,11 @@ def set_y_limit(args: Namespace) -> None:
         plt.ylim(top=args.y_max)
 
 
+def set_x_label(args: Namespace) -> None:
+    if args.x_label is not None:
+        plt.xlabel(args.x_label)
+
+
 def output(args: Namespace, as_suptitle: bool = False) -> None:
     title = args.title
     if title:

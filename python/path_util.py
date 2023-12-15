@@ -31,3 +31,11 @@ def get_sorted_audio_paths(dir_path: str) -> list[str]:
     """
     paths = glob.glob(f"{dir_path}/*.wav")
     return natsort.natsorted(paths)
+
+
+def get_sorted_csv_paths(dir_path: str) -> list[str]:
+    """
+    ディレクトリからcsvファイルのリストを名前の順でソートして返す関数
+    """
+    paths = glob.glob(f"{dir_path}/*.csv")
+    return natsort.natsorted(paths)

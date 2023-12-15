@@ -4,3 +4,4 @@ natsort
 librosa
 pandas
 pydub
+jinja2

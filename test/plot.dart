@@ -413,6 +413,7 @@ void main() {
       final f = factory4096_0;
       final calc = f.magnitude.stft();
       const xMax = 6000;
+      // hideTitle = true;
 
       test('A', () async {
         final ltas = LTASCalculator(magnitudesCalculable: calc)
@@ -427,6 +428,7 @@ void main() {
           title: 'LTAS A',
           xMin: 0,
           xMax: xMax,
+          xLabel: 'Frequency',
         );
       });
 
@@ -443,6 +445,7 @@ void main() {
           title: 'LTAS B',
           xMin: 0,
           xMax: xMax,
+          xLabel: 'Frequency',
         );
       });
 
@@ -459,6 +462,7 @@ void main() {
           title: 'LTAS C',
           xMin: 0,
           xMax: xMax,
+          xLabel: 'Frequency',
         );
       });
 
@@ -475,6 +479,7 @@ void main() {
           title: 'LTAS D',
           xMin: 0,
           xMax: xMax,
+          xLabel: 'Frequency',
         );
       });
     });

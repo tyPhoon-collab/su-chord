@@ -9,6 +9,8 @@ import 'package:chord/utils/table.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import 'util.dart';
+
 typedef LogTest = void Function(Object e, {String? title});
 
 //develop.logはtestモードでは機能しない
@@ -22,6 +24,8 @@ void logTest(Object e, {String? title}) {
 // const _python = 'python3';
 const _python = '.venv/bin/python';
 
+bool hideTitle = false;
+
 class BarChartWriter {
   const BarChartWriter();
 
@@ -29,7 +33,7 @@ class BarChartWriter {
     final result = await Process.run(
       _python,
       [
-        'python/plots/bar.py',
+        'python/plot/bar.py',
         ...data.map((e) => e.toString()),
         ..._createTitleArgs(title),
       ],
@@ -45,7 +49,7 @@ class PCPChartWriter {
     final result = await Process.run(
       _python,
       [
-        'python/plots/bar.py',
+        'python/plot/bar.py',
         ...data.map((e) => e.toString()),
         ..._createTitleArgs(title),
         ..._createLimitArgs(_Axis.y, 0, 1),
@@ -108,6 +112,7 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
     num? xMax,
     num? yMin,
     num? yMax,
+    String? xLabel,
   }) async =>
       runWithTempCSVFile(
         Table([
@@ -117,11 +122,12 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
         (filePath) => Process.run(
           _python,
           [
-            'python/plots/line.py',
+            'python/plot/line.py',
             filePath,
             ..._createTitleArgs(title),
             ..._createLimitArgs(_Axis.x, xMin, xMax),
             ..._createLimitArgs(_Axis.y, yMin, yMax),
+            ..._createLabelArgs(_Axis.x, xLabel),
           ],
         ),
       );
@@ -165,7 +171,7 @@ class SpecChartWriter with _UsingTempCSVFileChartWriter {
         (filePath) => Process.run(
           _python,
           [
-            'python/plots/spec.py',
+            'python/plot/spec.py',
             filePath,
             _context.sampleRate.toString(),
             _context.chunkSize.toString(),
@@ -190,7 +196,7 @@ class ScatterChartWriter with _UsingTempCSVFileChartWriter {
         (filePath) => Process.run(
           _python,
           [
-            'python/plots/scatter.py',
+            'python/plot/scatter.py',
             filePath,
             ..._createTitleArgs(title),
           ],
@@ -212,7 +218,7 @@ class Hist2DChartWriter with _UsingTempCSVFileChartWriter {
         (filePath) => Process.run(
           _python,
           [
-            'python/plots/hist2d.py',
+            'python/plot/hist2d.py',
             filePath,
             ..._createTitleArgs(title),
             ..._createBinArgs(_Axis.x, xBin),
@@ -238,7 +244,7 @@ class HCDFChartWriter with _UsingTempCSVFileChartWriter {
         (filePaths) => Process.run(
           _python,
           [
-            'python/plots/hcdf.py',
+            'python/plot/hcdf.py',
             filePaths[0],
             filePaths[1],
             ..._createTitleArgs(title),
@@ -267,7 +273,7 @@ class HCDFDetailChartWriter with _UsingTempCSVFileChartWriter {
         (filePaths) => Process.run(
           _python,
           [
-            'python/plots/hcdf.py',
+            'python/plot/hcdf.py',
             filePaths[0],
             filePaths[1],
             '--chromas_path',
@@ -290,10 +296,12 @@ enum _Axis { x, y }
 
 _Args _createTitleArgs(String? title) => [
       if (title != null) ...[
-        '--title',
-        title,
+        if (!hideTitle) ...[
+          '--title',
+          title,
+        ],
         '--output',
-        'test/outputs/plots/$title.png',
+        'test/outputs/plots/${title.sanitize()}.png',
       ],
     ];
 
@@ -305,6 +313,13 @@ _Args _createLimitArgs(_Axis limitAxis, num? min, num? max) => [
       if (max != null) ...[
         '--${limitAxis.name}_max',
         max.toString(),
+      ],
+    ];
+
+_Args _createLabelArgs(_Axis limitAxis, String? label) => [
+      if (label != null) ...[
+        '--${limitAxis.name}_label',
+        label,
       ],
     ];
 

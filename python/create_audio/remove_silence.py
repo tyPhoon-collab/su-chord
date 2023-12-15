@@ -1,21 +1,27 @@
 import os
 
-from pydub import AudioSegment
-# from pydub.playback import play
-from pydub.silence import detect_nonsilent
-
 from annotation import (
     create_time_annotation_csv_from_slices,
     get_chord_labels_from_conv,
     map_milliseconds_to_seconds,
 )
-from path import DIR_PATHS, get_file_name, get_sorted_audio_paths, get_source_name
+from pydub import AudioSegment
+
+# from pydub.playback import play
+from pydub.silence import detect_nonsilent
+
+from python.path_util import (
+    DIR_PATHS,
+    get_file_name,
+    get_sorted_audio_paths,
+    get_source_name,
+)
 
 
 def __create_nonsilent_audio(file_path: str) -> tuple[AudioSegment, list[tuple[int, int]]]:
     sound = AudioSegment.from_file(file_path)
     slices = detect_nonsilent(sound, min_silence_len=100, silence_thresh=-40)
-    nonsilent_sound = sum([sound[slice[0]:slice[1]] for slice in slices])
+    nonsilent_sound = sum([sound[slice[0] : slice[1]] for slice in slices])
 
     nonsilent_slices = []
     seek = 0

@@ -5,9 +5,15 @@ from annotation import (
     get_chord_labels_from_conv,
     map_milliseconds_to_seconds,
 )
-from path import DIR_PATHS, get_file_name, get_sorted_audio_paths, get_source_name
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
+
+from python.path_util import (
+    DIR_PATHS,
+    get_file_name,
+    get_sorted_audio_paths,
+    get_source_name,
+)
 
 if __name__ == "__main__":
     # migration conv to prop

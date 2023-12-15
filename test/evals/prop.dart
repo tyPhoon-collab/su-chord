@@ -7,7 +7,6 @@ import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/measure.dart';
-import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../writer.dart';
@@ -34,7 +33,7 @@ Future<void> main() async {
     ),
   ];
 
-  Table.bypass = true;
+  // Table.bypass = true;
   Measure.logger = null;
   Evaluator.progressionWriter = null;
 

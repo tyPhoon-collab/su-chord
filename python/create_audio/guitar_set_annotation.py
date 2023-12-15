@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from annotation import create_time_annotation_csv_from_slices
-from path import get_file_name, get_sorted_audio_paths, get_source_name
+
+from python.path_util import get_file_name, get_sorted_audio_paths, get_source_name
 
 _FileType = Literal["comp", "solo"]
 
