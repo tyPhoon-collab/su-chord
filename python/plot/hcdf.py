@@ -12,7 +12,7 @@ from matplotlib.colors import Colormap
 __BAR_HEIGHT = 3
 __FIG_SIZE = (16, 8)
 __FIG_HALF_SIZE = (16, 4)
-__BAR_OFFSET = __BAR_HEIGHT + 2
+__BAR_INTERVAL = __BAR_HEIGHT + 2
 
 
 def __str_to_color(string: str, cmap: Colormap | None = None) -> tuple[float, float, float, float]:
@@ -65,6 +65,16 @@ def __plt_bar(df: pd.DataFrame, y_range: tuple[int, int], ax: Axes | None = None
     return collection
 
 
+def __plt_bars(correct_df: pd.DataFrame, predict_df: pd.DataFrame, ax: Axes | None = None) -> None:
+    __plt_bar(correct_df, (__BAR_INTERVAL, __BAR_HEIGHT), ax=ax)
+    __plt_bar(predict_df, (0, __BAR_HEIGHT), ax=ax)
+
+    plt.yticks(
+        [0 + __BAR_HEIGHT / 2, __BAR_INTERVAL + __BAR_HEIGHT / 2],
+        labels=["predict", "correct"],
+    )
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("correct_path", type=str, help="Path to the CSV file")
 parser.add_argument("predict_path", type=str, help="Path to the CSV file")
@@ -99,8 +109,7 @@ if args.chromas_path:
         ax=ax_top,
     )
 
-    __plt_bar(correct_df, (__BAR_OFFSET, __BAR_HEIGHT), ax=ax_bottom)
-    __plt_bar(predict_df, (0, __BAR_HEIGHT), ax=ax_bottom)
+    __plt_bars(correct_df, predict_df, ax_bottom)
 
     ax_bottom.sharex(ax_top)
 
@@ -109,13 +118,7 @@ if args.chromas_path:
 else:
     plt.figure(figsize=__FIG_HALF_SIZE)
 
-    __plt_bar(correct_df, (__BAR_OFFSET, __BAR_HEIGHT))
-    __plt_bar(predict_df, (0, __BAR_HEIGHT))
-
-plt.yticks(
-    [0 + __BAR_HEIGHT / 2, __BAR_OFFSET + __BAR_HEIGHT / 2],
-    labels=["predict", "correct"],
-)
+    __plt_bars(correct_df, predict_df)
 
 plt.subplots_adjust(left=0.05, right=0.95)
 
