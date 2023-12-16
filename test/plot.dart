@@ -199,69 +199,64 @@ void main() {
   });
 
   group('spec', () {
+    group('plot mags and sparse', () {
+      Future<void> plot(
+        EstimatorFactory factory, {
+        MagnitudeScalar scalar = MagnitudeScalar.none,
+        num? yMin,
+        num? yMax,
+      }) async {
+        final writer =
+            SpecChartWriter(LibROSASpecShowContext.of(factory.context));
+
+        final data = await DataSet().G_Em_Bm_C;
+
+        final magsSTFT = factory.magnitude.stft(scalar: scalar).call(data);
+        final magsReassignment =
+            factory.magnitude.reassignment(scalar: scalar).call(data);
+
+        await Future.wait([
+          writer(
+            magsSTFT,
+            title: '${factory.context.chunkSize} stft $scalar',
+            yMin: yMin,
+            yMax: yMax,
+          ),
+          writer(
+            magsReassignment,
+            title: '${factory.context.chunkSize} reassignment $scalar',
+            yMin: yMin,
+            yMax: yMax,
+          ),
+        ]);
+      }
+
+      test('1024', () async {
+        await plot(factory1024_0);
+      });
+      test('16384', () async {
+        await plot(factory16384_0);
+      });
+      test('4096', () async {
+        await plot(factory4096_0);
+      });
+      test('4096, ln', () async {
+        await plot(factory4096_0, scalar: MagnitudeScalar.ln);
+      });
+      test('4096, dB', () async {
+        await plot(
+          factory4096_0,
+          scalar: MagnitudeScalar.dB,
+          yMax: 2200,
+        );
+      });
+    });
+  });
+  group('hist 2d', () {
     final f = factory4096_0;
-    final writer = SpecChartWriter(LibROSASpecShowContext.of(f.context));
-
-    test('scalar, stft vs reassignment', () async {
-      const scalar = MagnitudeScalar.dB;
-      final data = await DataSet().G_Em_Bm_C;
-
-      final mags1 = f.magnitude.stft(scalar: scalar).call(data);
-      final mags2 = f.magnitude.reassignment(scalar: scalar).call(data);
-
-      await Future.wait([
-        writer(
-          mags1,
-          title: '${scalar.name} mags ${f.context}',
-          yMax: 2200,
-        ),
-        writer(
-          mags2,
-          title: '${scalar.name} reassignment ${f.context}',
-          yMax: 2200,
-        ),
-      ]);
-    });
-
-    test('mags, stft vs reassignment', () async {
-      final data = await DataSet().G_Em_Bm_C;
-
-      final mags1 = f.magnitude.stft().call(data);
-      final mags2 = f.magnitude.reassignment().call(data);
-
-      await Future.wait([
-        writer(
-          mags1,
-          // title: 'mags ${f.context}',
-        ),
-        writer(
-          mags2,
-          // title: 'reassignment ${f.context}',
-        ),
-      ]);
-    });
-
-    test('ln mags, stft vs reassignment', () async {
-      final data = await DataSet().G_Em_Bm_C;
-
-      final mags1 = f.magnitude.stft(scalar: MagnitudeScalar.ln).call(data);
-      final mags2 =
-          f.magnitude.reassignment(scalar: MagnitudeScalar.ln).call(data);
-
-      await Future.wait([
-        writer(
-          mags1,
-          // title: 'mags ${f.context}',
-        ),
-        writer(
-          mags2,
-          // title: 'reassignment ${f.context}',
-        ),
-      ]);
-    });
+    const writer = Hist2DChartWriter();
 
     test('parts of reassignment', () async {
-      const writer = Hist2DChartWriter();
       final (points, mags) = ReassignmentCalculator.hanning(
         chunkSize: f.context.chunkSize,
         chunkStride: f.context.chunkStride,
