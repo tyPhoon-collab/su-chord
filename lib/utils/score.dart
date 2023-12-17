@@ -23,7 +23,9 @@ class FScore {
   final double fp;
   final double fn;
 
-  late final double score = 2 * precision * recall / (precision + recall);
+  late final double score = (precision + recall) != 0
+      ? 2 * precision * recall / (precision + recall)
+      : 0;
   late final double precision = tp / (tp + fp);
   late final double recall = tp / (tp + fn);
 
@@ -39,11 +41,11 @@ class FScore {
 
   String toStringAxFixed(int fractionDigits) =>
       'score: ${score.toStringAsFixed(fractionDigits)}, '
-          'precision: ${precision.toStringAsFixed(fractionDigits)}, '
-          'recall: ${recall.toStringAsFixed(fractionDigits)}, '
-          '(${tp.toStringAsFixed(fractionDigits)}, '
-          '${fp.toStringAsFixed(fractionDigits)}, '
-          '${fn.toStringAsFixed(fractionDigits)})';
+      'precision: ${precision.toStringAsFixed(fractionDigits)}, '
+      'recall: ${recall.toStringAsFixed(fractionDigits)}, '
+      '(${tp.toStringAsFixed(fractionDigits)}, '
+      '${fp.toStringAsFixed(fractionDigits)}, '
+      '${fn.toStringAsFixed(fractionDigits)})';
 
   Row toRow() =>
       [score, precision, recall, tp, fp, fn].map((e) => e.toString()).toList();

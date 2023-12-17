@@ -5,7 +5,6 @@ import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
-import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
@@ -16,11 +15,12 @@ Future<void> main() async {
   final contexts = await EvaluationAudioDataContext.fromFolder(
     'assets/evals/3371780/audio_mono-mic',
     const GuitarSetEADCDelegate(),
-    // filter: (path) => path.contains('comp'),
+    filter: (path) => path.contains('comp'),
+    // filter: (path) => path.contains('comp') && path.contains('SS'),
     // filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),
     // filter: (path) => path.contains('01_Rock3-117-Bb_comp_mic.wav'),
     // filter: (path) => path.contains('05_BN1-129-Eb_comp_mic.wav'),
-    filter: (path) => path.contains('00_Rock1-130-A_comp_mic.wav'),
+    // filter: (path) => path.contains('00_Rock1-130-A_comp_mic.wav'),
   );
 
   final f = factory4096_0;
@@ -67,31 +67,31 @@ Future<void> main() async {
 
     test('HCDF fold', () async {
       await HCDFEvaluator(estimator: estimable('frame'))
-          .evaluate(contexts, header: 'fold')
+          .evaluate(contexts, header: 'name')
           .toCSV('test/outputs/HCDF/guitar_set_fold.csv');
     });
 
     test('HCDF threshold', () async {
       await HCDFEvaluator(estimator: estimable('threshold'))
-          .evaluate(contexts, header: 'threshold')
+          .evaluate(contexts, header: 'name')
           .toCSV('test/outputs/HCDF/guitar_set_threshold.csv');
     });
 
     test('HCDF cosine', () async {
       await HCDFEvaluator(estimator: estimable('cosine'))
-          .evaluate(contexts, header: 'pre frame cosine')
+          .evaluate(contexts, header: 'name')
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_cosine.csv');
     });
 
     test('HCDF tonal', () async {
       await HCDFEvaluator(estimator: estimable('tonal'))
-          .evaluate(contexts, header: 'pre frame tonal cosine')
+          .evaluate(contexts, header: 'name')
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_tonal_cosine.csv');
     });
 
     test('HCDF tiv', () async {
       await HCDFEvaluator(estimator: estimable('tiv'))
-          .evaluate(contexts, header: 'pre frame TIV cosine')
+          .evaluate(contexts, header: 'name')
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_tiv_cosine.csv');
     });
   });
@@ -99,18 +99,29 @@ Future<void> main() async {
   group('toy', () {
     final toy = base.copyWith(overridable: _ToyOverride(contexts));
     test('toy score', () async {
-      Table.bypass = true;
+      // Table.bypass = true;
       HCDFEvaluator.progressionWriter = null;
 
       await HCDFEvaluator(estimator: toy)
-          .evaluate(contexts, header: 'toy')
-          .toCSV('test/outputs/HCDF/toy.csv');
+          .evaluate(contexts, header: 'name')
+          .toCSV('test/outputs/HCDF/guitar_set_toy.csv');
     });
 
-    test('toy visualize', () async {
-      await HCDFVisualizer(estimator: toy).visualize(
-        contexts[0],
-      );
+    group('toy visualize', () {
+      test('toy all', () async {
+        for (final context in contexts) {
+          await HCDFVisualizer(estimator: toy).visualize(
+            context,
+            writerContext: LibROSASpecShowContext.of(f.context),
+            title: context.outputFileName,
+          );
+        }
+      });
+      test('toy part', () async {
+        await HCDFVisualizer(estimator: toy).visualize(
+          contexts[0],
+        );
+      });
     });
   });
 
