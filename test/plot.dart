@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'data_set.dart';
+import 'util.dart';
 import 'writer.dart';
 
 void main() {
@@ -338,77 +339,62 @@ void main() {
 
     group('HCDF', () {
       final f = factory4096_0;
-
-      (List<double> time, List<double> score) getScore(
-        List<Chroma> chroma,
-        ScoreCalculator scoreCalculator, {
-        double? nanTo,
-        double Function(double)? mapper,
-      }) {
-        Iterable<double> scores = List.generate(
-          chroma.length - 1,
-          (i) => scoreCalculator(chroma[i + 1], chroma[i]),
-        );
-
-        if (nanTo != null) {
-          scores = scores.map((e) => e.isNaN ? nanTo : e);
-        }
-        if (mapper != null) {
-          scores = scores.map(mapper);
-        }
-
-        final times = List.generate(
-            chroma.length - 1, (i) => f.context.deltaTime * (i + 1));
-
-        return (times, scores.toList());
-      }
-
       group('sample silent', () {
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
         test('cosine similarity', () async {
           final chroma = cc(await DataSet().sampleSilent);
           const scoreCalculator = ScoreCalculator.cosine();
-          final score = getScore(
+          final (time, score) = getTimeAndScore(
+            f.context.deltaTime,
             chroma,
             scoreCalculator,
             mapper: (e) => e == 0 ? 1 : e,
           );
 
-          await writer(score.$1, score.$2, title: 'HCDF cosine similarity');
+          await writer(time, score, title: 'HCDF cosine similarity');
         });
 
         test('tonal centroid', () async {
           final chroma = cc(await DataSet().sampleSilent);
           const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
-          final score = getScore(
+          final (time, score) = getTimeAndScore(
+            f.context.deltaTime,
             chroma,
             scoreCalculator,
             nanTo: 1,
           );
 
-          await writer(score.$1, score.$2, title: 'HCDF tonal centroid');
+          await writer(time, score, title: 'HCDF tonal centroid');
         });
         test('tonal interval vector', () async {
           final chroma = cc(await DataSet().sampleSilent);
           const scoreCalculator =
               ScoreCalculator.cosine(ToTonalIntervalVector.musical());
 
-          final score = getScore(
+          final (time, score) = getTimeAndScore(
+            f.context.deltaTime,
             chroma,
             scoreCalculator,
             nanTo: 1,
           );
 
-          await writer(score.$1, score.$2, title: 'HCDF tonal interval vector');
+          await writer(time, score, title: 'HCDF tonal interval vector');
         });
       });
     });
     group('LTAS', () {
       final f = factory4096_0;
       final calc = f.magnitude.stft();
-      const xMax = 6000;
-      // hideTitle = true;
+
+      // const xMin = 0;
+      // const xMax = 6000;
+
+      final bins = ChromaContext.guitar.toEqualTemperamentBin();
+      final xMin = bins.first;
+      final xMax = bins.last;
+
+      hideTitle = true;
 
       test('A', () async {
         final ltas = LTASCalculator(magnitudesCalculable: calc)
@@ -421,7 +407,7 @@ void main() {
           ),
           ltas,
           title: 'LTAS A',
-          xMin: 0,
+          xMin: xMin,
           xMax: xMax,
           xLabel: 'Frequency',
         );
@@ -438,7 +424,7 @@ void main() {
           ),
           ltas,
           title: 'LTAS B',
-          xMin: 0,
+          xMin: xMin,
           xMax: xMax,
           xLabel: 'Frequency',
         );
@@ -455,7 +441,7 @@ void main() {
           ),
           ltas,
           title: 'LTAS C',
-          xMin: 0,
+          xMin: xMin,
           xMax: xMax,
           xLabel: 'Frequency',
         );
@@ -472,7 +458,7 @@ void main() {
           ),
           ltas,
           title: 'LTAS D',
-          xMin: 0,
+          xMin: xMin,
           xMax: xMax,
           xLabel: 'Frequency',
         );

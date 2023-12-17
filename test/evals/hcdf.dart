@@ -77,7 +77,7 @@ void main() {
           'cosine' => base.copyWith(
               chordChangeDetectable: f.hcdf.preFrameCheck(
                 powerThreshold: threshold,
-                scoreThreshold: .9,
+                scoreThreshold: .8,
               ),
             ),
           'tonal' => base.copyWith(

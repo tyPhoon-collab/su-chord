@@ -117,18 +117,7 @@ class ComplexGuitarSetAnnotator(GuitarSetAnnotator):
 
     @staticmethod
     def __map_chord_type_name_from_guitar_set(label: str) -> str:
-        label = label.split("(")[0]
-        match label:
-            case "maj":
-                return ""
-            case "min":
-                return "m"
-            case "7":
-                return "7"
-            case "hdim7":
-                return "m7b5"
-            case name:
-                raise NotImplementedError(name)
+        raise NotImplementedError()
 
 
 @dataclass

@@ -8,6 +8,7 @@ import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../util.dart';
 import '../writer.dart';
 import 'evaluator.dart';
 
@@ -15,10 +16,11 @@ Future<void> main() async {
   final contexts = await EvaluationAudioDataContext.fromFolder(
     'assets/evals/3371780/audio_mono-mic',
     const GuitarSetEADCDelegate(),
-    filter: (path) => path.contains('comp'),
+    // filter: (path) => path.contains('comp'),
     // filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),
     // filter: (path) => path.contains('01_Rock3-117-Bb_comp_mic.wav'),
     // filter: (path) => path.contains('05_BN1-129-Eb_comp_mic.wav'),
+    filter: (path) => path.contains('00_Rock1-130-A_comp_mic.wav'),
   );
 
   final f = factory4096_0;
@@ -109,6 +111,52 @@ Future<void> main() async {
       await HCDFVisualizer(estimator: toy).visualize(
         contexts[0],
       );
+    });
+  });
+
+  group('function line', () {
+    const index = 0;
+    const writer = LineChartWriter();
+    final chroma = f.guitar
+        .reassignment(scalar: MagnitudeScalar.ln)
+        .call(contexts[index].data);
+
+    test('line cosine', () async {
+      const scoreCalculator = ScoreCalculator.cosine();
+      final (time, score) = getTimeAndScore(
+        f.context.deltaTime,
+        chroma,
+        scoreCalculator,
+        mapper: (e) => e == 0 ? 1 : e,
+      );
+
+      await writer(time, score, title: 'guitar set HCDF cosine similarity');
+    });
+
+    test('line tonal', () async {
+      const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
+      final (time, score) = getTimeAndScore(
+        f.context.deltaTime,
+        chroma,
+        scoreCalculator,
+        nanTo: 1,
+      );
+
+      await writer(time, score, title: 'guitar set HCDF tonal centroid');
+    });
+
+    test('line tiv', () async {
+      const scoreCalculator =
+          ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+
+      final (time, score) = getTimeAndScore(
+        f.context.deltaTime,
+        chroma,
+        scoreCalculator,
+        nanTo: 1,
+      );
+
+      await writer(time, score, title: 'guitar set HCDF tonal interval vector');
     });
   });
 
