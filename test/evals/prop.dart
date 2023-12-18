@@ -276,6 +276,17 @@ Future<void> main() async {
           ],
         );
       });
+
+      test('A 2 2', () async {
+        await compare(
+          source: 'assets/evals/Halion_CleanGuitarVX/2_東京-03.wav',
+          index: 2,
+          chords: [
+            Chord.parse('F#m7b5'),
+            Chord.parse('Am6'),
+          ],
+        );
+      });
     });
 
     test('pcp scalar', () async {

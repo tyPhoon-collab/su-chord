@@ -215,4 +215,46 @@ void main() {
       }
     }
   });
+
+  test('mean template cv', () async {
+    // Table.bypass = true;
+    const folderName = 'mean template';
+
+    final f = factory4096_0;
+
+    final folderPath =
+        'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
+
+    final directory = await Directory(folderPath).create(recursive: true);
+
+    logTest('${f.context} $folderPath', title: 'OUTPUT FOLDER PATH');
+
+    for (final estimator in [
+      for (final chromaCalculable in [
+        for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
+          f.guitar.reassignment(scalar: scalar),
+          f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
+          f.guitar.stftCombFilter(scalar: scalar),
+          f.guitar.reassignCombFilter(scalar: scalar),
+        ]
+      ]) ...[
+        MeanTemplatePatternMatchingChordEstimator(
+          chromaCalculable: chromaCalculable,
+          chordChangeDetectable: f.hcdf.eval,
+          templateScalar: HarmonicsChromaScalar(until: 6),
+        ),
+      ]
+    ]) {
+      final fileName = estimator.sanitize();
+
+      logTest(estimator);
+
+      final table = Evaluator(
+        estimator: estimator,
+        validator: (progression) => progression.length == 20,
+      ).evaluate(contexts, header: estimator.toString());
+
+      await table.toCSV('${directory.path}/$fileName.csv');
+    }
+  });
 }

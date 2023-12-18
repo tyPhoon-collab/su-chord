@@ -80,7 +80,7 @@ class MeanScoreSpotComparator {
     for (final note in Note.sharpNotes) {
       final template = _getTemplate(note);
 
-      logTest('$note group: ${scoreCalculator(pcp, template)}');
+      logTest('$note group\t: ${scoreCalculator(pcp, template)}');
     }
   }
 }

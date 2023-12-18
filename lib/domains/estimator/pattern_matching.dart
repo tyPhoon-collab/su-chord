@@ -143,6 +143,34 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
       );
 }
 
+class MeanTemplateContext {
+  const MeanTemplateContext({this.sortedScoreTakeCount = 2})
+      : assert(sortedScoreTakeCount <= 12);
+
+  ///key  : 平均化されたPCPのクロマ
+  ///value: 平均化されたPCPに使用されたテンプレートPCPとコード群のMap
+  static Map<Chroma, Map<Chroma, List<Chord>>> createMeanTemplate(
+    Set<Chord> templates,
+    ChromaMappable? scalar,
+  ) {
+    Chroma scaledPCP(Chord e) => scalar?.call(e.unitPCP) ?? e.unitPCP;
+
+    return Map.fromEntries(Note.sharpNotes.map(
+      (e) {
+        final chords = templates.where((chord) => chord.root == e);
+        final key = chords
+            .map((e) => scaledPCP(e))
+            .cast<Chroma>()
+            .reduce((value, element) => value + element);
+
+        return MapEntry(key, groupBy(chords, (e) => scaledPCP(e)));
+      },
+    ));
+  }
+
+  final int sortedScoreTakeCount;
+}
+
 ///ルート音を基準としてグループ化する
 class MeanTemplatePatternMatchingChordEstimator
     extends PatternMatchingChordEstimator {
@@ -156,25 +184,15 @@ class MeanTemplatePatternMatchingChordEstimator
     super.scoreCalculator,
     super.scoreThreshold,
     super.templates,
-  });
+    this.context = const MeanTemplateContext(),
+  }) : super();
 
-  late final _meanTemplateChromas = Map.fromEntries(Note.sharpNotes.map(
-    (e) {
-      final chords = templates.where((chord) => chord.root == e);
-      final key = chords
-          .map((e) => templateScalar?.call(e.unitPCP) ?? e.unitPCP)
-          .cast<Chroma>()
-          .reduce((value, element) => value + element);
+  final MeanTemplateContext context;
 
-      return MapEntry(
-        key,
-        groupBy(
-          chords,
-          (p0) => templateScalar?.call(p0.unitPCP) ?? p0.unitPCP,
-        ),
-      );
-    },
-  ));
+  late final _meanTemplateChromas = MeanTemplateContext.createMeanTemplate(
+    templates,
+    templateScalar,
+  );
 
   @override
   String toString() => 'mean ${super.toString()}';
@@ -183,31 +201,35 @@ class MeanTemplatePatternMatchingChordEstimator
   Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
     List<Chord> chords = const [];
     var maxScore = double.negativeInfinity;
+    final sortedScoreRecords =
+        _sortedChromaWithScore(chroma).take(context.sortedScoreTakeCount);
 
-    for (final MapEntry(:key, :value) in _getTemplateGroup(chroma).entries) {
-      final score = scoreCalculator(chroma, key);
-      if (score >= _threshold && score > maxScore) {
-        maxScore = score;
-        chords = value;
+    for (final scoreRecord in sortedScoreRecords) {
+      for (final MapEntry(:key, :value)
+          in _meanTemplateChromas[scoreRecord.chroma]!.entries) {
+        final score = scoreCalculator(chroma, key);
+        //weight by mean template PCP score
+        //優先度を平均化されたPCPのスコア順にするために、スコアをかける
+        //こうすることで、m7と6系の異名同和音の区別が容易になる場合がある
+        //ただ、そこの選択は別クラスでも行うため、いらないかも
+        //TODO: 仕様の検討
+        final weightedScore = score * scoreRecord.score;
+        if (score >= _threshold && weightedScore > maxScore) {
+          maxScore = weightedScore;
+          chords = value;
+        }
       }
     }
 
     return chords;
   }
 
-  Map<Chroma, List<Chord>> _getTemplateGroup(Chroma chroma) {
-    var maxScore = double.negativeInfinity;
-
-    late Map<Chroma, List<Chord>> templates;
-
-    for (final MapEntry(:key, :value) in _meanTemplateChromas.entries) {
-      final score = scoreCalculator(chroma, key);
-      if (score > maxScore) {
-        maxScore = score;
-        templates = value;
-      }
-    }
-
-    return templates;
+  List<({Chroma chroma, double score})> _sortedChromaWithScore(Chroma chroma) {
+    return _meanTemplateChromas.keys
+        .map((e) => (
+              chroma: e,
+              score: scoreCalculator(chroma, e),
+            ))
+        .sorted((a, b) => b.score.compareTo(a.score));
   }
 }

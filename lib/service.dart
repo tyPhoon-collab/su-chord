@@ -35,6 +35,7 @@ class DetectableChords extends _$DetectableChords {
     'm',
     'aug',
     'dim',
+    // 'sus2',
     'sus4',
     '7',
     'm7',

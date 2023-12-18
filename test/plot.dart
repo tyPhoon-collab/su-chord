@@ -189,26 +189,29 @@ void main() {
 
       group('real data', () {
         final f = factory4096_0;
+        final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
-        test('PCP of G', () async {
-          final chromas = f.guitar.reassignCombFilter().call(await DataSet().G);
-
+        Future<void> plot(List<Chroma> chromas, {String? title}) async {
           final pcp = average(chromas).first;
           await writer(
             pcp.l2normalized,
-            title: 'PCP of G',
+            title: title,
           );
+        }
+
+        test('r G', () async {
+          await plot(cc(await DataSet().G));
         });
 
-        test('PCP of C', () async {
-          final chromas = f.guitar
-              .reassignment(scalar: MagnitudeScalar.ln)
-              .call(await DataSet().C);
+        test('r C', () async {
+          await plot(cc(await DataSet().C));
+        });
 
-          final pcp = average(chromas).first;
-          await writer(
-            pcp.l2normalized,
-            // title: 'PCP of C',
+        test('r F#m7b5', () async {
+          await plot(
+            cc(await const SimpleAudioLoader(
+              path: 'assets/evals/Halion_CleanGuitarVX/2_東京-03.wav',
+            ).load().then((value) => value.cutEvaluationAudioByIndex(2))),
           );
         });
       });
