@@ -44,10 +44,10 @@ class DetectableChords extends _$DetectableChords {
     'm7b5',
     '7sus4',
     'dim7',
-    // '6',
-    // 'm6',
+    '6',
+    'm6',
     'add9',
-    // 'madd9',
+    'madd9',
   };
 
   static Set<Chord> _fromQualities(Set<String> qualities) {

@@ -19,7 +19,7 @@ void main() {
     final e2 = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.combFilter(),
       chordChangeDetectable: f.hcdf.eval,
-      templateScalar: const ThirdHarmonicChromaScalar(0.2),
+      templateScalar: const OnlyThirdHarmonicChromaScalar(0.2),
     );
 
     final e3 = PatternMatchingChordEstimator(

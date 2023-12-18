@@ -7,14 +7,15 @@ import '../chord.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
 import '../chroma_calculators/chroma_calculator.dart';
+import '../equal_temperament.dart';
 import '../filters/chord_change_detector.dart';
 import '../filters/filter.dart';
 import '../score_calculator.dart';
 import 'estimator.dart';
 
 ///３倍音のみ考慮する
-class ThirdHarmonicChromaScalar implements ChromaMappable {
-  const ThirdHarmonicChromaScalar(this.factor);
+class OnlyThirdHarmonicChromaScalar implements ChromaMappable {
+  const OnlyThirdHarmonicChromaScalar(this.factor);
 
   final double factor;
 
@@ -140,4 +141,73 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
         chordSelectable: chordSelectable ?? this.chordSelectable,
         filters: filters ?? this.filters,
       );
+}
+
+///ルート音を基準としてグループ化する
+class MeanTemplatePatternMatchingChordEstimator
+    extends PatternMatchingChordEstimator {
+  MeanTemplatePatternMatchingChordEstimator({
+    required super.chromaCalculable,
+    super.chordChangeDetectable,
+    super.overridable,
+    super.chordSelectable,
+    super.filters,
+    super.templateScalar,
+    super.scoreCalculator,
+    super.scoreThreshold,
+    super.templates,
+  });
+
+  late final _meanTemplateChromas = Map.fromEntries(Note.sharpNotes.map(
+    (e) {
+      final chords = templates.where((chord) => chord.root == e);
+      final key = chords
+          .map((e) => templateScalar?.call(e.unitPCP) ?? e.unitPCP)
+          .cast<Chroma>()
+          .reduce((value, element) => value + element);
+
+      return MapEntry(
+        key,
+        groupBy(
+          chords,
+          (p0) => templateScalar?.call(p0.unitPCP) ?? p0.unitPCP,
+        ),
+      );
+    },
+  ));
+
+  @override
+  String toString() => 'mean ${super.toString()}';
+
+  @override
+  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
+    List<Chord> chords = const [];
+    var maxScore = double.negativeInfinity;
+
+    for (final MapEntry(:key, :value) in _getTemplateGroup(chroma).entries) {
+      final score = scoreCalculator(chroma, key);
+      if (score >= _threshold && score > maxScore) {
+        maxScore = score;
+        chords = value;
+      }
+    }
+
+    return chords;
+  }
+
+  Map<Chroma, List<Chord>> _getTemplateGroup(Chroma chroma) {
+    var maxScore = double.negativeInfinity;
+
+    late Map<Chroma, List<Chord>> templates;
+
+    for (final MapEntry(:key, :value) in _meanTemplateChromas.entries) {
+      final score = scoreCalculator(chroma, key);
+      if (score > maxScore) {
+        maxScore = score;
+        templates = value;
+      }
+    }
+
+    return templates;
+  }
 }

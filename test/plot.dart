@@ -3,6 +3,7 @@ import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/equal_temperament.dart';
+import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
@@ -116,7 +117,7 @@ void main() {
       });
 
       group('template', () {
-        test('template', () async {
+        test('template C', () async {
           final chord = Chord.parse('C');
           await writer(
             chord.unitPCP.l2normalized,
@@ -129,7 +130,7 @@ void main() {
             final chord = Chord.parse('C');
 
             await writer(
-              const ThirdHarmonicChromaScalar(0.2)
+              const OnlyThirdHarmonicChromaScalar(0.2)
                   .call(chord.unitPCP)
                   .l2normalized,
               title: 'third scaled template of $chord',
@@ -167,6 +168,21 @@ void main() {
                 // title: '6 harmonics scaled template of $chord',
               );
             });
+          });
+        });
+
+        group('mean', () {
+          test('mean C', () async {
+            final scalar = HarmonicsChromaScalar(until: 6);
+            final chords = ChromaChordEstimator.defaultDetectableChords
+                .where((e) => e.root == Note.C);
+            final pcp = chords
+                .map((e) => scalar(e.unitPCP))
+                .cast<Chroma>()
+                .reduce((value, element) => value + element);
+            await writer(
+              pcp.l2normalized,
+            );
           });
         });
       });

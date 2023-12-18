@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../data_set.dart';
+import '../evals/comparator.dart';
 import '../writer.dart';
 
 void main() {
@@ -75,6 +76,36 @@ void main() {
 
       logTest('$chord: $score');
     }
+  });
+
+  group('compare mean template score', () {
+    final f = factory4096_0;
+    final comparator = MeanScoreSpotComparator(
+      chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+      scalar: HarmonicsChromaScalar(until: 6),
+    );
+
+    test('F#m7b5', () async {
+      await comparator(
+        source: 'assets/evals/Halion_CleanGuitarVX/2_東京-03.wav',
+        index: 2,
+      );
+    });
+
+    test('Am7b5', () async {
+      await comparator(
+        source: 'assets/evals/Halion_CleanGuitarVX/5_涙の天使に.wav',
+        index: 4,
+      );
+    });
+
+    test('Dadd9', () async {
+      await comparator(
+        source:
+            'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav',
+        index: 10,
+      );
+    });
   });
 
   test('compare chroma calc', () async {
