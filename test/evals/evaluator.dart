@@ -282,7 +282,7 @@ class HCDFEvaluator {
 
     correctionWriter?.call(
       (rate / contexts.length).toStringAxFixed(3),
-      title: 'correct rate',
+      title: 'CORRECT RATE',
     );
 
     return table;

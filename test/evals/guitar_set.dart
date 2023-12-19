@@ -25,6 +25,7 @@ Future<void> main() async {
     // filter: (path) => path.contains('00_Funk1-114-Ab_comp_mic.wav'),
     // filter: (path) => path.contains('05_SS3-98-C_comp_mic.wav'),
     // filter: (path) => path.contains('01_SS1-100-C#_comp_mic.wav'),
+    // filter: (path) => path.contains('00_SS3-84-Bb_comp_mic.wav'),
   );
 
   final f = factory4096_2048;
@@ -34,7 +35,7 @@ Future<void> main() async {
     scoreThreshold: 0.8,
   );
 
-  const threshold = 20.0;
+  const threshold = 15.0;
 
   ChordEstimable estimable(String name) => switch (name) {
         'frame' =>
@@ -44,7 +45,7 @@ Future<void> main() async {
         'cosine' => base.copyWith(
             chordChangeDetectable: f.hcdf.preFrameCheck(
               powerThreshold: threshold,
-              scoreThreshold: .9,
+              scoreThreshold: .85,
             ),
           ),
         'tonal' => base.copyWith(
@@ -224,7 +225,7 @@ Future<void> main() async {
       test('v tiv', () async {
         await HCDFVisualizer(estimator: estimable('tiv')).visualize(
           contexts[index],
-          title: 'guitar set tiv',
+          // title: 'guitar set tiv',
         );
       });
     });

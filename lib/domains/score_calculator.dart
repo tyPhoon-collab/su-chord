@@ -105,6 +105,9 @@ final class ToTonalIntervalVector
   final List<double> weights;
 
   @override
+  String toString() => 'tonal interval vector';
+
+  @override
   Chroma call(Chroma c) {
     assert(c.length == 12);
 
