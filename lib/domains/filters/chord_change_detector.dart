@@ -19,7 +19,13 @@ List<Chroma> average(List<Chroma> source, [List<Slice>? slices]) {
   final averages = <Chroma>[];
 
   for (final slice in slices) {
-    final sliced = source.sublist(slice.start, slice.end);
+    var end = slice.end;
+    if (end > source.length) {
+      end = source.length;
+      debugPrint(
+          'end is over length, end: ${slice.end}, length: ${source.length}');
+    }
+    final sliced = source.sublist(slice.start, end);
     final sum = sliced.reduce((a, b) => a + b);
     averages.add(sum / slice.size);
   }
@@ -89,7 +95,6 @@ class IntervalChordChangeDetector implements ChromaChordChangeDetectable {
 ///無音区間があれば、そこをコード区間の区切りとする
 ///onPowerは無音でない部分を更に分割する[ChromaChordChangeDetectable]を指定する
 class PowerThresholdChordChangeDetector implements ChromaChordChangeDetectable {
-  //TODO １フレームだけ等の場合は不安定なので、何フレームか続いた場合のみ検知するようにする
   const PowerThresholdChordChangeDetector(
     this.threshold, {
     this.onPower,

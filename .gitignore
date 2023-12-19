@@ -53,6 +53,8 @@ app.*.map.json
 # ignore test outputs
 /test/outputs/tmp.xlsx
 /test/outputs/plots/
+/test/outputs/HCDF/
+/test/outputs/*.csv
 /test/outputs/cross_validations/
 
 ~$*.xlsx

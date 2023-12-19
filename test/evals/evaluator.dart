@@ -258,11 +258,8 @@ class HCDFEvaluator {
 
   final ChordEstimable estimator;
 
-  Table evaluate(
-    Iterable<EvaluationAudioDataContext> contexts, {
-    String header = 'no title',
-  }) {
-    final table = Table.empty([header, ...FScore.csvHeader]);
+  Table evaluate(Iterable<EvaluationAudioDataContext> contexts) {
+    final table = Table.empty(['name', ...FScore.csvHeader]);
 
     FScore rate = FScore.zero;
     for (final context in contexts) {
@@ -297,9 +294,10 @@ class HCDFEvaluator {
 }
 
 class HCDFVisualizer {
-  const HCDFVisualizer({required this.estimator});
+  const HCDFVisualizer({required this.estimator, this.simplify = true});
 
   final ChordEstimable estimator;
+  final bool simplify;
 
   ///もし[writerContext]がnullの場合は、クロマグラムの表示をしない
   Future<void> visualize(
@@ -307,8 +305,13 @@ class HCDFVisualizer {
     String? title,
     LibROSASpecShowContext? writerContext,
   }) async {
-    final correct = context.correct.simplify();
-    final predict = estimator.estimate(context.data, false).simplify();
+    var correct = context.correct;
+    var predict = estimator.estimate(context.data, false);
+
+    if (simplify) {
+      correct = correct.simplify();
+      predict = predict.simplify();
+    }
 
     if (writerContext != null) {
       if (estimator case final HasChromaList has) {
@@ -322,11 +325,7 @@ class HCDFVisualizer {
         throw ArgumentError('estimator does not implements HasChromaList');
       }
     } else {
-      await const HCDFChartWriter().call(
-        correct.simplify(),
-        predict.simplify(),
-        title: title,
-      );
+      await const HCDFChartWriter().call(correct, predict, title: title);
     }
 
     estimator.flush();

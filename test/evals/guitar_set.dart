@@ -1,6 +1,7 @@
 import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
@@ -15,21 +16,25 @@ Future<void> main() async {
   final contexts = await EvaluationAudioDataContext.fromFolder(
     'assets/evals/3371780/audio_mono-mic',
     const GuitarSetEADCDelegate(),
-    filter: (path) => path.contains('comp'),
-    // filter: (path) => path.contains('comp') && path.contains('SS'),
+    // filter: (path) => path.contains('comp'),
+    filter: (path) => path.contains('comp') && path.contains('SS'),
     // filter: (path) => path.contains('00_BN1-129-Eb_comp_mic.wav'),
     // filter: (path) => path.contains('01_Rock3-117-Bb_comp_mic.wav'),
     // filter: (path) => path.contains('05_BN1-129-Eb_comp_mic.wav'),
     // filter: (path) => path.contains('00_Rock1-130-A_comp_mic.wav'),
+    // filter: (path) => path.contains('00_Funk1-114-Ab_comp_mic.wav'),
+    // filter: (path) => path.contains('05_SS3-98-C_comp_mic.wav'),
+    // filter: (path) => path.contains('01_SS1-100-C#_comp_mic.wav'),
   );
 
-  final f = factory4096_0;
-  final base = PatternMatchingChordEstimator(
+  final f = factory4096_2048;
+  final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
     templateScalar: HarmonicsChromaScalar(until: 6),
+    scoreThreshold: 0.8,
   );
 
-  const threshold = 30.0;
+  const threshold = 20.0;
 
   ChordEstimable estimable(String name) => switch (name) {
         'frame' =>
@@ -46,7 +51,7 @@ Future<void> main() async {
             chordChangeDetectable: f.hcdf.preFrameCheck(
               powerThreshold: threshold,
               scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
-              scoreThreshold: .9,
+              scoreThreshold: .85,
             ),
           ),
         'tiv' => base.copyWith(
@@ -55,7 +60,7 @@ Future<void> main() async {
               scoreCalculator: const ScoreCalculator.cosine(
                 ToTonalIntervalVector.musical(),
               ),
-              scoreThreshold: .9,
+              scoreThreshold: .85,
             ),
           ),
         _ => throw UnimplementedError(),
@@ -67,43 +72,44 @@ Future<void> main() async {
 
     test('HCDF fold', () async {
       await HCDFEvaluator(estimator: estimable('frame'))
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_fold.csv');
     });
 
     test('HCDF threshold', () async {
       await HCDFEvaluator(estimator: estimable('threshold'))
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_threshold.csv');
     });
 
     test('HCDF cosine', () async {
       await HCDFEvaluator(estimator: estimable('cosine'))
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_cosine.csv');
     });
 
     test('HCDF tonal', () async {
       await HCDFEvaluator(estimator: estimable('tonal'))
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_tonal_cosine.csv');
     });
 
     test('HCDF tiv', () async {
       await HCDFEvaluator(estimator: estimable('tiv'))
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_pre_frame_tiv_cosine.csv');
     });
   });
 
   group('toy', () {
     final toy = base.copyWith(overridable: _ToyOverride(contexts));
+
     test('toy score', () async {
       // Table.bypass = true;
       HCDFEvaluator.progressionWriter = null;
 
       await HCDFEvaluator(estimator: toy)
-          .evaluate(contexts, header: 'name')
+          .evaluate(contexts)
           .toCSV('test/outputs/HCDF/guitar_set_toy.csv');
     });
 
@@ -128,9 +134,10 @@ Future<void> main() async {
   group('function line', () {
     const index = 0;
     const writer = LineChartWriter();
-    final chroma = f.guitar
+    final filter = GaussianFilter.dt(stdDev: 0.1, dt: f.context.deltaTime);
+    final chroma = filter(f.guitar
         .reassignment(scalar: MagnitudeScalar.ln)
-        .call(contexts[index].data);
+        .call(contexts[index].data));
 
     test('line cosine', () async {
       const scoreCalculator = ScoreCalculator.cosine();
@@ -172,14 +179,15 @@ Future<void> main() async {
   });
 
   group('visualize', () {
-    test('all', () async {
-      for (final context in contexts) {
-        await HCDFVisualizer(estimator: base).visualize(
-          context,
-          writerContext: LibROSASpecShowContext.of(f.context),
-          title: context.outputFileName,
-        );
-      }
+    test('v all', () async {
+      await Future.wait(contexts.map((context) => HCDFVisualizer(
+            estimator: estimable('tiv'),
+            simplify: false,
+          ).visualize(
+            context,
+            writerContext: LibROSASpecShowContext.of(f.context),
+            title: context.outputFileName,
+          )));
     });
 
     group('individual', () {
@@ -235,7 +243,8 @@ final class _ToyOverride implements ChromaChordEstimatorOverridable {
     for (final context in contexts) {
       if (audioData.path!.contains(context.musicName)) {
         final dt = estimator.chromaCalculable.deltaTime(audioData.sampleRate);
-        return context.correct.map((e) => e.time!.toSlice(dt)).toList();
+        final slices = context.correct.map((e) => e.time!.toSlice(dt)).toList();
+        return slices;
       }
     }
 

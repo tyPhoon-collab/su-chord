@@ -104,31 +104,31 @@ void main() {
       // Table.bypass = true;
       test('HCDF fold', () async {
         await HCDFEvaluator(estimator: estimable('frame'))
-            .evaluate(contexts, header: 'fold')
+            .evaluate(contexts)
             .toCSV('test/outputs/HCDF/fold.csv');
       });
 
       test('HCDF threshold', () async {
         await HCDFEvaluator(estimator: estimable('threshold'))
-            .evaluate(contexts, header: 'threshold')
+            .evaluate(contexts)
             .toCSV('test/outputs/HCDF/threshold.csv');
       });
 
       test('HCDF cosine', () async {
         await HCDFEvaluator(estimator: estimable('cosine'))
-            .evaluate(contexts, header: 'pre frame cosine')
+            .evaluate(contexts)
             .toCSV('test/outputs/HCDF/pre_frame_cosine.csv');
       });
 
       test('HCDF tonal', () async {
         await HCDFEvaluator(estimator: estimable('tonal'))
-            .evaluate(contexts, header: 'pre frame tonal cosine')
+            .evaluate(contexts)
             .toCSV('test/outputs/HCDF/pre_frame_tonal_cosine.csv');
       });
 
       test('HCDF tiv', () async {
         await HCDFEvaluator(estimator: estimable('tiv'))
-            .evaluate(contexts, header: 'pre frame TIV cosine')
+            .evaluate(contexts)
             .toCSV('test/outputs/HCDF/pre_frame_tiv_cosine.csv');
       });
     });

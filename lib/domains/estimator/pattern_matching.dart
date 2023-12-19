@@ -232,4 +232,30 @@ class MeanTemplatePatternMatchingChordEstimator
             ))
         .sorted((a, b) => b.score.compareTo(a.score));
   }
+
+  @override
+  @visibleForTesting
+  MeanTemplatePatternMatchingChordEstimator copyWith({
+    Set<Chord>? templates,
+    ScoreCalculator? scoreCalculator,
+    ChromaMappable? templateScalar,
+    ChromaCalculable? chromaCalculable,
+    ChromaChordChangeDetectable? chordChangeDetectable,
+    ChromaChordEstimatorOverridable? overridable,
+    ChordSelectable? chordSelectable,
+    List<ChromaListFilter>? filters,
+    MeanTemplateContext? context,
+  }) =>
+      MeanTemplatePatternMatchingChordEstimator(
+        templates: templates ?? this.templates,
+        scoreCalculator: scoreCalculator ?? this.scoreCalculator,
+        templateScalar: templateScalar ?? this.templateScalar,
+        chromaCalculable: chromaCalculable ?? this.chromaCalculable,
+        chordChangeDetectable:
+            chordChangeDetectable ?? this.chordChangeDetectable,
+        overridable: overridable ?? this.overridable,
+        chordSelectable: chordSelectable ?? this.chordSelectable,
+        filters: filters ?? this.filters,
+        context: context ?? this.context,
+      );
 }

@@ -35,6 +35,12 @@ final factory4096_0 = EstimatorFactory(const EstimatorFactoryContext(
   sampleRate: 22050,
 ));
 
+final factory4096_2048 = EstimatorFactory(const EstimatorFactoryContext(
+  chunkSize: 4096,
+  chunkStride: 2048,
+  sampleRate: 22050,
+));
+
 final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
   chunkSize: 8192,
   chunkStride: 0,
