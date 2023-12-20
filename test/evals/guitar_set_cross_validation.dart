@@ -24,6 +24,7 @@ Future<void> main() async {
   );
 
   final f = factory4096_2048;
+  // final base = PatternMatchingChordEstimator(
   final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
     templateScalar: HarmonicsChromaScalar(until: 6),

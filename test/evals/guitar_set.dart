@@ -6,6 +6,7 @@ import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/loaders/audio.dart';
+import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
@@ -37,7 +38,8 @@ Future<void> main() async {
 
   const threshold = 15.0;
 
-  ChordEstimable estimable(String name) => switch (name) {
+  ChordEstimable estimable(String name, [double scoreThreshold = .8]) =>
+      switch (name) {
         'frame' =>
           base.copyWith(chordChangeDetectable: f.hcdf.frame(threshold)),
         'threshold' =>
@@ -45,14 +47,14 @@ Future<void> main() async {
         'cosine' => base.copyWith(
             chordChangeDetectable: f.hcdf.preFrameCheck(
               powerThreshold: threshold,
-              scoreThreshold: .85,
+              scoreThreshold: scoreThreshold,
             ),
           ),
         'tonal' => base.copyWith(
             chordChangeDetectable: f.hcdf.preFrameCheck(
               powerThreshold: threshold,
               scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
-              scoreThreshold: .85,
+              scoreThreshold: scoreThreshold,
             ),
           ),
         'tiv' => base.copyWith(
@@ -61,7 +63,7 @@ Future<void> main() async {
               scoreCalculator: const ScoreCalculator.cosine(
                 ToTonalIntervalVector.musical(),
               ),
-              scoreThreshold: .85,
+              scoreThreshold: scoreThreshold,
             ),
           ),
         _ => throw UnimplementedError(),
@@ -180,9 +182,10 @@ Future<void> main() async {
   });
 
   group('visualize', () {
+    Table.bypass = false;
     test('v all', () async {
       await Future.wait(contexts.map((context) => HCDFVisualizer(
-            estimator: estimable('tiv'),
+            estimator: estimable('tiv', 0.85),
             simplify: false,
           ).visualize(
             context,
