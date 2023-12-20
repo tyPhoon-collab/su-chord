@@ -11,55 +11,45 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'evaluator.dart';
 
-void main() {
-  late final List<EvaluationAudioDataContext> contexts;
+Future<void> main() async {
+  Measure.logger = null;
+  HCDFEvaluator.progressionWriter = null;
+  // HCDFEvaluator.correctionWriter = null;
 
-  setUpAll(() async {
-    // 計算時間を出力したいなら以下をコメント化
-    Measure.logger = null;
-
-    // コード推定結果を出力したいなら以下をコメント化
-    HCDFEvaluator.progressionWriter = null;
-
-    // コード推定の正解率を出力したいなら以下をコメント化
-    // HCDFEvaluator.correctionWriter = null;
-
-    // 使用する音源はフォルダごとに管理されている
-    contexts = [
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/Halion_CleanGuitarVX',
-      //   const KonokiEADCDelegate(),
-      // ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/Halion_CleanStratGuitar',
-      //   const KonokiEADCDelegate(),
-      // ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/HojoGuitar',
-      //   const KonokiEADCDelegate(),
-      // ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/RealStrat',
-      //   const KonokiEADCDelegate(),
-      // ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanGuitarVX_nonsilent',
-        const KonokiEADCDelegate(),
-      ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/Halion_CleanStratGuitar_nonsilent',
-      //   const KonokiEADCDelegate(),
-      // ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/HojoGuitar_nonsilent',
-      //   const KonokiEADCDelegate(),
-      // ),
-      // ...await EvaluationAudioDataContext.fromFolder(
-      //   'assets/evals/RealStrat_nonsilent',
-      //   const KonokiEADCDelegate(),
-      // ),
-    ];
-  });
+  final contexts = [
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/Halion_CleanGuitarVX',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/Halion_CleanStratGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/HojoGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/RealStrat',
+    //   const KonokiEADCDelegate(),
+    // ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanGuitarVX_nonsilent',
+      const KonokiEADCDelegate(),
+    ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/Halion_CleanStratGuitar_nonsilent',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/HojoGuitar_nonsilent',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/RealStrat_nonsilent',
+    //   const KonokiEADCDelegate(),
+    // ),
+  ];
 
   group('HCDF', () {
     final f = factory4096_0;

@@ -11,32 +11,27 @@ import '../util.dart';
 import '../writer.dart';
 import 'evaluator.dart';
 
-void main() {
-  late final Iterable<EvaluationAudioDataContext> contexts;
+Future<void> main() async {
+  final contexts = [
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanGuitarVX',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanStratGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/HojoGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/RealStrat',
+      const KonokiEADCDelegate(),
+    ),
+  ];
 
-  setUpAll(() async {
-    Evaluator.progressionWriter = null;
-
-    // 使用する音源はフォルダごとに管理されている
-    contexts = [
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanGuitarVX',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanStratGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/HojoGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/RealStrat',
-        const KonokiEADCDelegate(),
-      ),
-    ];
-  });
+  Evaluator.progressionWriter = null;
 
   test('cross validation', () async {
     // Table.bypass = true;

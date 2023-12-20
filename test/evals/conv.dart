@@ -6,39 +6,29 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'evaluator.dart';
 
-void main() {
-  late final Iterable<EvaluationAudioDataContext> contexts;
+Future<void> main() async {
+  Table.bypass = true;
+  Evaluator.progressionWriter = null;
+  // _Evaluator.correctionWriter = null;
 
-  setUpAll(() async {
-    // CSV書き込みをするなら以下をコメント化
-    Table.bypass = true;
-
-    // コード推定結果を出力したいなら以下をコメント化
-    Evaluator.progressionWriter = null;
-
-    // コード推定の正解率を出力したいなら以下をコメント化
-    // _Evaluator.correctionWriter = null;
-
-    // 使用する音源はフォルダごとに管理されている
-    contexts = [
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanGuitarVX',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/Halion_CleanStratGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/HojoGuitar',
-        const KonokiEADCDelegate(),
-      ),
-      ...await EvaluationAudioDataContext.fromFolder(
-        'assets/evals/RealStrat',
-        const KonokiEADCDelegate(),
-      ),
-    ];
-  });
+  final contexts = [
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanGuitarVX',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/Halion_CleanStratGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/HojoGuitar',
+      const KonokiEADCDelegate(),
+    ),
+    ...await EvaluationAudioDataContext.fromFolder(
+      'assets/evals/RealStrat',
+      const KonokiEADCDelegate(),
+    ),
+  ];
 
   test('conv', () async {
     final f = factory8192_0;
