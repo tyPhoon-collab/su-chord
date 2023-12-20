@@ -180,9 +180,7 @@ void main() {
                 .map((e) => scalar(e.unitPCP))
                 .cast<Chroma>()
                 .reduce((value, element) => value + element);
-            await writer(
-              pcp.l2normalized,
-            );
+            await writer(pcp.l2normalized, title: 'mean template C');
           });
         });
       });

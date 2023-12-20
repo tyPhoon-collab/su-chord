@@ -1,4 +1,5 @@
 import 'package:chord/domains/annotation.dart';
+import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/filter.dart';
@@ -135,49 +136,92 @@ Future<void> main() async {
   });
 
   group('function line', () {
-    const index = 0;
     const writer = LineChartWriter();
-    final filter = GaussianFilter.dt(stdDev: 0.1, dt: f.context.deltaTime);
-    final chroma = filter(f.guitar
-        .reassignment(scalar: MagnitudeScalar.ln)
-        .call(contexts[index].data));
 
-    test('line cosine', () async {
-      const scoreCalculator = ScoreCalculator.cosine();
-      final (time, score) = getTimeAndScore(
-        f.context.deltaTime,
-        chroma,
-        scoreCalculator,
-        mapper: (e) => e == 0 ? 1 : e,
+    test('fl all', () async {
+      List<Chroma> cc(AudioData data) {
+        // final filter = GaussianFilter.dt(stdDev: 0.1, dt: f.context.deltaTime);
+        List<Chroma> filter(e) => e;
+
+        return filter(
+          f.guitar.reassignment(scalar: MagnitudeScalar.ln).call(data),
+        );
+      }
+
+      Future<void> write(List<Chroma> chroma, String title) async {
+        const scoreCalculator =
+            ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+
+        final (time, score) = getTimeAndScore(
+          f.context.deltaTime,
+          chroma,
+          scoreCalculator,
+          nanTo: 1,
+        );
+
+        await writer(time, score, title: title);
+      }
+
+      await Future.wait(
+        contexts.map(
+          (context) => write(
+            cc(context.data),
+            'guitar_set_HCDF_${context.outputFileName}',
+          ),
+        ),
       );
-
-      await writer(time, score, title: 'guitar set HCDF cosine similarity');
     });
 
-    test('line tonal', () async {
-      const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
-      final (time, score) = getTimeAndScore(
-        f.context.deltaTime,
-        chroma,
-        scoreCalculator,
-        nanTo: 1,
+    group('fl individual', () {
+      const index = 0;
+
+      final filter = GaussianFilter.dt(stdDev: 0.1, dt: f.context.deltaTime);
+      // List<Chroma> filter(e) => e;
+
+      final chroma = filter(
+        f.guitar
+            .reassignment(scalar: MagnitudeScalar.ln)
+            .call(contexts[index].data),
       );
 
-      await writer(time, score, title: 'guitar set HCDF tonal centroid');
-    });
+      test('line cosine', () async {
+        const scoreCalculator = ScoreCalculator.cosine();
+        final (time, score) = getTimeAndScore(
+          f.context.deltaTime,
+          chroma,
+          scoreCalculator,
+          mapper: (e) => e == 0 ? 1 : e,
+        );
 
-    test('line tiv', () async {
-      const scoreCalculator =
-          ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+        await writer(time, score, title: 'guitar set HCDF cosine similarity');
+      });
 
-      final (time, score) = getTimeAndScore(
-        f.context.deltaTime,
-        chroma,
-        scoreCalculator,
-        nanTo: 1,
-      );
+      test('line tonal', () async {
+        const scoreCalculator = ScoreCalculator.cosine(ToTonalCentroid());
+        final (time, score) = getTimeAndScore(
+          f.context.deltaTime,
+          chroma,
+          scoreCalculator,
+          nanTo: 1,
+        );
 
-      await writer(time, score, title: 'guitar set HCDF tonal interval vector');
+        await writer(time, score, title: 'guitar set HCDF tonal centroid');
+      });
+
+      test('line tiv', () async {
+        const scoreCalculator =
+            ScoreCalculator.cosine(ToTonalIntervalVector.musical());
+
+        final (time, score) = getTimeAndScore(
+          f.context.deltaTime,
+          chroma,
+          scoreCalculator,
+          nanTo: 1,
+        );
+
+        await writer(time, score,
+            title: 'guitar set HCDF tonal interval vector');
+      });
     });
   });
 
@@ -194,7 +238,7 @@ Future<void> main() async {
           )));
     });
 
-    group('individual', () {
+    group('v individual', () {
       const index = 0;
 
       test('v fold', () async {

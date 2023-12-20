@@ -77,7 +77,7 @@ class GaussianFilter implements ChromaListFilter {
   }) {
     return GaussianFilter(
       stdDevIndex: stdDev / dt,
-      kernelRadius: stdDev * kernelRadiusStdDevMultiplier ~/ dt,
+      kernelRadius: (stdDev * kernelRadiusStdDevMultiplier) ~/ dt,
     );
   }
 
