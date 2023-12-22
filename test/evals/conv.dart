@@ -8,7 +8,7 @@ import 'evaluator.dart';
 
 Future<void> main() async {
   Table.bypass = true;
-  Evaluator.progressionWriter = null;
+  // Evaluator.progressionWriter = null;
   // _Evaluator.correctionWriter = null;
 
   final contexts = [
@@ -16,18 +16,18 @@ Future<void> main() async {
       'assets/evals/Halion_CleanGuitarVX',
       const KonokiEADCDelegate(),
     ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/Halion_CleanStratGuitar',
-      const KonokiEADCDelegate(),
-    ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/HojoGuitar',
-      const KonokiEADCDelegate(),
-    ),
-    ...await EvaluationAudioDataContext.fromFolder(
-      'assets/evals/RealStrat',
-      const KonokiEADCDelegate(),
-    ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/Halion_CleanStratGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/HojoGuitar',
+    //   const KonokiEADCDelegate(),
+    // ),
+    // ...await EvaluationAudioDataContext.fromFolder(
+    //   'assets/evals/RealStrat',
+    //   const KonokiEADCDelegate(),
+    // ),
   ];
 
   test('conv', () async {

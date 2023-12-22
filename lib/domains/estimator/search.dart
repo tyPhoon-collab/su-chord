@@ -17,10 +17,7 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     Set<Chord>? detectableChords,
   })  : detectableChords =
             detectableChords ?? ChromaChordEstimator.defaultDetectableChords,
-        assert(
-          chordSelectable is! FirstChordSelector,
-          'Search Tree SHOULD NOT use FirstChordSelector as chordSelectable',
-        );
+        super();
 
   final Set<Chord> detectableChords;
   final NoteExtractable noteExtractable;
@@ -29,10 +26,13 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   String toString() => 'search tree $noteExtractable, ${super.toString()}';
 
   @override
-  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
+  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
     final notes = noteExtractable(chroma);
-    return detectableChords
-        .where((e) => notes.every((note) => e.notes.contains(note)));
+    return ChordCell.first(
+      detectableChords
+          .where((e) => notes.every((note) => e.notes.contains(note)))
+          .toList(),
+    );
   }
 }
 
@@ -56,8 +56,8 @@ class FromNotesChordEstimator extends SelectableChromaChordEstimator {
   String toString() => 'from notes $noteExtractable, ${super.toString()}';
 
   @override
-  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
+  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
     final chords = Chord.fromNotes(noteExtractable(chroma)).toSet();
-    return chords.intersection(detectableChords);
+    return ChordCell(chords: chords.intersection(detectableChords).toList());
   }
 }

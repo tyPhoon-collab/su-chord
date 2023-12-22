@@ -504,11 +504,23 @@ final class Chord extends ChordBase<Chord> {
       );
 }
 
+///候補和音群とシーケンス情報を持つクラス
+///代表和音ラベルも持つ
 class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
-  const ChordCell({this.chord, this.time});
+  const ChordCell({
+    this.chords = const [],
+    this.chord,
+    this.time,
+  });
+
+  ChordCell.first(
+    this.chords, {
+    this.time,
+  }) : chord = chords.firstOrNull;
 
   static const noChordLabel = '***';
 
+  final List<T> chords;
   final T? chord;
   final Time? time;
 

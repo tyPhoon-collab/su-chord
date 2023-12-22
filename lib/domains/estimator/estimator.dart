@@ -99,10 +99,8 @@ abstract class ChromaChordEstimator
 
     if (flush) _flush();
     return ChordProgression(progression
-        .mapIndexed((i, chord) => ChordCell(
-              chord: chord,
-              time: slices[i].toTime(_deltaTime),
-            ))
+        .mapIndexed(
+            (i, chord) => chord.copyWith(time: slices[i].toTime(_deltaTime)))
         .toList());
   }
 
@@ -113,7 +111,7 @@ abstract class ChromaChordEstimator
     _chromas = [];
   }
 
-  Iterable<Chord?> estimateFromChroma(List<Chroma> chroma);
+  ChordProgression<Chord> estimateFromChroma(List<Chroma> chroma);
 
   @override
   List<DebugChip> build() => [
@@ -151,25 +149,22 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
     super.chordChangeDetectable,
     super.filters,
     super.overridable,
-    this.chordSelectable = const FirstChordSelector(),
+    this.chordSelectable,
   });
 
-  final ChordSelectable chordSelectable;
+  final ChordSelectable? chordSelectable;
 
   @override
-  String toString() => '${super.toString()}, $chordSelectable';
+  String toString() =>
+      '${super.toString()}, ${chordSelectable?.toString() ?? 'first'}';
 
   @override
-  Iterable<Chord?> estimateFromChroma(List<Chroma> chroma) {
-    final progression = <Chord?>[];
-    for (final c in chroma) {
-      final chords = estimateOneFromChroma(c);
-      final chord = chordSelectable(chords, progression.nonNulls);
-      progression.add(chord);
-    }
+  ChordProgression<Chord> estimateFromChroma(List<Chroma> chroma) {
+    final progression =
+        ChordProgression(chroma.map(getNonSelectedChordCell).toList());
 
-    return progression;
+    return chordSelectable?.call(progression) ?? progression;
   }
 
-  Iterable<Chord> estimateOneFromChroma(Chroma chroma);
+  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma);
 }

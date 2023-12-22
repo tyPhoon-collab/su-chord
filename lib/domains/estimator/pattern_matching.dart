@@ -104,7 +104,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
 
   //TODO 計算量削減
   @override
-  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
+  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
     List<Chord>? chords;
     double maxScore = double.negativeInfinity;
 
@@ -116,7 +116,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
       }
     }
 
-    return chords ?? const [];
+    return ChordCell(chords: chords ?? const []);
   }
 
   @visibleForTesting
@@ -198,30 +198,14 @@ class MeanTemplatePatternMatchingChordEstimator
   String toString() => 'mean ${super.toString()}';
 
   @override
-  Iterable<Chord> estimateOneFromChroma(Chroma chroma) {
-    List<Chord> chords = const [];
-    var maxScore = double.negativeInfinity;
-    final sortedScoreRecords =
-        _sortedChromaWithScore(chroma).take(context.sortedScoreTakeCount);
-
-    for (final scoreRecord in sortedScoreRecords) {
-      for (final MapEntry(:key, :value)
-          in _meanTemplateChromas[scoreRecord.chroma]!.entries) {
-        final score = scoreCalculator(chroma, key);
-        //weight by mean template PCP score
-        //優先度を平均化されたPCPのスコア順にするために、スコアをかける
-        //こうすることで、m7と6系の異名同和音の区別が容易になる場合がある
-        //ただ、そこの選択は別クラスでも行うため、いらないかも
-        //TODO: 仕様の検討
-        final weightedScore = score * scoreRecord.score;
-        if (score >= _threshold && weightedScore > maxScore) {
-          maxScore = weightedScore;
-          chords = value;
-        }
-      }
-    }
-
-    return chords;
+  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
+    return ChordCell.first(
+      _sortedChromaWithScore(chroma)
+          .take(context.sortedScoreTakeCount)
+          .map((scoreRecord) => _maxScoreChords(chroma, scoreRecord))
+          .expand((e) => e)
+          .toList(),
+    );
   }
 
   List<({Chroma chroma, double score})> _sortedChromaWithScore(Chroma chroma) {
@@ -231,6 +215,26 @@ class MeanTemplatePatternMatchingChordEstimator
               score: scoreCalculator(chroma, e),
             ))
         .sorted((a, b) => b.score.compareTo(a.score));
+  }
+
+  List<Chord> _maxScoreChords(
+    Chroma chroma,
+    ({Chroma chroma, double score}) scoreRecord,
+  ) {
+    List<Chord> chords = const [];
+    var maxScore = double.negativeInfinity;
+
+    for (final MapEntry(:key, :value)
+        in _meanTemplateChromas[scoreRecord.chroma]!.entries) {
+      final score = scoreCalculator(chroma, key);
+      final weightedScore = score * scoreRecord.score;
+      if (score >= _threshold && weightedScore > maxScore) {
+        maxScore = weightedScore;
+        chords = value;
+      }
+    }
+
+    return chords;
   }
 
   @override

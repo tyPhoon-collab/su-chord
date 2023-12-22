@@ -248,8 +248,6 @@ final class HCDFFactory {
 final class ChordSelectorFactory {
   CSV? _csv;
 
-  ChordSelectable get first => const FirstChordSelector();
-
   Future<ChordSelectable> get db async {
     _csv ??= await CSVLoader.db.load();
     return ChordProgressionDBChordSelector.fromCSV(_csv!);

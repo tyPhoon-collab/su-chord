@@ -7,19 +7,7 @@ import 'chord_progression.dart';
 import 'equal_temperament.dart';
 
 abstract interface class ChordSelectable {
-  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression);
-}
-
-class FirstChordSelector implements ChordSelectable {
-  const FirstChordSelector();
-
-  @override
-  String toString() => 'select first';
-
-  @override
-  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression) {
-    return chords.firstOrNull;
-  }
+  ChordProgression<Chord> call(ChordProgression<Chord> progression);
 }
 
 typedef DBSearchTrees = Map<Chord, TreeNode<Chord>>;
@@ -50,7 +38,23 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
   String toString() => 'select by db';
 
   @override
-  Chord? call(Iterable<Chord> chords, Iterable<Chord> progression) {
+  ChordProgression<Chord> call(ChordProgression<Chord> progression) {
+    final List<ChordCell<Chord>> chords = [];
+
+    for (final value in progression) {
+      chords.add(value.copyWith(
+        chord: _selectChord(
+          value.chords,
+          chords.map((e) => e.chord).nonNulls,
+        ),
+      ));
+    }
+
+    return ChordProgression(chords);
+  }
+
+  ///[progression]は直前までのコード進行
+  Chord? _selectChord(List<Chord> chords, Iterable<Chord> progression) {
     final first = chords.firstOrNull;
 
     if (chords.length <= 1) return first;
@@ -61,29 +65,32 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       progression = progression.skip(len - _maxProgressionLength);
     }
 
-    final possibleChords = _select(progression);
+    final possibleChords = _findMatchingChordsInDB(progression);
     return possibleChords.firstWhereOrNull((e) => chords.contains(e)) ?? first;
   }
 
   ///再帰的にコード進行を辿ってDBを参照する
   ///空のコード進行の場合はDBの最初のコードの全てが返される
   ///DartのSetは順番を持つため、再帰の順番に気をつければ、優先度は長い進行に適合するコードになる
-  Set<Chord> _select(Iterable<Chord> progression) {
+  Set<Chord> _findMatchingChordsInDB(Iterable<Chord> progression) {
     if (progression.isEmpty) return _trees.keys.toSet();
 
     final root = _trees[progression.first];
     final withoutFirstProgression = progression.skip(1);
 
-    if (root == null) return _select(withoutFirstProgression);
+    if (root == null) return _findMatchingChordsInDB(withoutFirstProgression);
 
     var node = root;
 
     for (final chord in withoutFirstProgression) {
       final n = node.getChild(chord);
-      if (n == null) return _select(withoutFirstProgression);
+      if (n == null) return _findMatchingChordsInDB(withoutFirstProgression);
       node = n;
     }
-    return {...node.childrenValues, ..._select(withoutFirstProgression)};
+    return {
+      ...node.childrenValues,
+      ..._findMatchingChordsInDB(withoutFirstProgression)
+    };
   }
 
   DBSearchTrees _buildTrees() {
