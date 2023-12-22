@@ -3,7 +3,7 @@ import 'package:chord/utils/formula.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final hzOfC3 = const MusicalScale(Note.C, 3).toHz();
+  final hzOfC3 = const Pitch(Note.C, 3).toHz();
   test('normal distribution', () async {
     final mu = hzOfC3;
     final sigma = hzOfC3 / 24;

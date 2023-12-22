@@ -17,18 +17,17 @@ abstract interface class DegreeIndex<T> {
 }
 
 @immutable
-class MusicalScale
-    implements Transposable<MusicalScale>, DegreeIndex<MusicalScale> {
-  const MusicalScale(this.note, this.pitch);
+class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
+  const Pitch(this.note, this.height);
 
-  static const A0 = MusicalScale(Note.A, 0);
-  static const C1 = MusicalScale(Note.C, 1);
-  static const E2 = MusicalScale(Note.E, 2);
+  static const A0 = Pitch(Note.A, 0);
+  static const C1 = Pitch(Note.C, 1);
+  static const E2 = Pitch(Note.E, 2);
 
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;
 
-  static List<double> hzList(MusicalScale lowest, MusicalScale highest) {
+  static List<double> hzList(Pitch lowest, Pitch highest) {
     final hz = lowest.toHz();
     return List.generate(
       lowest.degreeIndexTo(highest) + 1,
@@ -37,47 +36,46 @@ class MusicalScale
   }
 
   final Note note;
-  final int pitch;
+  final int height;
 
-  ///度数を渡すと新しいMusicalScaleを返す
   @override
-  MusicalScale transpose(int degree) {
+  Pitch transpose(int degree) {
     if (degree == 0) return this;
 
     final newNote = note.transpose(degree);
-    var newPitch = pitch + degree ~/ Note.length;
+    var newHeight = height + degree ~/ Note.length;
     final noteDegreeTo = note.degreeIndexTo(newNote);
     if (degree > 0 && noteDegreeTo.isNegative) {
-      newPitch += 1;
+      newHeight += 1;
     } else if (degree.isNegative && noteDegreeTo > 0) {
-      newPitch -= 1;
+      newHeight -= 1;
     }
-    return MusicalScale(newNote, newPitch);
+    return Pitch(newNote, newHeight);
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is MusicalScale) {
-      return note == other.note && pitch == other.pitch;
+    if (other is Pitch) {
+      return note == other.note && height == other.height;
     }
     return false;
   }
 
   @override
-  int get hashCode => note.hashCode ^ pitch.hashCode;
+  int get hashCode => note.hashCode ^ height.hashCode;
 
   @override
-  String toString() => '$note$pitch';
+  String toString() => '$note$height';
 
   ///ピッチを考慮する度数の差
   ///ex)
   ///A0 -> C1 = 3
   ///C3 -> C4 = 12
   @override
-  int degreeIndexTo(MusicalScale other) =>
-      note.degreeIndexTo(other.note) + Note.length * (other.pitch - pitch);
+  int degreeIndexTo(Pitch other) =>
+      note.degreeIndexTo(other.note) + Note.length * (other.height - height);
 
-  double toHz() => hzOfA0 * pow(ratio, MusicalScale.A0.degreeIndexTo(this));
+  double toHz() => hzOfA0 * pow(ratio, Pitch.A0.degreeIndexTo(this));
 }
 
 enum Accidental {
@@ -140,7 +138,7 @@ enum DegreeName implements Transposable<DegreeName> {
 enum NaturalNote { C, D, E, F, G, A, B }
 
 /// Note
-/// Do not use values, index. It will be nonintuitive
+/// Do not use [index]. It will be nonintuitive
 enum Note implements Transposable<Note>, DegreeIndex<Note> {
   Bs.sharp(NaturalNote.B, 0),
   C.natural(NaturalNote.C, 0),
@@ -263,12 +261,11 @@ enum NamedDegree {
 
 /// 範囲は lowest.hz <= x <= highest.hz
 /// highestを含む
-Bin equalTemperamentBin(MusicalScale lowest, MusicalScale highest) {
+Bin equalTemperamentBin(Pitch lowest, Pitch highest) {
   // 音域の参考サイト: https://tomari.org/main/java/oto.html
   // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
-  final hzList =
-      MusicalScale.hzList(lowest.transpose(-1), highest.transpose(1));
+  final hzList = Pitch.hzList(lowest.transpose(-1), highest.transpose(1));
 
   final bins = <double>[];
   for (var i = 0; i < hzList.length - 1; i++) {

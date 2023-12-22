@@ -129,29 +129,29 @@ class ChromaContext {
   });
 
   static const konoki = ChromaContext(
-    lowest: MusicalScale.E2,
+    lowest: Pitch.E2,
     perOctave: 6,
   );
 
   static const guitar = ChromaContext(
-    lowest: MusicalScale.E2,
+    lowest: Pitch.E2,
     perOctave: 4,
   );
 
   static const big = ChromaContext(
-    lowest: MusicalScale.C1,
+    lowest: Pitch.C1,
     perOctave: 7,
   );
 
-  final MusicalScale lowest;
+  final Pitch lowest;
   final int perOctave;
 
-  MusicalScale get highest => lowest.transpose(12 * perOctave - 1);
+  Pitch get highest => lowest.transpose(12 * perOctave - 1);
 
   @override
   String toString() => '$lowest-$highest';
 
   Bin toEqualTemperamentBin() => equalTemperamentBin(lowest, highest);
 
-  List<double> toHzList() => MusicalScale.hzList(lowest, highest);
+  List<double> toHzList() => Pitch.hzList(lowest, highest);
 }

@@ -29,7 +29,7 @@ void main() {
       final mags = mc(await DataSet().G);
 
       final floatIndex = mc.indexOfFrequency(
-        const MusicalScale(Note.G, 3).toHz(),
+        const Pitch(Note.G, 3).toHz(),
         f.context.sampleRate,
       );
       final i = floatIndex.toInt();

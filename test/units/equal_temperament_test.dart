@@ -47,48 +47,48 @@ void main() {
 
   group('music scale', () {
     test('C3 to 2 is D3', () {
-      const scale = MusicalScale(Note.C, 3);
-      expect(scale.transpose(2), equals(const MusicalScale(Note.D, 3)));
+      const scale = Pitch(Note.C, 3);
+      expect(scale.transpose(2), equals(const Pitch(Note.D, 3)));
     });
 
     test('B3 to 1 is C4', () {
-      const scale = MusicalScale(Note.B, 3);
-      expect(scale.transpose(1), equals(const MusicalScale(Note.C, 4)));
+      const scale = Pitch(Note.B, 3);
+      expect(scale.transpose(1), equals(const Pitch(Note.C, 4)));
     });
 
     test('C3 to -1 is B2', () {
-      const scale = MusicalScale(Note.C, 3);
-      expect(scale.transpose(-1), equals(const MusicalScale(Note.B, 2)));
+      const scale = Pitch(Note.C, 3);
+      expect(scale.transpose(-1), equals(const Pitch(Note.B, 2)));
     });
 
     test('E2 to 12 * 6 is E8', () {
-      const scale = MusicalScale.E2;
-      expect(scale.transpose(12 * 6), equals(const MusicalScale(Note.E, 8)));
+      const scale = Pitch.E2;
+      expect(scale.transpose(12 * 6), equals(const Pitch(Note.E, 8)));
     });
 
     group('degree', () {
       test('A0 to C1 is 3', () {
-        const scale = MusicalScale.A0;
-        final int degree = scale.degreeIndexTo(MusicalScale.C1);
+        const scale = Pitch.A0;
+        final int degree = scale.degreeIndexTo(Pitch.C1);
         expect(degree, 3);
       });
 
       test('C1 to C2 is 12', () {
-        const scale = MusicalScale.C1;
-        final int degree = scale.degreeIndexTo(const MusicalScale(Note.C, 2));
+        const scale = Pitch.C1;
+        final int degree = scale.degreeIndexTo(const Pitch(Note.C, 2));
         expect(degree, 12);
       });
 
       test('C3 to C2 is -12', () {
-        const scale = MusicalScale(Note.C, 3);
-        final int degree = scale.degreeIndexTo(const MusicalScale(Note.C, 2));
+        const scale = Pitch(Note.C, 3);
+        final int degree = scale.degreeIndexTo(const Pitch(Note.C, 2));
         expect(degree, -12);
       });
     });
 
     test('equal temperament bin', () {
-      const lowest = MusicalScale.E2;
-      const highest = MusicalScale(Note.Ds, 8);
+      const lowest = Pitch.E2;
+      const highest = Pitch(Note.Ds, 8);
       final bin = equalTemperamentBin(lowest, highest);
       debugPrint(bin.toString());
       expect(bin.first, lessThan(lowest.toHz()));
@@ -98,9 +98,9 @@ void main() {
     });
 
     test('hz list', () {
-      const lowest = MusicalScale.E2;
-      const highest = MusicalScale(Note.E, 3);
-      final l = MusicalScale.hzList(lowest, highest);
+      const lowest = Pitch.E2;
+      const highest = Pitch(Note.E, 3);
+      final l = Pitch.hzList(lowest, highest);
       expect(l.first, lowest.toHz());
       expect(l.last, highest.toHz());
     });

@@ -58,7 +58,7 @@ class CombFilterChromaCalculator implements ChromaCalculable, HasMagnitudes {
 
   ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
   ///正規分布の平均値は各音階の周波数、標準偏差は[CombFilterContext]の値を参照する
-  double _getCombFilterPower(Magnitude magnitude, int sr, MusicalScale lowest) {
+  double _getCombFilterPower(Magnitude magnitude, int sr, Pitch lowest) {
     double sum = 0;
     for (int i = 0; i < chromaContext.perOctave; ++i) {
       final mc = magnitudesCalculable; //short handle name
