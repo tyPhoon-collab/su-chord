@@ -51,7 +51,7 @@ class DetectableChords extends _$DetectableChords {
     'madd9',
   };
 
-  static Set<Chord> _fromQualities(Set<String> qualities) {
+  static Set<Chord> fromQualities(Set<String> qualities) {
     return Set.unmodifiable([
       for (final root in Note.sharpNotes)
         for (final quality in qualities) Chord.parse('$root$quality')
@@ -59,10 +59,10 @@ class DetectableChords extends _$DetectableChords {
   }
 
   @override
-  Set<Chord> build() => _fromQualities(qualities);
+  Set<Chord> build() => fromQualities(qualities);
 
   void setFromQualities(Set<String> qualities) {
-    state = _fromQualities(qualities);
+    state = fromQualities(qualities);
   }
 }
 

@@ -509,8 +509,6 @@ final class Chord extends ChordBase<Chord> {
       );
 }
 
-///候補和音群とシーケンス情報を持つクラス
-///代表和音ラベルも持つ
 @immutable
 class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
   const ChordCell({

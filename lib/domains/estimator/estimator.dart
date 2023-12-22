@@ -43,9 +43,29 @@ abstract class ChromaChordEstimator
     this.overridable,
   });
 
-  //service.dartから読み込んでいる。フロントエンドと同じコードタイプをデフォルトで扱える
+  ///service.dartから読み込んでいる。フロントエンドと同じコードタイプ群
   static final defaultDetectableChords =
       ProviderContainer().read(detectableChordsProvider);
+
+  ///従来法と同じコードタイプ群
+  static final convDetectableChords = DetectableChords.fromQualities({
+    '',
+    'm',
+    'aug',
+    'aug7',
+    'dim',
+    'dim7',
+    '7',
+    'mM7',
+    'M7',
+    'm7',
+    'm7b5',
+    'sus4',
+    '7sus4',
+    '6',
+    'm6',
+    'add9',
+  });
 
   final ChromaCalculable chromaCalculable;
   final Iterable<ChromaListFilter> filters;

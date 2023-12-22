@@ -40,14 +40,14 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 
   @override
   ChordProgression<Chord> call(ChordProgression<Chord> progression) {
-    final List<ChordCell<Chord>> chords = [];
+    final cells = <ChordCell<Chord>>[];
 
     for (final cell in progression) {
       if (cell is MultiChordCell<Chord>) {
-        chords.add(cell.copyWith(
+        cells.add(cell.copyWith(
           chord: _selectChord(
             cell.chords,
-            chords.map((e) => e.chord).nonNulls,
+            cells.map((e) => e.chord).nonNulls,
           ),
         ));
       } else {
@@ -55,7 +55,7 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
       }
     }
 
-    return ChordProgression(chords);
+    return ChordProgression(cells);
   }
 
   ///[progression]は直前までのコード進行
@@ -113,5 +113,47 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
     }
 
     return nodes;
+  }
+}
+
+///Am7b5とCm6などの関係は同じ構成音であるため、PCPだけでは区別ができない
+///また、平均化されたPCPをテンプレートに使用する際に、b5の影響で誤分類が多い
+///そのため、m7b5系に対して、一般に高確率でマイナーが選ばれる条件をもとに絞り込みを行う
+// ignore: camel_case_types
+class FlatFiveChordSelector implements ChordSelectable {
+  const FlatFiveChordSelector();
+
+  @override
+  ChordProgression<Chord> call(ChordProgression<Chord> progression) {
+    final cells = <ChordCell<Chord>>[];
+
+    for (int i = 0; i < progression.length - 1; i++) {
+      var cell = progression[i];
+      final nextChord = progression[i + 1].chord;
+
+      if (nextChord != null &&
+          cell is MultiChordCell<Chord> &&
+          cell.chords.length > 1) {
+        for (final chord in cell.chords) {
+          final degreeIndex = chord.root.positiveDegreeIndexTo(nextChord.root);
+
+          if (chord.type case ChordType.minorSeventhFlatFive) {
+            //minor II-V
+            //半音下
+            if (degreeIndex == NamedDegree.P4.degreeIndex ||
+                degreeIndex == NamedDegree.M7.degreeIndex) {
+              cell = cell.copyWith(chord: chord);
+              break;
+            }
+          }
+        }
+      }
+
+      cells.add(cell);
+    }
+
+    cells.add(progression.last);
+
+    return ChordProgression(cells);
   }
 }

@@ -252,6 +252,8 @@ final class ChordSelectorFactory {
     _csv ??= await CSVLoader.db.load();
     return ChordProgressionDBChordSelector.fromCSV(_csv!);
   }
+
+  ChordSelectable get flatFive => const FlatFiveChordSelector();
 }
 
 final class NoteExtractorFactory {
