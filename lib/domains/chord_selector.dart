@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../utils/loaders/csv.dart';
 import '../utils/tree.dart';
@@ -41,13 +42,17 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
   ChordProgression<Chord> call(ChordProgression<Chord> progression) {
     final List<ChordCell<Chord>> chords = [];
 
-    for (final value in progression) {
-      chords.add(value.copyWith(
-        chord: _selectChord(
-          value.chords,
-          chords.map((e) => e.chord).nonNulls,
-        ),
-      ));
+    for (final cell in progression) {
+      if (cell is MultiChordCell<Chord>) {
+        chords.add(cell.copyWith(
+          chord: _selectChord(
+            cell.chords,
+            chords.map((e) => e.chord).nonNulls,
+          ),
+        ));
+      } else {
+        debugPrint('cell is not MultiChordCell, ignored selection');
+      }
     }
 
     return ChordProgression(chords);

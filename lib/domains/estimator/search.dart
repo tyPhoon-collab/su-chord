@@ -26,9 +26,9 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   String toString() => 'search tree $noteExtractable, ${super.toString()}';
 
   @override
-  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
+  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
     final notes = noteExtractable(chroma);
-    return ChordCell.first(
+    return MultiChordCell.first(
       detectableChords
           .where((e) => notes.every((note) => e.notes.contains(note)))
           .toList(),
@@ -56,8 +56,8 @@ class FromNotesChordEstimator extends SelectableChromaChordEstimator {
   String toString() => 'from notes $noteExtractable, ${super.toString()}';
 
   @override
-  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
+  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
     final chords = Chord.fromNotes(noteExtractable(chroma)).toSet();
-    return ChordCell(chords: chords.intersection(detectableChords).toList());
+    return MultiChordCell.first(chords.intersection(detectableChords).toList());
   }
 }

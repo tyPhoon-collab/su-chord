@@ -263,7 +263,7 @@ final class NoteExtractorFactory {
       ThresholdByMaxRatioExtractor(
         ratio: switch (scalar) {
           MagnitudeScalar.none => 0.3,
-          MagnitudeScalar.ln => 0.5,
+          MagnitudeScalar.ln => 0.55,
           MagnitudeScalar.dB => 0.5,
         },
       );

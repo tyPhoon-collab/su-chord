@@ -161,10 +161,10 @@ abstract class SelectableChromaChordEstimator extends ChromaChordEstimator {
   @override
   ChordProgression<Chord> estimateFromChroma(List<Chroma> chroma) {
     final progression =
-        ChordProgression(chroma.map(getNonSelectedChordCell).toList());
+        ChordProgression(chroma.map(getUnselectedMultiChordCell).toList());
 
     return chordSelectable?.call(progression) ?? progression;
   }
 
-  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma);
+  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma);
 }

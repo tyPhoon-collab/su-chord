@@ -471,6 +471,11 @@ final class Chord extends ChordBase<Chord> {
 
   static final C = Chord.parse('C');
   static final D = Chord.parse('D');
+  static final E = Chord.parse('E');
+  static final F = Chord.parse('F');
+  static final G = Chord.parse('G');
+  static final A = Chord.parse('A');
+  static final B = Chord.parse('B');
 
   late final PCP unitPCP = PCP.fromNotes(notes);
 
@@ -506,21 +511,15 @@ final class Chord extends ChordBase<Chord> {
 
 ///候補和音群とシーケンス情報を持つクラス
 ///代表和音ラベルも持つ
+@immutable
 class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
   const ChordCell({
-    this.chords = const [],
     this.chord,
     this.time,
   });
 
-  ChordCell.first(
-    this.chords, {
-    this.time,
-  }) : chord = chords.firstOrNull;
-
   static const noChordLabel = '***';
 
-  final List<T> chords;
   final T? chord;
   final Time? time;
 
@@ -533,6 +532,14 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
   @override
   ChordCell<T> transpose(int degree) =>
       ChordCell(chord: chord?.transpose(degree), time: time);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChordCell<T> && chord == other.chord && time == other.time;
+  }
+
+  @override
+  int get hashCode => chord.hashCode ^ time.hashCode;
 
   ChordCell<T> copyWith({T? chord, Time? time}) {
     return ChordCell<T>(
@@ -594,4 +601,46 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
 
     return FScore(truthPositiveTime, falsePositiveTime, falseNegativeTime);
   }
+}
+
+class MultiChordCell<T extends ChordBase<T>> extends ChordCell<T> {
+  const MultiChordCell({
+    this.chords = const [],
+    super.chord,
+    super.time,
+  });
+
+  MultiChordCell.first(
+    this.chords, {
+    super.time,
+  }) : super(chord: chords.firstOrNull);
+
+  final List<T> chords;
+
+  @override
+  MultiChordCell<T> transpose(int degree) => MultiChordCell(
+        chords: chords.map((e) => e.transpose(degree)).toList(),
+        chord: chord?.transpose(degree),
+        time: time,
+      );
+
+  @override
+  MultiChordCell<T> copyWith({List<T>? chords, T? chord, Time? time}) {
+    return MultiChordCell<T>(
+      chords: chords ?? this.chords,
+      chord: chord ?? this.chord,
+      time: time ?? this.time,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MultiChordCell<T> &&
+        listEquals(chords, other.chords) &&
+        chord == other.chord &&
+        time == other.time;
+  }
+
+  @override
+  int get hashCode => chords.hashCode ^ super.hashCode;
 }

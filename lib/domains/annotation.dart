@@ -19,7 +19,7 @@ class SequenceAnnotation<T extends num> {
   String toString() => '$start-$end';
 
   @override
-  int get hashCode => start.hashCode | end.hashCode;
+  int get hashCode => start.hashCode ^ end.hashCode;
 
   @override
   bool operator ==(Object other) {
@@ -35,6 +35,7 @@ class SequenceAnnotation<T extends num> {
   }
 }
 
+@immutable
 final class Time extends SequenceAnnotation<double> {
   const Time(super.start, super.end) : assert(start <= end);
 
@@ -54,6 +55,7 @@ final class Time extends SequenceAnnotation<double> {
       Time(start ?? this.start, end ?? this.end);
 }
 
+@immutable
 final class Slice extends SequenceAnnotation<int> {
   const Slice(super.start, super.end);
 

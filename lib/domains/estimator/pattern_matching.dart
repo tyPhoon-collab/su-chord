@@ -104,7 +104,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
 
   //TODO 計算量削減
   @override
-  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
+  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
     List<Chord>? chords;
     double maxScore = double.negativeInfinity;
 
@@ -116,7 +116,7 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
       }
     }
 
-    return ChordCell(chords: chords ?? const []);
+    return MultiChordCell.first(chords ?? const []);
   }
 
   @visibleForTesting
@@ -198,8 +198,8 @@ class MeanTemplatePatternMatchingChordEstimator
   String toString() => 'mean ${super.toString()}';
 
   @override
-  ChordCell<Chord> getNonSelectedChordCell(Chroma chroma) {
-    return ChordCell.first(
+  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
+    return MultiChordCell.first(
       _sortedChromaWithScore(chroma)
           .take(context.sortedScoreTakeCount)
           .map((scoreRecord) => _maxScoreChords(chroma, scoreRecord))
