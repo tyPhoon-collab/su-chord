@@ -111,6 +111,7 @@ class MeanTemplateContext extends TemplateContext {
     super.scoreThreshold,
     super.templates,
     super.scalar,
+    this.meanScalar,
     this.sortedScoreTakeCount = 2,
   }) : assert(sortedScoreTakeCount <= 12);
 
@@ -121,6 +122,7 @@ class MeanTemplateContext extends TemplateContext {
     ScoreCalculator? scoreCalculator,
     double? scoreThreshold,
     int sortedScoreTakeCount = 2,
+    ChromaMappable? meanScalar,
   }) =>
       MeanTemplateContext(
         scalar: HarmonicsChromaScalar(until: until, factor: factor),
@@ -128,9 +130,11 @@ class MeanTemplateContext extends TemplateContext {
         scoreThreshold: scoreThreshold,
         templates: templates,
         sortedScoreTakeCount: sortedScoreTakeCount,
+        meanScalar: meanScalar,
       );
 
   final int sortedScoreTakeCount;
+  final ChromaMappable? meanScalar;
 
   late final meanTemplateChromas = _toMeanTemplate();
 
@@ -139,17 +143,19 @@ class MeanTemplateContext extends TemplateContext {
   Map<Chroma, Map<Chroma, List<Chord>>> _toMeanTemplate() {
     Chroma scaledPCP(Chord e) => scalar?.call(e.unitPCP) ?? e.unitPCP;
 
-    return Map.fromEntries(Note.sharpNotes.map(
-      (e) {
-        final chords = templates.where((chord) => chord.root == e);
-        final key = chords
-            .map((e) => scaledPCP(e))
-            .reduce((value, element) => value + element);
-        // .toLogScale();
+    return Map.fromEntries(Note.sharpNotes
+        .map((e) => templates.where((chord) => chord.root == e))
+        .where((chords) => chords.isNotEmpty)
+        .map((chords) {
+      final mean = chords
+          .map((e) => scaledPCP(e))
+          .reduce((value, element) => value + element);
 
-        return MapEntry(key, groupBy(chords, (e) => scaledPCP(e)));
-      },
-    ));
+      return MapEntry(
+        meanScalar?.call(mean) ?? mean,
+        groupBy(chords, (e) => scaledPCP(e)),
+      );
+    }));
   }
 }
 

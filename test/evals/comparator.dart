@@ -4,6 +4,7 @@ import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/estimator.dart';
+import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
@@ -30,7 +31,7 @@ class SpotComparator {
     final pcp =
         average(chromaCalculable(data.cutEvaluationAudioByIndex(index))).first;
 
-    writer?.call(pcp.l2normalized);
+    await writer?.call(pcp.l2normalized);
 
     for (final chord in chords) {
       final template =
@@ -49,21 +50,20 @@ class MeanScoreSpotComparator {
   const MeanScoreSpotComparator({
     required this.chromaCalculable,
     this.scalar,
+    this.meanScalar,
   });
 
   final ChromaCalculable chromaCalculable;
   final ChromaMappable? scalar;
+  final ChromaMappable? meanScalar;
 
-  Chroma _getTemplate(Note note) {
-    final chords = ChromaChordEstimator.defaultDetectableChords
-        .where((e) => e.root == note);
-    final pcp = chords
-        .map((e) => scalar?.call(e.unitPCP) ?? e.unitPCP)
-        .cast<Chroma>()
-        .reduce((value, element) => value + element);
-
-    return pcp;
-  }
+  Chroma _getTemplate(Note note) => MeanTemplateContext(
+        scalar: scalar,
+        meanScalar: meanScalar,
+        templates: ChromaChordEstimator.defaultDetectableChords
+            .where((e) => e.root == note)
+            .toSet(),
+      ).meanTemplateChromas.keys.first;
 
   Future<void> call({
     required String source,
@@ -77,10 +77,19 @@ class MeanScoreSpotComparator {
 
     const scoreCalculator = ScoreCalculator.cosine();
 
+    final noteScores = <Note, double>{};
+
     for (final note in Note.sharpNotes) {
       final template = _getTemplate(note);
+      final score = scoreCalculator(pcp, template);
+      noteScores[note] = score;
+    }
 
-      logTest('$note group\t: ${scoreCalculator(pcp, template)}');
+    final sortedScores = noteScores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    for (final MapEntry(:key, :value) in sortedScores) {
+      logTest('$key: $value');
     }
   }
 }

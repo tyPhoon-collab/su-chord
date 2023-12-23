@@ -245,7 +245,7 @@ Future<void> main() async {
 
     group('mean pattern matching', () {
       group('reassign', () {
-        test('_', () async {
+        test('m normal', () async {
           await Evaluator(
             estimator: MeanTemplatePatternMatchingChordEstimator(
               chromaCalculable:
@@ -260,6 +260,24 @@ Future<void> main() async {
           )
               .evaluate(contexts, header: 'mean reassign')
               .toCSV('test/outputs/mean_reassign.csv');
+        });
+
+        test('m ln', () async {
+          await Evaluator(
+            estimator: MeanTemplatePatternMatchingChordEstimator(
+              chromaCalculable:
+                  f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+              chordChangeDetectable: f.hcdf.eval,
+              chordSelectable: f.selector.flatFive,
+              context: MeanTemplateContext.harmonicScaling(
+                until: 6,
+                templates: ChromaChordEstimator.convDetectableChords,
+                meanScalar: const LogChromaScalar(),
+              ),
+            ),
+          )
+              .evaluate(contexts, header: 'mean reassign ln')
+              .toCSV('test/outputs/mean_reassign_ln.csv');
         });
       });
     });
