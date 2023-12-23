@@ -28,8 +28,7 @@ Future<void> main() async {
   // final base = PatternMatchingChordEstimator(
   final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-    templateScalar: HarmonicsChromaScalar(until: 6),
-    scoreThreshold: 0.8,
+    context: MeanTemplateContext.harmonicScaling(until: 6, scoreThreshold: 0.8),
   );
 
   HCDFEvaluator.progressionWriter = null;

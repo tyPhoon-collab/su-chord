@@ -31,7 +31,7 @@ EstimatorFactory factory(FactoryRef ref) =>
 
 @riverpod
 class DetectableChords extends _$DetectableChords {
-  static final qualities = {
+  static const qualities = {
     '',
     'm',
     'aug',
@@ -83,8 +83,10 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
-          templateScalar: HarmonicsChromaScalar(until: 6),
-          templates: detectableChords,
+          context: TemplateContext.harmonicScaling(
+            until: 6,
+            templates: detectableChords,
+          ),
         ),
     'matching + reassign + template scaled': () async =>
         PatternMatchingChordEstimator(
@@ -93,21 +95,12 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           filters: [
             GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
           ],
-          templateScalar: HarmonicsChromaScalar(until: 6),
-          templates: detectableChords,
+          context: TemplateContext.harmonicScaling(
+            until: 6,
+            templates: detectableChords,
+          ),
         ),
-    'matching + reassign comb': () async => PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
-          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 10),
-          templates: detectableChords,
-        ),
-    'matching + reassign comb + ln': () async => PatternMatchingChordEstimator(
-          chromaCalculable:
-              f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
-          chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 3),
-          templates: detectableChords,
-        ),
-    'search + comb + ln': () async => SearchTreeChordEstimator(
+    'konoki': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 3),
           noteExtractable: f.extractor.threshold(scalar: MagnitudeScalar.ln),

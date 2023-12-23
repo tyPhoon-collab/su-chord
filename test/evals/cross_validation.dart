@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -64,7 +63,7 @@ Future<void> main() async {
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          templateScalar: HarmonicsChromaScalar(until: 6),
+          context: TemplateContext.harmonicScaling(until: 6),
         ),
         SearchTreeChordEstimator(
           chromaCalculable: chromaCalculable,
@@ -122,7 +121,7 @@ Future<void> main() async {
           PatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            templateScalar: HarmonicsChromaScalar(until: 6),
+            context: TemplateContext.harmonicScaling(until: 6),
           )
       ]) {
         final fileName = estimator.sanitize();
@@ -188,12 +187,12 @@ Future<void> main() async {
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             // ignore: avoid_redundant_argument_values
-            templateScalar: HarmonicsChromaScalar(until: 4),
+            context: TemplateContext.harmonicScaling(until: 4),
           ),
           PatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            templateScalar: HarmonicsChromaScalar(until: 6),
+            context: TemplateContext.harmonicScaling(until: 6),
           ),
         ]
       ]) {
@@ -237,7 +236,7 @@ Future<void> main() async {
         MeanTemplatePatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          templateScalar: HarmonicsChromaScalar(until: 6),
+          context: MeanTemplateContext.harmonicScaling(until: 6),
         ),
       ]
     ]) {

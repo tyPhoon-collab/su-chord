@@ -56,7 +56,7 @@ Future<void> main() async {
     final f = factory4096_0;
     final base = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      templateScalar: HarmonicsChromaScalar(until: 6),
+      context: TemplateContext.harmonicScaling(until: 6),
     );
     const threshold = 30.0;
 

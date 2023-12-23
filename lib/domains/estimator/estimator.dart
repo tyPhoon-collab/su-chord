@@ -48,7 +48,7 @@ abstract class ChromaChordEstimator
       ProviderContainer().read(detectableChordsProvider);
 
   ///従来法と同じコードタイプ群
-  static final convDetectableChords = DetectableChords.fromQualities({
+  static final convDetectableChords = DetectableChords.fromQualities(const {
     '',
     'm',
     'aug',

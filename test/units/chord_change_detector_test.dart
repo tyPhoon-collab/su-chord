@@ -349,7 +349,7 @@ Future<void> main() async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 20),
-      templateScalar: HarmonicsChromaScalar(until: 6),
+      context: TemplateContext.harmonicScaling(until: 6),
     );
     final data = await DataSet().sample;
 
