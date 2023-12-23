@@ -89,6 +89,8 @@ class Chroma extends Iterable<double> {
 
   Row toRow() => _values.map((e) => e.toString()).toList();
 
+  Chroma toLogScale() => Chroma(_values.map(log).toList());
+
   @override
   bool operator ==(Object other) {
     if (other is Chroma) {

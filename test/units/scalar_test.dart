@@ -1,3 +1,4 @@
+import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/factory.dart';
 import 'package:flutter/foundation.dart';

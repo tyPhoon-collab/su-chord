@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';

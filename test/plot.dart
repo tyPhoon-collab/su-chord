@@ -2,9 +2,9 @@ import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
+import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/estimator.dart';
-import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -181,6 +181,18 @@ void main() {
                 .cast<Chroma>()
                 .reduce((value, element) => value + element);
             await writer(pcp.l2normalized, title: 'mean template C');
+          });
+
+          test('ln mean C', () async {
+            final scalar = HarmonicsChromaScalar(until: 6);
+            final chords = ChromaChordEstimator.defaultDetectableChords
+                .where((e) => e.root == Note.C);
+            final pcp = chords
+                .map((e) => scalar(e.unitPCP))
+                .cast<Chroma>()
+                .reduce((value, element) => value + element)
+                .toLogScale();
+            await writer(pcp.l2normalized, title: 'ln mean template C');
           });
         });
       });
