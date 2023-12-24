@@ -47,15 +47,16 @@ class SpotComparator {
 }
 
 class MeanScoreSpotComparator {
-  const MeanScoreSpotComparator({
+  MeanScoreSpotComparator({
     required this.chromaCalculable,
     this.scalar,
     this.meanScalar,
-  });
+  }) : loader = CacheableAudioLoader(sampleRate: 22050);
 
   final ChromaCalculable chromaCalculable;
   final ChromaMappable? scalar;
   final ChromaMappable? meanScalar;
+  final CacheableAudioLoader loader;
 
   Chroma _getTemplate(Note note) => MeanTemplateContext(
         scalar: scalar,
@@ -69,7 +70,7 @@ class MeanScoreSpotComparator {
     required String source,
     required final int index,
   }) async {
-    final data = await SimpleAudioLoader(path: source).load(sampleRate: 22050);
+    final data = await loader.load(source);
 
     final pcp =
         average(chromaCalculable.call(data.cutEvaluationAudioByIndex(index)))

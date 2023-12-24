@@ -41,6 +41,18 @@ void main() {
       );
     });
 
+    test('D F', () async {
+      await compare(
+        source: 'assets/evals/RealStrat/5_涙の天使に-01.wav',
+        index: 1,
+        chords: [
+          Chord.parse('F'),
+          Chord.parse('Faug'),
+          Chord.parse('C#aug'),
+        ],
+      );
+    });
+
     test('A 11 1', () async {
       await compare(
         source:
@@ -63,32 +75,67 @@ void main() {
         ],
       );
     });
+
+    test('B Em', () async {
+      await compare(
+          source:
+              'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
+          index: 2,
+          chords: [
+            Chord.parse('Em'),
+            Chord.parse('Em7'),
+          ]);
+    });
+
+    test('B A#M7', () async {
+      await compare(
+          source:
+              'assets/evals/Halion_CleanStratGuitar/9_Halion_CleanStratGuitar.wav',
+          index: 3,
+          chords: [
+            Chord.parse('A#'),
+            Chord.parse('A#M7'),
+            Chord.parse('A#add9'),
+          ]);
+    });
+
+    test('B C', () async {
+      await compare(
+          source:
+              'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
+          index: 6,
+          chords: [
+            Chord.parse('C'),
+            Chord.parse('CM7'),
+            Chord.parse('Cadd9'),
+          ]);
+    });
   });
 
   group('compare mean template score', () {
     final f = factory4096_0;
-    final comparator = MeanScoreSpotComparator(
+    final compare = MeanScoreSpotComparator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       scalar: HarmonicsChromaScalar(until: 6),
       meanScalar: const LogChromaScalar(),
     );
 
     test('F#m7b5', () async {
-      await comparator(
+      await compare(
         source: 'assets/evals/Halion_CleanGuitarVX/2_東京-03.wav',
         index: 2,
       );
     });
 
     test('Am7b5', () async {
-      await comparator(
+      await compare(
         source: 'assets/evals/Halion_CleanGuitarVX/5_涙の天使に.wav',
         index: 4,
       );
     });
 
     test('Dadd9', () async {
-      await comparator(
+      await compare(
         source:
             'assets/evals/Halion_CleanGuitarVX/12_1039_Halion_CleanGuitarVX.wav',
         index: 10,
@@ -96,14 +143,22 @@ void main() {
     });
 
     test('A#dim', () async {
-      await comparator(
+      await compare(
         source: 'assets/evals/Halion_CleanGuitarVX/7_愛が生まれた日.wav',
         index: 8,
       );
     });
 
+    test('Em', () async {
+      await compare(
+        source:
+            'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
+        index: 2,
+      );
+    });
+
     test('7 C#m7b5', () async {
-      await comparator(
+      await compare(
         source:
             'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
         index: 5,
@@ -111,7 +166,7 @@ void main() {
     });
 
     test('8 C#m7b5', () async {
-      await comparator(
+      await compare(
         source:
             'assets/evals/Halion_CleanStratGuitar/8_Halion_CleanStratGuitar.wav',
         index: 4,

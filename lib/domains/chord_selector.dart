@@ -124,6 +124,9 @@ class FlatFiveChordSelector implements ChordSelectable {
   const FlatFiveChordSelector();
 
   @override
+  String toString() => 'flat five priority';
+
+  @override
   ChordProgression<Chord> call(ChordProgression<Chord> progression) {
     final cells = <ChordCell<Chord>>[];
 
