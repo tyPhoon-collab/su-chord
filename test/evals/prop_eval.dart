@@ -273,6 +273,8 @@ Future<void> main() async {
                 until: 6,
                 templates: ChromaChordEstimator.convDetectableChords,
                 meanScalar: const LogChromaScalar(),
+                sortedScoreTakeCount: 3,
+                scoreThreshold: 0.8,
               ),
             ),
           )

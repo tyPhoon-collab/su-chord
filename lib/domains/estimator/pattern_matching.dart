@@ -182,7 +182,8 @@ class MeanTemplatePatternMatchingChordEstimator
       _sortedChromaWithScore(chroma)
           .take(context.sortedScoreTakeCount)
           .map((scoreRecord) => _maxScoreChords(chroma, scoreRecord))
-          .expand((e) => e)
+          .sorted((a, b) => b.score.compareTo(a.score))
+          .expand((e) => e.chords)
           .toList(),
     );
   }
@@ -196,7 +197,7 @@ class MeanTemplatePatternMatchingChordEstimator
         .sorted((a, b) => b.score.compareTo(a.score));
   }
 
-  List<Chord> _maxScoreChords(
+  ({List<Chord> chords, double score}) _maxScoreChords(
     Chroma chroma,
     ({Chroma chroma, double score}) scoreRecord,
   ) {
@@ -213,7 +214,7 @@ class MeanTemplatePatternMatchingChordEstimator
       }
     }
 
-    return chords;
+    return (chords: chords, score: maxScore);
   }
 
   @visibleForTesting

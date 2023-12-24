@@ -102,11 +102,19 @@ void main() {
       );
     });
 
-    test('C#m7b5', () async {
+    test('7 C#m7b5', () async {
       await comparator(
         source:
             'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
         index: 5,
+      );
+    });
+
+    test('8 C#m7b5', () async {
+      await comparator(
+        source:
+            'assets/evals/Halion_CleanStratGuitar/8_Halion_CleanStratGuitar.wav',
+        index: 4,
       );
     });
   });
