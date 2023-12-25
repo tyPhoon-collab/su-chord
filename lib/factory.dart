@@ -114,12 +114,14 @@ final class MagnitudesFactory {
         scalar: scalar,
       );
 
+  ///[useGreaterChunkSize]がtrueなら
+  ///[overrideChunkSize]が[context.chunkSize]より小さい場合に
+  ///[context.chunkSize]を用いる
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
     int? overrideChunkSize = 8192,
     bool useGreaterChunkSize = true,
   }) {
-    //overrideChunkSizeがchunkSizeより小さい場合は、chunkSizeを用いる
     if (useGreaterChunkSize &&
         overrideChunkSize != null &&
         overrideChunkSize < context.chunkSize) {
@@ -151,14 +153,16 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable reassignCombFilter({
     MagnitudeScalar scalar = MagnitudeScalar.none,
-    int overrideChunkSize = 8192,
     CombFilterContext? combFilterContext,
+    int overrideChunkSize = 8192,
+    bool useGreaterChunkSize = true,
   }) =>
       combFilter(
         combFilterContext: combFilterContext,
         magnitudesCalculable: magnitude.reassignment(
           scalar: scalar,
           overrideChunkSize: overrideChunkSize,
+          useGreaterChunkSize: useGreaterChunkSize,
         ),
       );
 

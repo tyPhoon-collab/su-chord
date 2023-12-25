@@ -41,6 +41,18 @@ void main() {
       );
     });
 
+    test('C F', () async {
+      await compare(
+        source: 'assets/evals/HojoGuitar/5_Hojo.wav',
+        index: 1,
+        chords: [
+          Chord.parse('F'),
+          Chord.parse('Faug'),
+          Chord.parse('C#aug'),
+        ],
+      );
+    });
+
     test('D F', () async {
       await compare(
         source: 'assets/evals/RealStrat/5_涙の天使に-01.wav',
@@ -176,7 +188,7 @@ void main() {
 
   test('compare chroma calc', () async {
     final f = factory4096_0;
-    final chord = Chord.parse('C');
+    final chord = Chord.C;
 
     final template =
         HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;

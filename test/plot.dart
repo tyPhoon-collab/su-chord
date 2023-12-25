@@ -228,6 +228,28 @@ void main() {
   });
 
   group('spec', () {
+    group('spot', () {
+      test('C F', () async {
+        final f = factory4096_2048;
+
+        final data = await const SimpleAudioLoader(
+                path: 'assets/evals/RealStrat/5_涙の天使に-01.wav')
+            .load(sampleRate: 22050)
+            .then((value) => value.cutEvaluationAudioByIndex(1));
+
+        const scalar = MagnitudeScalar.ln;
+        final magsSTFT = f.magnitude.stft(scalar: scalar).call(data);
+        final magsReassignment =
+            f.magnitude.reassignment(scalar: scalar).call(data);
+
+        final writer = SpecChartWriter(LibROSASpecShowContext.of(f.context));
+
+        await Future.wait([
+          writer(magsSTFT),
+          writer(magsReassignment),
+        ]);
+      });
+    });
     group('plot mags and sparse', () {
       Future<void> plot(
         EstimatorFactory factory, {
