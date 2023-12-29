@@ -122,7 +122,7 @@ void main() {
           final chord = Chord.parse('C');
           await writer(
             chord.unitPCP.l2normalized,
-            // title: 'Template of $chord',
+            title: 'template $chord',
           );
         });
 
@@ -144,54 +144,71 @@ void main() {
 
               await writer(
                 HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
-                // title: '4 harmonics scaled template of $chord',
+                title: 'template $chord 4 harmonics scaled ',
               );
             });
 
             test('6th', () async {
-              final chord = Chord.parse('C');
+              final chord = Chord.parse('C7');
 
               await writer(
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
-                // title: '6 harmonics scaled template of $chord',
+                title: 'template $chord 6 harmonics scaled ',
               );
             });
 
-            test('0.8 6th', () async {
-              final chord = Chord.parse('C');
-
-              await writer(
-                HarmonicsChromaScalar(factor: 0.8, until: 6)
-                    .call(chord.unitPCP)
-                    .l2normalized,
-                // title: '6 harmonics scaled template of $chord',
-              );
-            });
+            // test('6th', () async {
+            //   final chord = Chord.parse('C');
+            //
+            //   await writer(
+            //     HarmonicsChromaScalar(factor: 0.8, until: 6)
+            //         .call(chord.unitPCP)
+            //         .l2normalized,
+            //     // title: '6 harmonics scaled template of $chord',
+            //   );
+            // });
           });
         });
 
         group('mean', () {
-          test('mean C', () async {
+          test('print chord group', () {
+            const note = Note.C;
+
+            logTest(ChromaChordEstimator.defaultDetectableChords
+                .where((e) => e.root == note)
+                .toList());
+          });
+          test('mean', () async {
+            const note = Note.G;
+
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
               templates: ChromaChordEstimator.defaultDetectableChords
-                  .where((e) => e.root == Note.C)
+                  .where((e) => e.root == note)
                   .toSet(),
             ).meanTemplateChromas.keys.first;
-            await writer(pcp.l2normalized, title: 'mean template C');
+            await writer(
+              pcp.l2normalized,
+              title: 'mean template $note',
+            );
           });
 
-          test('ln mean C', () async {
+          test('ln mean', () async {
+            const note = Note.G;
+
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
-              templates: ChromaChordEstimator.defaultDetectableChords
-                  .where((e) => e.root == Note.C)
+              templates: ChromaChordEstimator.convDetectableChords
+                  .where((e) => e.root == note)
                   .toSet(),
               meanScalar: const LogChromaScalar(),
             ).meanTemplateChromas.keys.first;
-            await writer(pcp.l2normalized, title: 'mean template ln C');
+            await writer(
+              pcp.l2normalized,
+              // title: 'mean template ln $note',
+            );
           });
         });
       });

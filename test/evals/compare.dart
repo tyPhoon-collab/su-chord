@@ -30,6 +30,18 @@ void main() {
       );
     });
 
+    test('A 1 3', () async {
+      await compare(
+        source: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav',
+        index: 3,
+        chords: [
+          Chord.parse('C'),
+          Chord.parse('Cm'),
+          Chord.parse('C7'),
+        ],
+      );
+    });
+
     test('D 11 1', () async {
       await compare(
         source: 'assets/evals/RealStrat/11_RealStrat_Elite.wav',
@@ -131,6 +143,13 @@ void main() {
       scalar: HarmonicsChromaScalar(until: 6),
       meanScalar: const LogChromaScalar(),
     );
+
+    test('C', () async {
+      await compare(
+        source: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav',
+        index: 3,
+      );
+    });
 
     test('F#m7b5', () async {
       await compare(

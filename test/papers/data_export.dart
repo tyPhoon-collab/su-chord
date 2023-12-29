@@ -1,4 +1,6 @@
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
+import 'package:chord/domains/filters/chord_change_detector.dart';
+import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,5 +47,13 @@ void main() {
     logTest(mags.length);
 
     await Table.fromPoints(points).toCSV('assets/csv/osawa/reassignment_G.csv');
+  });
+
+  test('pcp', () async {
+    final f = factory4096_0;
+
+    final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
+    final pcp = average(cc(await DataSet().C)).map((e) => e.l2normalized);
+    await Table.fromMatrix(pcp).toCSV('assets/csv/osawa/pcp_C.csv');
   });
 }
