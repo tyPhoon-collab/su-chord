@@ -254,7 +254,7 @@ Future<void> main() async {
               chordSelectable: f.selector.flatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
-                templates: ChromaChordEstimator.convDetectableChords,
+                detectableChords: ChromaChordEstimator.convDetectableChords,
               ),
             ),
           )
@@ -271,7 +271,7 @@ Future<void> main() async {
               chordSelectable: f.selector.flatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
-                templates: ChromaChordEstimator.convDetectableChords,
+                detectableChords: ChromaChordEstimator.convDetectableChords,
                 meanScalar: const LogChromaScalar(),
                 sortedScoreTakeCount: 3,
                 scoreThreshold: 0.8,

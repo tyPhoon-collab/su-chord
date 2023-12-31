@@ -17,9 +17,10 @@ class TemplateContext {
     ScoreCalculator? scoreCalculator,
     this.scoreThreshold,
     this.scalar,
-    Set<Chord>? templates,
-  })  : assert(templates == null || templates.isNotEmpty),
-        templates = templates ?? ChromaChordEstimator.defaultDetectableChords,
+    Set<Chord>? detectableChords,
+  })  : assert(detectableChords == null || detectableChords.isNotEmpty),
+        detectableChords =
+            detectableChords ?? ChromaChordEstimator.defaultDetectableChords,
         scoreCalculator = scoreCalculator ?? const ScoreCalculator.cosine();
 
   factory TemplateContext.harmonicScaling({
@@ -33,10 +34,10 @@ class TemplateContext {
         scalar: HarmonicsChromaScalar(until: until, factor: factor),
         scoreCalculator: scoreCalculator,
         scoreThreshold: scoreThreshold,
-        templates: templates,
+        detectableChords: templates,
       );
 
-  final Set<Chord> templates;
+  final Set<Chord> detectableChords;
   final ScoreCalculator scoreCalculator;
   final double? scoreThreshold;
   final ChromaMappable? scalar;
@@ -45,7 +46,7 @@ class TemplateContext {
   late final templateChromas = _toTemplate();
 
   Map<Chroma, List<Chord>> _toTemplate() => groupBy(
-        templates,
+        detectableChords,
         (p0) => scalar?.call(p0.unitPCP) ?? p0.unitPCP,
       );
 
@@ -109,7 +110,7 @@ class MeanTemplateContext extends TemplateContext {
   MeanTemplateContext({
     super.scoreCalculator,
     super.scoreThreshold,
-    super.templates,
+    super.detectableChords,
     super.scalar,
     this.meanScalar,
     this.sortedScoreTakeCount = 2,
@@ -118,7 +119,7 @@ class MeanTemplateContext extends TemplateContext {
   factory MeanTemplateContext.harmonicScaling({
     int until = 4,
     double factor = 0.6,
-    Set<Chord>? templates,
+    Set<Chord>? detectableChords,
     ScoreCalculator? scoreCalculator,
     double? scoreThreshold,
     int sortedScoreTakeCount = 2,
@@ -128,7 +129,7 @@ class MeanTemplateContext extends TemplateContext {
         scalar: HarmonicsChromaScalar(until: until, factor: factor),
         scoreCalculator: scoreCalculator,
         scoreThreshold: scoreThreshold,
-        templates: templates,
+        detectableChords: detectableChords,
         sortedScoreTakeCount: sortedScoreTakeCount,
         meanScalar: meanScalar,
       );
@@ -144,7 +145,7 @@ class MeanTemplateContext extends TemplateContext {
     Chroma scaledPCP(Chord e) => scalar?.call(e.unitPCP) ?? e.unitPCP;
 
     return Map.fromEntries(Note.sharpNotes
-        .map((e) => templates.where((chord) => chord.root == e))
+        .map((e) => detectableChords.where((chord) => chord.root == e))
         .where((chords) => chords.isNotEmpty)
         .map((chords) {
       final mean = chords
@@ -156,6 +157,24 @@ class MeanTemplateContext extends TemplateContext {
         groupBy(chords, (e) => scaledPCP(e)),
       );
     }));
+  }
+
+  MeanTemplateContext copyWith({
+    ScoreCalculator? scoreCalculator,
+    double? scoreThreshold,
+    Set<Chord>? detectableChords,
+    ChromaMappable? scalar,
+    ChromaMappable? meanScalar,
+    int? sortedScoreTakeCount,
+  }) {
+    return MeanTemplateContext(
+      scoreCalculator: scoreCalculator ?? this.scoreCalculator,
+      scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+      detectableChords: detectableChords ?? this.detectableChords,
+      scalar: scalar ?? this.scalar,
+      meanScalar: meanScalar ?? this.meanScalar,
+      sortedScoreTakeCount: sortedScoreTakeCount ?? this.sortedScoreTakeCount,
+    );
   }
 }
 

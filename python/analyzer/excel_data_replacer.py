@@ -87,6 +87,10 @@ def _get_files(input_path: str) -> list[str]:
 
     print("detect directory path")
     files = glob.glob(f"{input_path}/*.csv")
+
+    for file in files:
+        print("\t- " + file)
+
     return natsort.natsorted(files)
 
 
@@ -99,6 +103,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     paths_list = [_get_files(path) for path in args.input_path]
+
     paths = list(itertools.chain.from_iterable(paths_list))
+
+    if len(paths_list) == 0:
+        print("No csv file detected. Please check the path")
+        exit(0)
 
     ExcelDataReplacer(paths, start_column=START_COLUMN, start_row=START_ROW).write(args.output_path)

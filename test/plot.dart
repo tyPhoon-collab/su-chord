@@ -149,13 +149,32 @@ void main() {
             });
 
             test('6th', () async {
-              final chord = Chord.parse('C7');
+              final chord = Chord.parse('Cm7');
 
               await writer(
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
                 title: 'template $chord 6 harmonics scaled ',
+              );
+            });
+
+            test('group', () async {
+              const write = PCPChartWriter();
+              const root = Note.C;
+              hideTitle = true;
+
+              await Future.wait(
+                ChromaChordEstimator.convDetectableChords
+                    .where((e) => e.root == root)
+                    .map(
+                      (chord) => write(
+                        HarmonicsChromaScalar(until: 6)
+                            .call(chord.unitPCP)
+                            .l2normalized,
+                        title: 'template $chord 6 harmonics scaled ',
+                      ),
+                    ),
               );
             });
 
@@ -181,11 +200,11 @@ void main() {
                 .toList());
           });
           test('mean', () async {
-            const note = Note.G;
+            const note = Note.C;
 
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
-              templates: ChromaChordEstimator.defaultDetectableChords
+              detectableChords: ChromaChordEstimator.defaultDetectableChords
                   .where((e) => e.root == note)
                   .toSet(),
             ).meanTemplateChromas.keys.first;
@@ -196,18 +215,18 @@ void main() {
           });
 
           test('ln mean', () async {
-            const note = Note.G;
+            const note = Note.C;
 
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
-              templates: ChromaChordEstimator.convDetectableChords
+              detectableChords: ChromaChordEstimator.convDetectableChords
                   .where((e) => e.root == note)
                   .toSet(),
               meanScalar: const LogChromaScalar(),
             ).meanTemplateChromas.keys.first;
             await writer(
               pcp.l2normalized,
-              // title: 'mean template ln $note',
+              title: 'mean template ln $note',
             );
           });
         });
@@ -216,6 +235,8 @@ void main() {
       group('real data', () {
         final f = factory4096_0;
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
+        // final cc = f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln);
+        // final cc = f.guitar.stftCombFilter(scalar: MagnitudeScalar.dB);
 
         Future<void> plot(List<Chroma> chromas, {String? title}) async {
           final pcp = average(chromas).first;

@@ -58,10 +58,10 @@ class MeanScoreSpotComparator {
   final ChromaMappable? meanScalar;
   final CacheableAudioLoader loader;
 
-  Chroma _getTemplate(Note note) => MeanTemplateContext(
+  Chroma _buildTemplate(Note note) => MeanTemplateContext(
         scalar: scalar,
         meanScalar: meanScalar,
-        templates: ChromaChordEstimator.defaultDetectableChords
+        detectableChords: ChromaChordEstimator.defaultDetectableChords
             .where((e) => e.root == note)
             .toSet(),
       ).meanTemplateChromas.keys.first;
@@ -81,7 +81,7 @@ class MeanScoreSpotComparator {
     final noteScores = <Note, double>{};
 
     for (final note in Note.sharpNotes) {
-      final template = _getTemplate(note);
+      final template = _buildTemplate(note);
       final score = scoreCalculator(pcp, template);
       noteScores[note] = score;
     }
