@@ -35,6 +35,11 @@ import pandas as pd
 
 sys.path.append(".")
 
+from python.analyzer.analyze import (  # noqa
+    MUSIC_PIECES_LENGTH,
+    SOUND_SOURCE_LENGTH,
+    get_scores,
+)
 from python.path_util import get_sorted_csv_paths  # noqa
 from python.terminal_util import print_divider  # noqa
 
@@ -45,8 +50,6 @@ WINDOW_LENGTHS = [
     8192,
     16384,
 ]
-MUSIC_PIECES_LENGTH = 13
-SOUND_SOURCE_LENGTH = 4
 
 
 class FixedSize2DArray:
@@ -151,17 +154,6 @@ def __get_experiment_dir_path(window_length: int) -> str:
     return base_path.format(window_length)
 
 
-def __get_score(correct: pd.Series, predict: pd.Series) -> float:
-    progression_length = 20
-    count = 0
-
-    for i in range(1, progression_length + 1):
-        if correct[i] == predict[i]:
-            count += 1
-
-    return count / progression_length
-
-
 def __get_figure_key(basename: str) -> str:
     if "search_tree" in basename:
         return "search tree"
@@ -207,21 +199,8 @@ for window_index, window_length in enumerate(WINDOW_LENGTHS):
     for path in get_sorted_csv_paths(dir_path):
         df = pd.read_csv(path, dtype=str, skiprows=1, header=None)
 
-        sum_score = 0.0
-        count = 0
-
-        for i in range(MUSIC_PIECES_LENGTH):
-            start = i * (SOUND_SOURCE_LENGTH + 1)
-
-            correct = df.iloc[start]
-
-            for j in range(SOUND_SOURCE_LENGTH):
-                predict = df.iloc[start + j + 1]
-                sum_score += __get_score(correct, predict)
-                count += 1
-
         basename = os.path.basename(path)
-        score = sum_score / count
+        score = sum(get_scores(df)) / (MUSIC_PIECES_LENGTH * SOUND_SOURCE_LENGTH)
 
         figure_key = __get_figure_key(basename)
         row_index = __get_index(basename)
