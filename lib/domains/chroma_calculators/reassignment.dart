@@ -10,7 +10,7 @@ import '../magnitudes_calculator.dart';
 import 'chroma_calculator.dart';
 
 abstract class ReassignmentChromaCalculator
-    extends HasReassignmentCalculatorMethodChained
+    extends EmbeddedReassignmentCalculator
     with SampleRateCacheManager
     implements ChromaCalculable, HasMagnitudes {
   ReassignmentChromaCalculator(
@@ -27,7 +27,7 @@ abstract class ReassignmentChromaCalculator
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
     updateCacheSampleRate(data.sampleRate);
-    final (points, magnitudes) = reassignmentCalculator.reassign(data, flush);
+    final (points, magnitudes) = reassign(data, flush);
     return calculateFromPoints(points, magnitudes);
   }
 

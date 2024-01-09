@@ -50,7 +50,7 @@ enum MagnitudeScalar {
   double _log10(double x) => log(x) / ln10;
 }
 
-class MagnitudesCalculator extends HasSTFTCalculatorMethodChained
+class MagnitudesCalculator extends EmbeddedSTFTCalculator
     implements MagnitudesCalculable {
   MagnitudesCalculator(
     super.stftCalculator, {
@@ -85,8 +85,7 @@ class MagnitudesCalculator extends HasSTFTCalculatorMethodChained
       stft.indexOfFrequency(freq, sampleRate.toDouble());
 }
 
-class ReassignmentMagnitudesCalculator
-    extends HasReassignmentCalculatorMethodChained
+class ReassignmentMagnitudesCalculator extends EmbeddedReassignmentCalculator
     with SampleRateCacheManager
     implements MagnitudesCalculable {
   ReassignmentMagnitudesCalculator(

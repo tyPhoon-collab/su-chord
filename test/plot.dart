@@ -374,7 +374,6 @@ void main() {
     test('parts of reassignment', () async {
       final (points, mags) =
           (f.magnitude.reassignment() as ReassignmentMagnitudesCalculator)
-              .reassignmentCalculator
               .reassign(await DataSet().G);
       await writer(
         points,

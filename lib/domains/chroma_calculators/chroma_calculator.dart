@@ -60,22 +60,7 @@ class STFTCalculator {
   double deltaFrequency(int sampleRate) => sampleRate / chunkSize;
 }
 
-class HasSTFTCalculatorMethodChained {
-  HasSTFTCalculatorMethodChained(this.stftCalculator);
-
-  final STFTCalculator stftCalculator;
-
-  late final stft = stftCalculator.stft;
-  late final window = stftCalculator.window;
-
-  int get chunkSize => stftCalculator.chunkSize;
-
-  int get chunkStride => stftCalculator.chunkStride;
-
-  double deltaTime(int sampleRate) => stftCalculator.deltaTime(sampleRate);
-}
-
-class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
+class ReassignmentCalculator extends EmbeddedSTFTCalculator {
   ReassignmentCalculator(
     super.stftCalculator, {
     this.isReassignTime = false,
@@ -83,29 +68,8 @@ class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
     this.scalar = MagnitudeScalar.none,
     this.aMin = 1e-5,
   }) {
-    _setUpDerivativeSTFT();
-    _setUpTimeSTFT();
-  }
-
-  void _setUpDerivativeSTFT() {
-    if (isReassignFrequency) {
-      final windowD = Float64List.fromList(
-        window
-            .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
-            .toList(),
-      );
-      stftD = STFT(chunkSize, windowD);
-    }
-  }
-
-  void _setUpTimeSTFT() {
-    if (isReassignTime) {
-      final windowT = Float64List.fromList(
-        window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
-      );
-
-      stftT = STFT(chunkSize, windowT);
-    }
+    if (isReassignFrequency) stftD = STFT(chunkSize, windowD);
+    if (isReassignTime) stftT = STFT(chunkSize, windowT);
   }
 
   final MagnitudeScalar scalar;
@@ -113,42 +77,53 @@ class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
   final bool isReassignFrequency;
   final double aMin;
 
-  STFT? stftD;
-  STFT? stftT;
+  late final windowT = Float64List.fromList(
+    window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
+  );
+  late final windowD = Float64List.fromList(
+    window
+        .mapIndexed((i, data) => data - (i > 0 ? window[i - 1] : 0.0))
+        .toList(),
+  );
+
+  late final STFT stftD;
+  late final STFT stftT;
+
+  List<Float64x2List> _calculateSpec(
+    STFT stft,
+    AudioData data,
+    bool flush, [
+    void Function(Float64x2List f)? callback,
+  ]) {
+    late final s = <Float64x2List>[];
+    void internalCallback(Float64x2List freq) {
+      final f = freq.discardConjugates();
+      s.add(f.sublist(0));
+      callback?.call(f);
+    }
+
+    stft.stream(data.buffer, internalCallback, chunkStride);
+    if (flush) stft.flush(internalCallback);
+
+    return s;
+  }
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
-  (List<Point> points, Magnitudes magnitudes) reassign(AudioData data,
-      [bool flush = true]) {
+  (List<Point> points, Magnitudes magnitudes) reassign(
+    AudioData data, [
+    bool flush = true,
+  ]) {
     final Magnitudes magnitudes = [];
 
-    final s = <Float64x2List>[];
-    late final sD = <Float64x2List>[];
-    late final sT = <Float64x2List>[];
-
-    void sCallback(Float64x2List freq) {
-      final f = freq.discardConjugates();
-      magnitudes.add(scalar(f.magnitudes()));
-      s.add(f.sublist(0));
-    }
-
-    void sDCallback(Float64x2List freq) {
-      sD.add(freq.discardConjugates().sublist(0));
-    }
-
-    void sTCallback(Float64x2List freq) {
-      sT.add(freq.discardConjugates().sublist(0));
-    }
-
-    stft.stream(data.buffer, sCallback, chunkStride);
-    stftD?.stream(data.buffer, sDCallback, chunkStride);
-    stftT?.stream(data.buffer, sTCallback, chunkStride);
-
-    if (flush) {
-      stft.flush(sCallback);
-      stftD?.flush(sDCallback);
-      stftT?.flush(sTCallback);
-    }
+    final s = _calculateSpec(
+      stft,
+      data,
+      flush,
+      (f) => magnitudes.add(scalar(f.magnitudes())),
+    );
+    final sD = isReassignFrequency ? _calculateSpec(stftD, data, flush) : [];
+    final sT = isReassignTime ? _calculateSpec(stftT, data, flush) : [];
 
     final points = <Point>[];
     final sr = data.sampleRate;
@@ -159,7 +134,7 @@ class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
       for (int j = 0; j < s[i].length; ++j) {
         if (magnitudes[i][j] < aMin) continue;
 
-        late final isZero = s[i][j] == Float64x2.zero();
+        final isZero = s[i][j] == Float64x2.zero();
 
         points.add(Point(
           x: isReassignTime && !isZero
@@ -175,25 +150,6 @@ class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
 
     return (points, magnitudes);
   }
-}
-
-class HasReassignmentCalculatorMethodChained {
-  HasReassignmentCalculatorMethodChained(this.reassignmentCalculator);
-
-  final ReassignmentCalculator reassignmentCalculator;
-
-  late final stft = reassignmentCalculator.stft;
-  late final window = reassignmentCalculator.window;
-  late final isReassignTime = reassignmentCalculator.isReassignTime;
-  late final isReassignFrequency = reassignmentCalculator.isReassignFrequency;
-  late final scalar = reassignmentCalculator.scalar;
-
-  int get chunkSize => reassignmentCalculator.chunkSize;
-
-  int get chunkStride => reassignmentCalculator.chunkStride;
-
-  double deltaTime(int sampleRate) =>
-      reassignmentCalculator.deltaTime(sampleRate);
 }
 
 extension _Window on Float64List {
@@ -215,4 +171,42 @@ extension _Window on Float64List {
 
     return window;
   }
+}
+
+class EmbeddedSTFTCalculator {
+  EmbeddedSTFTCalculator(this.stftCalculator);
+
+  final STFTCalculator stftCalculator;
+
+  late final stft = stftCalculator.stft;
+  late final window = stftCalculator.window;
+
+  late final chunkSize = stftCalculator.chunkSize;
+  late final chunkStride = stftCalculator.chunkStride;
+
+  double deltaTime(int sampleRate) => stftCalculator.deltaTime(sampleRate);
+}
+
+class EmbeddedReassignmentCalculator {
+  EmbeddedReassignmentCalculator(this.reassignmentCalculator);
+
+  final ReassignmentCalculator reassignmentCalculator;
+
+  late final stft = reassignmentCalculator.stft;
+  late final window = reassignmentCalculator.window;
+  late final isReassignTime = reassignmentCalculator.isReassignTime;
+  late final isReassignFrequency = reassignmentCalculator.isReassignFrequency;
+  late final scalar = reassignmentCalculator.scalar;
+
+  late final chunkSize = reassignmentCalculator.chunkSize;
+  late final chunkStride = reassignmentCalculator.chunkStride;
+
+  double deltaTime(int sampleRate) =>
+      reassignmentCalculator.deltaTime(sampleRate);
+
+  (List<Point> points, Magnitudes magnitudes) reassign(
+    AudioData data, [
+    bool flush = true,
+  ]) =>
+      reassignmentCalculator.reassign(data, flush);
 }
