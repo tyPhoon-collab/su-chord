@@ -101,12 +101,9 @@ final class MagnitudesFactory {
   final EstimatorFactoryContext _context;
 
   @factory
-  MagnitudesCalculable stft({
-    MagnitudeScalar scalar = MagnitudeScalar.none,
-    NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
-  }) =>
+  MagnitudesCalculable stft({MagnitudeScalar scalar = MagnitudeScalar.none}) =>
       MagnitudesCalculator(
-        _buildSTFTCalculator(_context, windowFunction),
+        _buildSTFTCalculator(_context),
         scalar: scalar,
       );
 
@@ -116,7 +113,6 @@ final class MagnitudesFactory {
   @factory
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
-    NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
     int? overrideChunkSize = 8192,
     bool useGreaterChunkSize = true,
   }) {
@@ -127,7 +123,7 @@ final class MagnitudesFactory {
     }
     return ReassignmentMagnitudesCalculator(
       ReassignmentCalculator(
-        _buildSTFTCalculator(_context, windowFunction),
+        _buildSTFTCalculator(_context),
         scalar: scalar,
       ),
       overrideChunkSize: overrideChunkSize,
@@ -148,7 +144,6 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable reassignCombFilter({
     MagnitudeScalar scalar = MagnitudeScalar.none,
-    NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
     CombFilterContext? combFilterContext,
     int overrideChunkSize = 8192,
     bool useGreaterChunkSize = true,
@@ -157,7 +152,6 @@ final class ChromaCalculatorFactory {
         combFilterContext: combFilterContext,
         magnitudesCalculable: _magnitude.reassignment(
           scalar: scalar,
-          windowFunction: windowFunction,
           overrideChunkSize: overrideChunkSize,
           useGreaterChunkSize: useGreaterChunkSize,
         ),
@@ -165,13 +159,11 @@ final class ChromaCalculatorFactory {
 
   ChromaCalculable stftCombFilter({
     MagnitudeScalar scalar = MagnitudeScalar.none,
-    NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
     CombFilterContext? combFilterContext,
   }) =>
       combFilter(
         combFilterContext: combFilterContext,
-        magnitudesCalculable:
-            _magnitude.stft(scalar: scalar, windowFunction: windowFunction),
+        magnitudesCalculable: _magnitude.stft(scalar: scalar),
       );
 
   @factory
@@ -188,13 +180,12 @@ final class ChromaCalculatorFactory {
   @factory
   ChromaCalculable reassignment({
     MagnitudeScalar? scalar,
-    NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
     isReassignFrequency = true,
     isReassignTime = false,
   }) =>
       ReassignmentETScaleChromaCalculator(
         ReassignmentCalculator(
-          _buildSTFTCalculator(_context, windowFunction),
+          _buildSTFTCalculator(_context),
           isReassignFrequency: isReassignFrequency,
           isReassignTime: isReassignTime,
           scalar: scalar ?? MagnitudeScalar.none,
@@ -252,7 +243,9 @@ final class HCDFFactory {
   @factory
   ChromaChordChangeDetectable interval(Duration duration) =>
       IntervalChordChangeDetector(
-          interval: duration, deltaTime: _context.deltaTime);
+        interval: duration,
+        deltaTime: _context.deltaTime,
+      );
 }
 
 final class ChordSelectorFactory {
@@ -284,12 +277,9 @@ final class NoteExtractorFactory {
       );
 }
 
-STFTCalculator _buildSTFTCalculator(
-  EstimatorFactoryContext context,
-  NamedWindowFunction windowFunction,
-) {
+STFTCalculator _buildSTFTCalculator(EstimatorFactoryContext context) {
   return STFTCalculator.window(
-    windowFunction,
+    context.windowFunction,
     chunkSize: context.chunkSize,
     chunkStride: context.chunkStride,
   );

@@ -1,12 +1,12 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:chord/domains/chroma_mapper.dart';
-import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -154,7 +154,7 @@ Future<void> main() async {
               chordChangeDetectable: f.hcdf.eval,
               context: TemplateContext.harmonicScaling(
                 until: 6,
-                templates: ChromaChordEstimator.convDetectableChords,
+                templates: DetectableChords.conv,
               ),
             ),
           )
@@ -254,7 +254,7 @@ Future<void> main() async {
               chordSelectable: f.selector.flatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
-                detectableChords: ChromaChordEstimator.convDetectableChords,
+                detectableChords: DetectableChords.conv,
               ),
             ),
           )
@@ -271,7 +271,7 @@ Future<void> main() async {
               chordSelectable: f.selector.flatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
-                detectableChords: ChromaChordEstimator.convDetectableChords,
+                detectableChords: DetectableChords.conv,
                 meanScalar: const LogChromaScalar(),
                 sortedScoreTakeCount: 3,
                 scoreThreshold: 0.8,

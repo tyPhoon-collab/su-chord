@@ -1,3 +1,4 @@
+import '../../service.dart';
 import '../chord.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
@@ -15,8 +16,7 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
     super.filters,
     this.noteExtractable = const ThresholdByMaxRatioExtractor(),
     Set<Chord>? detectableChords,
-  })  : detectableChords =
-            detectableChords ?? ChromaChordEstimator.defaultDetectableChords,
+  })  : detectableChords = detectableChords ?? DetectableChords.frontend,
         super();
 
   final Set<Chord> detectableChords;
@@ -46,8 +46,7 @@ class FromNotesChordEstimator extends SelectableChromaChordEstimator {
     super.filters,
     this.noteExtractable = const ThresholdByMaxRatioExtractor(),
     Set<Chord>? detectableChords,
-  }) : detectableChords =
-            detectableChords ?? ChromaChordEstimator.defaultDetectableChords;
+  }) : detectableChords = detectableChords ?? DetectableChords.frontend;
 
   final Set<Chord> detectableChords;
   final NoteExtractable noteExtractable;

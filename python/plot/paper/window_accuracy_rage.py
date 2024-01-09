@@ -19,7 +19,9 @@ WINDOW_SIZES = [
     16384,
 ]
 
-DIRECTORY_PATH = "test/outputs/cross_validations/NCSP_paper/window_sizes/chunkSize_{}__chunkStride_0__sampleRate_22050"
+# DIRECTORY_PATH = "test/outputs/cross_validations/NCSP_paper/window_sizes/chunkSize_{}__chunkStride_0__sampleRate_22050"  # noqa
+# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hanning"  # noqa
+DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackman"  # noqa
 
 # MARKERS = ["o", "s", "^", "v", "<", ">", "x", "+", "*"]
 MARKERS = ["o", "s", "^", "*"]
@@ -49,7 +51,11 @@ max_score = 0.0
 max_window = 0.0
 
 for i, window in enumerate(WINDOW_SIZES):
-    for path in get_sorted_csv_paths(DIRECTORY_PATH.format(window)):
+    dir_path = DIRECTORY_PATH.format(window)
+    paths = get_sorted_csv_paths(dir_path)
+    if len(paths) == 0:
+        print(f"There is no files window size of {window}. Please check directory path: {dir_path}")
+    for path in paths:
         index = __get_index(os.path.basename(path))
         if index == -1:
             continue

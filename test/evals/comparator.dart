@@ -3,10 +3,10 @@ import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
-import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/score_calculator.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 
 import '../data_set.dart';
@@ -61,9 +61,8 @@ class MeanScoreSpotComparator {
   Chroma _buildTemplate(Note note) => MeanTemplateContext(
         scalar: scalar,
         meanScalar: meanScalar,
-        detectableChords: ChromaChordEstimator.defaultDetectableChords
-            .where((e) => e.root == note)
-            .toSet(),
+        detectableChords:
+            DetectableChords.frontend.where((e) => e.root == note).toSet(),
       ).meanTemplateChromas.keys.first;
 
   Future<void> call({

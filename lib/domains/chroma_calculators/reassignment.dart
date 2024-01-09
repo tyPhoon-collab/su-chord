@@ -51,7 +51,7 @@ final class ReassignmentETScaleChromaCalculator
   late final _hzList = chromaContext.toHzList();
 
   @override
-  String toString() => 'et-scale, ${super}';
+  String toString() => 'et-scale ${super.toString()}';
 
   @override
   List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes) {

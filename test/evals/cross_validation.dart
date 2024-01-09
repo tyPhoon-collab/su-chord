@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
-import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
@@ -95,16 +95,13 @@ Future<void> main() async {
 
   group('NCSP', () {
     test('summary', () async {
-      const folderName = 'NCSP';
-
       final factories = [
         f_2048,
         f_4096,
         f_8192,
       ];
 
-      final folderPath =
-          'test/outputs/cross_validations/${folderName.sanitize()}';
+      const folderPath = 'test/outputs/cross_validations/NCSP';
 
       final directory = await Directory(folderPath).create(recursive: true);
 
@@ -148,7 +145,7 @@ Future<void> main() async {
 
     group('paper', () {
       const folderName = 'NCSP_paper';
-      final templates = ChromaChordEstimator.convDetectableChords;
+      final templates = DetectableChords.conv;
       final meanContext = MeanTemplateContext(
         detectableChords: templates,
         meanScalar: const LogChromaScalar(),
@@ -297,8 +294,6 @@ Future<void> main() async {
   });
 
   test('ICS', () async {
-    const folderName = 'ICS';
-
     final factories = [
       f_1024,
       f_2048,
@@ -307,8 +302,7 @@ Future<void> main() async {
       f_16384,
     ];
 
-    final folderPath =
-        'test/outputs/cross_validations/${folderName.sanitize()}';
+    const folderPath = 'test/outputs/cross_validations/ICS';
 
     final directory = await Directory(folderPath).create(recursive: true);
 
@@ -370,12 +364,10 @@ Future<void> main() async {
 
   test('mean template cv', () async {
     // Table.bypass = true;
-    const folderName = 'mean template';
-
     final f = f_4096;
 
     final folderPath =
-        'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
+        'test/outputs/cross_validations/${f.context.sanitize()}/mean_template';
 
     final directory = await Directory(folderPath).create(recursive: true);
 
@@ -437,43 +429,34 @@ Future<void> main() async {
       f_4096,
       f_8192,
       f_16384,
+      f_1024.copyWith(windowFunction: NamedWindowFunction.blackman),
+      f_2048.copyWith(windowFunction: NamedWindowFunction.blackman),
+      f_4096.copyWith(windowFunction: NamedWindowFunction.blackman),
+      f_8192.copyWith(windowFunction: NamedWindowFunction.blackman),
+      f_16384.copyWith(windowFunction: NamedWindowFunction.blackman),
     ]) {
       for (final estimator in [
-        for (final windowFunction in [
-          NamedWindowFunction.hanning,
-          NamedWindowFunction.blackman,
+        for (final chromaCalculable in [
+          f.guitar.stftCombFilter(scalar: scalar),
+          f.guitar.reassignment(
+            scalar: scalar,
+            isReassignFrequency: false,
+          ),
+          f.guitar.reassignCombFilter(scalar: scalar),
+          f.guitar.reassignment(scalar: scalar),
         ])
-          for (final chromaCalculable in [
-            f.guitar.stftCombFilter(
-              scalar: scalar,
-              windowFunction: windowFunction,
+          MeanTemplatePatternMatchingChordEstimator(
+            chromaCalculable: chromaCalculable,
+            chordChangeDetectable: f.hcdf.eval,
+            chordSelectable: f.selector.flatFive,
+            context: MeanTemplateContext.harmonicScaling(
+              until: 6,
+              detectableChords: DetectableChords.conv,
+              meanScalar: const LogChromaScalar(),
+              sortedScoreTakeCount: 3,
+              scoreThreshold: 0.8,
             ),
-            f.guitar.reassignment(
-              scalar: scalar,
-              isReassignFrequency: false,
-              windowFunction: windowFunction,
-            ),
-            f.guitar.reassignCombFilter(
-              scalar: scalar,
-              windowFunction: windowFunction,
-            ),
-            f.guitar.reassignment(
-              scalar: scalar,
-              windowFunction: windowFunction,
-            ),
-          ])
-            MeanTemplatePatternMatchingChordEstimator(
-              chromaCalculable: chromaCalculable,
-              chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.flatFive,
-              context: MeanTemplateContext.harmonicScaling(
-                until: 6,
-                detectableChords: ChromaChordEstimator.convDetectableChords,
-                meanScalar: const LogChromaScalar(),
-                sortedScoreTakeCount: 3,
-                scoreThreshold: 0.8,
-              ),
-            ),
+          ),
       ]) {
         final fileName = estimator.sanitize();
 
@@ -484,8 +467,8 @@ Future<void> main() async {
           validator: (progression) => progression.length == 20,
         ).evaluate(contexts, header: estimator.toString());
 
-        await table.toCSV(
-            '${directory.path}/window_sizes/${f.context.sanitize()}/$fileName.csv');
+        await table
+            .toCSV('${directory.path}/${f.context.sanitize()}/$fileName.csv');
       }
     }
   });

@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../service.dart';
 import '../chord.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
@@ -19,8 +20,7 @@ class TemplateContext {
     this.scalar,
     Set<Chord>? detectableChords,
   })  : assert(detectableChords == null || detectableChords.isNotEmpty),
-        detectableChords =
-            detectableChords ?? ChromaChordEstimator.defaultDetectableChords,
+        detectableChords = detectableChords ?? DetectableChords.frontend,
         scoreCalculator = scoreCalculator ?? const ScoreCalculator.cosine();
 
   factory TemplateContext.harmonicScaling({

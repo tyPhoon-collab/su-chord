@@ -54,6 +54,29 @@ class DetectableChords extends _$DetectableChords {
     'madd9',
   };
 
+  ///service.dartから読み込んでいる。フロントエンドと同じコードタイプ群
+  static final frontend = fromQualities(qualities);
+
+  ///従来法と同じコードタイプ群
+  static final conv = DetectableChords.fromQualities(const {
+    '',
+    'm',
+    'aug',
+    'aug7',
+    'dim',
+    'dim7',
+    '7',
+    'mM7',
+    'M7',
+    'm7',
+    'm7b5',
+    'sus4',
+    '7sus4',
+    '6',
+    'm6',
+    'add9',
+  });
+
   static Set<Chord> fromQualities(Set<String> qualities) {
     return Set.unmodifiable([
       for (final root in Note.sharpNotes)

@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../service.dart';
 import '../../utils/loaders/audio.dart';
 import '../../utils/measure.dart';
 import '../../widgets/plot_view.dart';
@@ -41,30 +39,6 @@ abstract class ChromaChordEstimator
     this.chordChangeDetectable = const FrameChordChangeDetector(),
     this.filters = const [],
     this.overridable,
-  });
-
-  ///service.dartから読み込んでいる。フロントエンドと同じコードタイプ群
-  static final defaultDetectableChords =
-      ProviderContainer().read(detectableChordsProvider);
-
-  ///従来法と同じコードタイプ群
-  static final convDetectableChords = DetectableChords.fromQualities(const {
-    '',
-    'm',
-    'aug',
-    'aug7',
-    'dim',
-    'dim7',
-    '7',
-    'mM7',
-    'M7',
-    'm7',
-    'm7b5',
-    'sus4',
-    '7sus4',
-    '6',
-    'm6',
-    'add9',
   });
 
   final ChromaCalculable chromaCalculable;

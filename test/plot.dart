@@ -3,13 +3,13 @@ import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
-import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -163,9 +163,7 @@ void main() {
               hideTitle = true;
 
               await Future.wait(
-                ChromaChordEstimator.convDetectableChords
-                    .where((e) => e.root == root)
-                    .map(
+                DetectableChords.conv.where((e) => e.root == root).map(
                       (chord) => write(
                         HarmonicsChromaScalar(until: 6)
                             .call(chord.unitPCP)
@@ -193,7 +191,7 @@ void main() {
           test('print chord group', () {
             const note = Note.C;
 
-            logTest(ChromaChordEstimator.defaultDetectableChords
+            logTest(DetectableChords.frontend
                 .where((e) => e.root == note)
                 .toList());
           });
@@ -202,7 +200,7 @@ void main() {
 
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
-              detectableChords: ChromaChordEstimator.defaultDetectableChords
+              detectableChords: DetectableChords.frontend
                   .where((e) => e.root == note)
                   .toSet(),
             ).meanTemplateChromas.keys.first;
@@ -217,9 +215,8 @@ void main() {
 
             final pcp = MeanTemplateContext.harmonicScaling(
               until: 6,
-              detectableChords: ChromaChordEstimator.convDetectableChords
-                  .where((e) => e.root == note)
-                  .toSet(),
+              detectableChords:
+                  DetectableChords.conv.where((e) => e.root == note).toSet(),
               meanScalar: const LogChromaScalar(),
             ).meanTemplateChromas.keys.first;
             await writer(
