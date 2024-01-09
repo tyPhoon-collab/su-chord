@@ -41,7 +41,7 @@ void main() {
   });
 
   test('cosine similarity', () async {
-    final f = factory8192_0;
+    final f = f_8192;
     final chromas =
         f.guitar.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
 
@@ -53,7 +53,7 @@ void main() {
   });
 
   test('compare cosine similarity', () async {
-    final f = factory8192_0;
+    final f = f_8192;
 
     Measure.logger = null;
 
@@ -63,7 +63,7 @@ void main() {
         combFilterContext: const CombFilterContext(hzStdDevCoefficient: 1 / 96),
       ),
       f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
-      // factory8192_0.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
+      // f_8192.guitarRange.combFilterWith(scalar: MagnitudeScalar.dB),
       f.guitar.reassignment(),
       f.guitar.reassignment(scalar: MagnitudeScalar.ln),
     ];
@@ -89,7 +89,7 @@ void main() {
   });
 
   test('compare chroma', () async {
-    final f = factory8192_0;
+    final f = f_8192;
     final cs = [
       for (final scalar in [MagnitudeScalar.none, MagnitudeScalar.ln]) ...[
         f.guitar.stftCombFilter(scalar: scalar),

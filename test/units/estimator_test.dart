@@ -8,7 +8,7 @@ import '../data_set.dart';
 import '../util.dart';
 
 void main() {
-  final f = factory2048_1024;
+  final f = f_4096;
 
   test('reassignment', () async {
     final e = PatternMatchingChordEstimator(
@@ -46,7 +46,6 @@ void main() {
 
   group('stream', () {
     test('22050 chunk size', () async {
-      final f = factory2048_1024;
       final e = PatternMatchingChordEstimator(
         chromaCalculable: f.guitar.reassignment(),
         chordChangeDetectable: f.hcdf.eval,

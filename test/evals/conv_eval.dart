@@ -31,7 +31,7 @@ Future<void> main() async {
   ];
 
   test('conv', () async {
-    final f = factory8192_0;
+    final f = f_8192;
     final logExtractor = f.extractor.threshold(scalar: MagnitudeScalar.ln);
 
     await Evaluator(

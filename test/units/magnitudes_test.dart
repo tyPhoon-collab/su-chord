@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
-  late final f = factory8192_0;
+  late final f = f_8192;
 
   test('stft', () async {
     final c = f.magnitude.stft();
@@ -24,7 +24,10 @@ void main() {
   });
 
   test('keep resolution reassignment', () async {
-    final c = factory2048_1024.magnitude.reassignment(overrideChunkSize: 8192);
+    final c = f_2048
+        .copyWith(chunkStride: 1024)
+        .magnitude
+        .reassignment(overrideChunkSize: 8192);
     final mags = c(await DataSet().G);
     debugPrint(mags.first.length.toString());
     expect(mags, isNotEmpty);
@@ -37,7 +40,7 @@ void main() {
   });
 
   // test('same size for different chunkSize and chunkStride', () {
-  //   for (final f in [factory8192_0, factory2048_1024]) {
+  //   for (final f in [f_8192, factory2048_1024]) {
   //     final m1 = f.magnitude.stft().call(data);
   //     final m2 = f.magnitude.reassignment().call(data);
   //

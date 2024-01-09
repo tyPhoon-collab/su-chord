@@ -32,7 +32,7 @@ void main() {
   });
 
   test('score', () async {
-    final f = factory4096_0;
+    final f = f_4096;
     final chord = Chord.parse('C');
 
     final template =

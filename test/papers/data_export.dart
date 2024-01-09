@@ -8,8 +8,9 @@ import '../data_set.dart';
 import '../writer.dart';
 
 void main() {
+  final f = f_8192;
+
   test('spectrum', () async {
-    final f = factory8192_0;
     final data = await DataSet().G;
 
     final mags = f.magnitude.stft().call(data);
@@ -29,15 +30,12 @@ void main() {
   });
 
   test('spectrogram', () async {
-    final f = factory4096_0;
     final mags = f.magnitude.stft().call(await DataSet().G);
 
     await Table.fromMatrix(mags).toCSV('assets/csv/osawa/spectrogram_G.csv');
   });
 
   test('reassignment', () async {
-    final f = factory4096_0;
-
     final (points, mags) =
         (f.magnitude.reassignment() as ReassignmentMagnitudesCalculator)
             .reassignmentCalculator
@@ -49,8 +47,6 @@ void main() {
   });
 
   test('pcp', () async {
-    final f = factory4096_0;
-
     final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
     final pcp = average(cc(await DataSet().C)).map((e) => e.l2normalized);
     await Table.fromMatrix(pcp).toCSV('assets/csv/osawa/pcp_C.csv');

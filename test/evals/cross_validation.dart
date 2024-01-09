@@ -40,7 +40,7 @@ Future<void> main() async {
     // Table.bypass = true;
     const folderName = '4 chroma calc 3 estimator';
 
-    final f = factory4096_0;
+    final f = f_4096;
 
     final folderPath =
         'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
@@ -98,9 +98,9 @@ Future<void> main() async {
       const folderName = 'NCSP';
 
       final factories = [
-        factory2048_0,
-        factory4096_0,
-        factory8192_0,
+        f_2048,
+        f_4096,
+        f_8192,
       ];
 
       final folderPath =
@@ -158,7 +158,7 @@ Future<void> main() async {
 
       //従来法と同じ条件で推定システムのみを変更する
       test('matching vs search', () async {
-        final f = factory8192_0;
+        final f = f_8192;
         final folderPath =
             'test/outputs/cross_validations/${folderName.sanitize()}';
 
@@ -215,7 +215,7 @@ Future<void> main() async {
       });
 
       test('comb vs et-scale', () async {
-        final f = factory8192_0;
+        final f = f_8192;
         final folderPath =
             'test/outputs/cross_validations/${folderName.sanitize()}';
 
@@ -258,11 +258,11 @@ Future<void> main() async {
         const scalar = MagnitudeScalar.ln;
 
         for (final f in [
-          factory1024_0,
-          factory2048_0,
-          factory4096_0,
-          factory8192_0,
-          factory16384_0,
+          f_1024,
+          f_2048,
+          f_4096,
+          f_8192,
+          f_16384,
         ]) {
           for (final estimator in [
             for (final chromaCalculable in [
@@ -300,11 +300,11 @@ Future<void> main() async {
     const folderName = 'ICS';
 
     final factories = [
-      factory1024_0,
-      factory2048_0,
-      factory4096_0,
-      factory8192_0,
-      factory16384_0,
+      f_1024,
+      f_2048,
+      f_4096,
+      f_8192,
+      f_16384,
     ];
 
     final folderPath =
@@ -372,7 +372,7 @@ Future<void> main() async {
     // Table.bypass = true;
     const folderName = 'mean template';
 
-    final f = factory4096_0;
+    final f = f_4096;
 
     final folderPath =
         'test/outputs/cross_validations/${f.context.sanitize()}/${folderName.sanitize()}';
@@ -432,11 +432,11 @@ Future<void> main() async {
     const scalar = MagnitudeScalar.ln;
 
     for (final f in [
-      factory1024_0,
-      factory2048_0,
-      factory4096_0,
-      factory8192_0,
-      factory16384_0,
+      f_1024,
+      f_2048,
+      f_4096,
+      f_8192,
+      f_16384,
     ]) {
       for (final estimator in [
         for (final windowFunction in [

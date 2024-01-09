@@ -127,7 +127,7 @@ void main() {
   //処理系によって用いるべき閾値は異なる
   //調査するための関数
   test('threshold checker', () async {
-    final f = factory4096_0;
+    final f = f_4096;
     final cc = [
       // f.guitar.reassignment(), // about 100
       // f.guitar.reassignment(scalar: MagnitudeScalar.ln), // about 30

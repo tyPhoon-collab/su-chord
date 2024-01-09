@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'domains/chord.dart';
+import 'domains/chroma_calculators/chroma_calculator.dart';
 import 'domains/chroma_mapper.dart';
 import 'domains/equal_temperament.dart';
 import 'domains/estimator/estimator.dart';
@@ -23,6 +24,7 @@ EstimatorFactoryContext factoryContext(FactoryContextRef ref) =>
       chunkSize: 4096,
       chunkStride: 0,
       sampleRate: 22050,
+      windowFunction: NamedWindowFunction.hanning,
     );
 
 @riverpod

@@ -37,7 +37,7 @@ Future<void> main() async {
   Evaluator.progressionWriter = null;
 
   group('prop', () {
-    final f = factory4096_0;
+    final f = f_4096;
 
     group('pattern matching', () {
       group('reassign comb', () {

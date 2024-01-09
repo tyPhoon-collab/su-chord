@@ -6,7 +6,7 @@ part of 'service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$factoryContextHash() => r'ed0bc7f214fed7f897eba3792b5752a386bf3e99';
+String _$factoryContextHash() => r'4d72edce432d9c33b0127ccc9519f4d310606a7f';
 
 ///サンプルレートやSTFT時のwindowサイズやhop_lengthのサイズを保持する
 ///推定器に必要なデータを全て保持し、EstimatorFactoryに提供する
@@ -40,7 +40,7 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'bb65d2742b6fab9e5c2d671576b33c342f6e3efa';
+String _$estimatorsHash() => r'b6dc6fc5de366c8c6891d7bd081fbefb4804d5d8';
 
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
@@ -73,7 +73,7 @@ final estimatorProvider = AutoDisposeFutureProvider<ChordEstimable>.internal(
 );
 
 typedef EstimatorRef = AutoDisposeFutureProviderRef<ChordEstimable>;
-String _$detectableChordsHash() => r'23c453fd7c3f5a3a18f41b95fbade767a9277dd3';
+String _$detectableChordsHash() => r'a55f08b0302bb762a0085b18d160e5f7b410aa2b';
 
 /// See also [DetectableChords].
 @ProviderFor(DetectableChords)

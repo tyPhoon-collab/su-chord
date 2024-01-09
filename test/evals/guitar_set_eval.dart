@@ -31,7 +31,8 @@ Future<void> main() async {
     // filter: (path) => path.contains('00_SS3-84-Bb_comp_mic.wav'),
   );
 
-  final f = factory4096_2048;
+  final f = f_4096.copyWith(chunkStride: 2048);
+
   final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
     context: MeanTemplateContext.harmonicScaling(

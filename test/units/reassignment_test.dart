@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
-  final f = factory8192_0;
+  final f = f_8192;
   final calculate = f.guitar.reassignment();
 
   test('one note', () async {

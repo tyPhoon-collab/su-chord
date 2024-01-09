@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import 'domains/chord_selector.dart';
@@ -11,58 +12,39 @@ import 'domains/note_extractor.dart';
 import 'domains/score_calculator.dart';
 import 'utils/loaders/csv.dart';
 
-final factory1024_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 1024,
-  chunkStride: 0,
-  sampleRate: 22050,
-));
+EstimatorFactory eFactory({
+  required int chunkSize,
+  int chunkStride = 0,
+  int sampleRate = 22050,
+  NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
+}) =>
+    EstimatorFactory(
+      EstimatorFactoryContext(
+        chunkSize: chunkSize,
+        chunkStride: chunkStride,
+        sampleRate: sampleRate,
+        windowFunction: windowFunction,
+      ),
+    );
 
-final factory2048_1024 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 2048,
-  chunkStride: 1024,
-  sampleRate: 22050,
-));
-
-final factory2048_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 2048,
-  chunkStride: 0,
-  sampleRate: 22050,
-));
-
-final factory4096_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 4096,
-  chunkStride: 0,
-  sampleRate: 22050,
-));
-
-final factory4096_2048 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 4096,
-  chunkStride: 2048,
-  sampleRate: 22050,
-));
-
-final factory8192_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 8192,
-  chunkStride: 0,
-  sampleRate: 22050,
-));
-
-final factory16384_0 = EstimatorFactory(const EstimatorFactoryContext(
-  chunkSize: 16384,
-  chunkStride: 0,
-  sampleRate: 22050,
-));
+final f_1024 = eFactory(chunkSize: 1024);
+final f_2048 = eFactory(chunkSize: 2048);
+final f_4096 = eFactory(chunkSize: 4096);
+final f_8192 = eFactory(chunkSize: 8192);
+final f_16384 = eFactory(chunkSize: 16384);
 
 final class EstimatorFactoryContext {
   const EstimatorFactoryContext({
     required this.chunkSize,
     required this.chunkStride,
     required this.sampleRate,
+    required this.windowFunction,
   });
 
   final int chunkSize;
   final int chunkStride;
   final int sampleRate;
+  final NamedWindowFunction windowFunction;
 
   int get _chunkStride => chunkStride == 0 ? chunkSize : chunkStride;
 
@@ -72,7 +54,7 @@ final class EstimatorFactoryContext {
 
   @override
   String toString() =>
-      'chunkSize $chunkSize, chunkStride $chunkStride, sampleRate $sampleRate';
+      'chunkSize $chunkSize, chunkStride $chunkStride, sampleRate $sampleRate, window ${windowFunction.name}';
 }
 
 ///必要な情報をContextに閉じ込めることによって、DIを簡単にするためのファクトリ
@@ -98,6 +80,19 @@ final class EstimatorFactory {
     magnitude: magnitude,
     chromaContext: ChromaContext.big,
   );
+
+  EstimatorFactory copyWith({
+    int? chunkSize,
+    int? chunkStride,
+    int? sampleRate,
+    NamedWindowFunction? windowFunction,
+  }) =>
+      EstimatorFactory(EstimatorFactoryContext(
+        chunkSize: chunkSize ?? context.chunkSize,
+        chunkStride: chunkStride ?? context.chunkStride,
+        sampleRate: sampleRate ?? context.sampleRate,
+        windowFunction: windowFunction ?? context.windowFunction,
+      ));
 }
 
 final class MagnitudesFactory {
@@ -105,6 +100,7 @@ final class MagnitudesFactory {
 
   final EstimatorFactoryContext _context;
 
+  @factory
   MagnitudesCalculable stft({
     MagnitudeScalar scalar = MagnitudeScalar.none,
     NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
@@ -117,6 +113,7 @@ final class MagnitudesFactory {
   ///[useGreaterChunkSize]がtrueなら
   ///[overrideChunkSize]が[_context.chunkSize]より小さい場合に
   ///[_context.chunkSize]を用いる
+  @factory
   MagnitudesCalculable reassignment({
     MagnitudeScalar scalar = MagnitudeScalar.none,
     NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
@@ -177,6 +174,7 @@ final class ChromaCalculatorFactory {
             _magnitude.stft(scalar: scalar, windowFunction: windowFunction),
       );
 
+  @factory
   ChromaCalculable combFilter({
     CombFilterContext? combFilterContext,
     MagnitudesCalculable? magnitudesCalculable,
@@ -187,6 +185,7 @@ final class ChromaCalculatorFactory {
         context: combFilterContext ?? const CombFilterContext(),
       );
 
+  @factory
   ChromaCalculable reassignment({
     MagnitudeScalar? scalar,
     NamedWindowFunction windowFunction = NamedWindowFunction.hanning,
@@ -213,6 +212,7 @@ final class HCDFFactory {
   ChromaChordChangeDetectable get eval => interval(4.seconds);
 
   //TODO Add args
+  @factory
   ChromaChordChangeDetectable triad({
     required double threshold,
   }) =>
@@ -221,18 +221,21 @@ final class HCDFFactory {
         onPower: TriadChordChangeDetector(),
       );
 
+  @factory
   ChromaChordChangeDetectable frame(double threshold) =>
       PowerThresholdChordChangeDetector(
         threshold,
         onPower: const FrameChordChangeDetector(),
       );
 
+  @factory
   ChromaChordChangeDetectable threshold(
     double threshold, {
     ChromaChordChangeDetectable? onPower,
   }) =>
       PowerThresholdChordChangeDetector(threshold);
 
+  @factory
   ChromaChordChangeDetectable preFrameCheck({
     required double powerThreshold,
     ScoreCalculator scoreCalculator = const ScoreCalculator.cosine(),
@@ -246,6 +249,7 @@ final class HCDFFactory {
         ),
       );
 
+  @factory
   ChromaChordChangeDetectable interval(Duration duration) =>
       IntervalChordChangeDetector(
           interval: duration, deltaTime: _context.deltaTime);
@@ -254,17 +258,20 @@ final class HCDFFactory {
 final class ChordSelectorFactory {
   CSV? _csv;
 
+  @factory
   Future<ChordSelectable> get db async {
     _csv ??= await CSVLoader.db.load();
     return ChordProgressionDBChordSelector.fromCSV(_csv!);
   }
 
+  @factory
   ChordSelectable get flatFive => const FlatFiveChordSelector();
 }
 
 final class NoteExtractorFactory {
   ///スケーリングによって、閾値は変わるべき
   ///クライアント側で考えなくて良いように、factoryで管理する
+  @factory
   NoteExtractable threshold({
     MagnitudeScalar scalar = MagnitudeScalar.none,
   }) =>
@@ -278,7 +285,9 @@ final class NoteExtractorFactory {
 }
 
 STFTCalculator _buildSTFTCalculator(
-    EstimatorFactoryContext context, NamedWindowFunction windowFunction) {
+  EstimatorFactoryContext context,
+  NamedWindowFunction windowFunction,
+) {
   return STFTCalculator.window(
     windowFunction,
     chunkSize: context.chunkSize,

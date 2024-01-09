@@ -11,7 +11,7 @@ import '../writer.dart';
 import 'comparator.dart';
 
 void main() {
-  final f = factory4096_0;
+  final f = f_4096;
 
   group('compare spot plot', () {
     final compare = SpotComparator(
@@ -159,7 +159,7 @@ void main() {
   });
 
   group('compare mean template score', () {
-    final f = factory4096_0;
+    final f = f_4096;
     final compare = MeanScoreSpotComparator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       scalar: HarmonicsChromaScalar(until: 6),
@@ -228,7 +228,7 @@ void main() {
   });
 
   test('compare chroma calc', () async {
-    final f = factory4096_0;
+    final f = f_4096;
     final chord = Chord.C;
 
     final template =

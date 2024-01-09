@@ -23,7 +23,7 @@ void main() {
     const write = BarChartWriter();
 
     test('parts of mags', () async {
-      final f = factory4096_0;
+      final f = f_4096;
       final mc = f.magnitude.stft(scalar: MagnitudeScalar.ln);
 
       final mags = mc(await DataSet().G);
@@ -46,9 +46,9 @@ void main() {
 
       test('different window size', () async {
         final factories = [
-          factory8192_0,
-          factory2048_0,
-          factory2048_1024,
+          f_8192,
+          f_2048,
+          f_2048.copyWith(chunkStride: 1024),
         ];
 
         await Future.wait([
@@ -69,8 +69,7 @@ void main() {
           final data =
               await SimpleAudioLoader(path: path).load(sampleRate: 22050);
 
-          final cc =
-              factory4096_0.guitar.reassignment(scalar: MagnitudeScalar.ln);
+          final cc = f_4096.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
           await writer(
             average(cc(data.cutEvaluationAudioByIndex(index)))
@@ -93,7 +92,7 @@ void main() {
       });
 
       test('spot compare', () async {
-        final factories = [factory8192_0, factory4096_0];
+        final factories = [f_8192, f_4096];
         final data = await const SimpleAudioLoader(
                 path:
                     'assets/evals/Halion_CleanGuitarVX/13_1119_Halion_CleanGuitarVX.wav')
@@ -232,7 +231,7 @@ void main() {
       });
 
       group('real data', () {
-        final f = factory4096_0;
+        final f = f_4096;
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
         // final cc = f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln);
         // final cc = f.guitar.stftCombFilter(scalar: MagnitudeScalar.dB);
@@ -248,11 +247,11 @@ void main() {
         test('r G-all r-comb', () async {
           final data = await DataSet().G;
           await Future.wait([
-            factory1024_0,
-            factory2048_0,
-            factory4096_0,
-            factory8192_0,
-            factory16384_0,
+            f_1024,
+            f_2048,
+            f_4096,
+            f_8192,
+            f_16384,
           ].map((e) => plot(
                 e.guitar
                     .reassignCombFilter(scalar: MagnitudeScalar.ln)
@@ -264,11 +263,11 @@ void main() {
         test('r G-all ET-scale', () async {
           final data = await DataSet().G;
           await Future.wait([
-            factory1024_0,
-            factory2048_0,
-            factory4096_0,
-            factory8192_0,
-            factory16384_0,
+            f_1024,
+            f_2048,
+            f_4096,
+            f_8192,
+            f_16384,
           ].map((e) => plot(
                 e.guitar.reassignment(scalar: MagnitudeScalar.ln).call(data),
                 title: 'reassignment G ${e.context}',
@@ -297,7 +296,7 @@ void main() {
   group('spec', () {
     group('spot', () {
       test('C F', () async {
-        final f = factory4096_2048;
+        final f = f_4096.copyWith(chunkStride: 2048);
 
         final data = await const SimpleAudioLoader(
                 path: 'assets/evals/RealStrat/5_涙の天使に-01.wav')
@@ -350,20 +349,20 @@ void main() {
       }
 
       test('1024', () async {
-        await plot(factory1024_0);
+        await plot(f_1024);
       });
       test('16384', () async {
-        await plot(factory16384_0);
+        await plot(f_16384);
       });
       test('4096', () async {
-        await plot(factory4096_0);
+        await plot(f_4096);
       });
       test('4096, ln', () async {
-        await plot(factory4096_0, scalar: MagnitudeScalar.ln);
+        await plot(f_4096, scalar: MagnitudeScalar.ln);
       });
       test('4096, dB', () async {
         await plot(
-          factory4096_0,
+          f_4096,
           scalar: MagnitudeScalar.dB,
           yMax: 2200,
         );
@@ -371,7 +370,7 @@ void main() {
     });
   });
   group('hist 2d', () {
-    final f = factory4096_0;
+    final f = f_4096;
     const writer = Hist2DChartWriter();
 
     test('parts of reassignment', () async {
@@ -389,7 +388,7 @@ void main() {
   });
 
   group('chromagram', () {
-    final f = factory4096_0;
+    final f = f_4096;
     final writer = SpecChartWriter.chroma(LibROSASpecShowContext.of(f.context));
 
     test('chromagram compare', () async {
@@ -455,7 +454,7 @@ void main() {
     const writer = LineChartWriter();
 
     group('HCDF', () {
-      final f = factory4096_0;
+      final f = f_4096;
       group('sample silent', () {
         final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
@@ -501,7 +500,7 @@ void main() {
       });
     });
     group('LTAS', () {
-      final f = factory4096_0;
+      final f = f_4096;
       final calc = f.magnitude.stft();
 
       // const xMin = 0;

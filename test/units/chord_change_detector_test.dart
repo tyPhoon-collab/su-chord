@@ -22,7 +22,7 @@ import '../util.dart';
 import '../writer.dart';
 
 Future<void> main() async {
-  final f = factory8192_0;
+  final f = f_8192;
   late final ChordProgression corrects;
 
   setUpAll(() async {
@@ -344,7 +344,7 @@ Future<void> main() async {
   });
 
   test('stream', () async {
-    final f = factory4096_0;
+    final f = f_4096;
     const bufferChunkSize = 4096;
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),

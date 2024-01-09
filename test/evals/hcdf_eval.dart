@@ -53,7 +53,7 @@ Future<void> main() async {
   ];
 
   group('HCDF', () {
-    final f = factory4096_0;
+    final f = f_4096;
     final base = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       context: TemplateContext.harmonicScaling(until: 6),
