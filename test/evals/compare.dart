@@ -53,6 +53,28 @@ void main() {
       );
     });
 
+    test('C G', () async {
+      await compare(
+        source: 'assets/evals/HojoGuitar/1_Hojo.wav',
+        index: 0,
+        chords: [
+          Chord.parse('G'),
+          Chord.parse('GM7'),
+        ],
+      );
+    });
+
+    test('D G', () async {
+      await compare(
+        source: 'assets/evals/RealStrat/1_青春の影-01.wav',
+        index: 0,
+        chords: [
+          Chord.parse('G'),
+          Chord.parse('GM7'),
+        ],
+      );
+    });
+
     test('C F', () async {
       await compare(
         source: 'assets/evals/HojoGuitar/5_Hojo.wav',

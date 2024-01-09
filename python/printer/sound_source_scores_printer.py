@@ -44,12 +44,43 @@ def print_methods() -> None:
     )
 
 
-def print_pcp_calculators() -> None:
+def print_log_amp_pcp_calculators() -> None:
     paths = [
         "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__normal_distribution_comb_filter__stft_mags_ln_scaled__E2-D#6__flat_five_priority.csv",
         "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__sparse_non_reassign_frequency_ln_scaled__E2-D#6__flat_five_priority.csv",
         "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__normal_distribution_comb_filter__sparse_mags_ln_scaled_override_by_8192__E2-D#6__flat_five_priority.csv",
         "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__sparse_ln_scaled__E2-D#6__flat_five_priority.csv",
+    ]
+    scores_table = [
+        get_scores_with_average(
+            pd.read_csv(
+                path,
+                dtype=str,
+                skiprows=1,
+                header=None,
+            )
+        )
+        for path in paths
+    ]
+    df = pd.DataFrame(
+        scores_table,
+        index=["Comb", "ET-scale", "Comb*", "ET-scale*"],
+        columns=COLUMNS,
+    )
+    print(
+        df.to_latex(
+            column_format="lccccc",
+            float_format=lambda x: f"{x*100:.3f}",
+        )
+    )
+
+
+def print_pcp_calculators() -> None:
+    paths = [
+        "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__normal_distribution_comb_filter__stft_mags_none_scaled__E2-D#6__flat_five_priority.csv",
+        "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__sparse_non_reassign_frequency_none_scaled__E2-D#6__flat_five_priority.csv",
+        "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__normal_distribution_comb_filter__sparse_mags_none_scaled_override_by_8192__E2-D#6__flat_five_priority.csv",
+        "test/outputs/cross_validations/NCSP_paper/pcp_calculators/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__sparse_none_scaled__E2-D#6__flat_five_priority.csv",
     ]
     scores_table = [
         get_scores_with_average(

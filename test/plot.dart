@@ -246,6 +246,36 @@ void main() {
           );
         }
 
+        test('r G-all r-comb', () async {
+          final data = await DataSet().G;
+          await Future.wait([
+            factory1024_0,
+            factory2048_0,
+            factory4096_0,
+            factory8192_0,
+            factory16384_0,
+          ].map((e) => plot(
+                e.guitar
+                    .reassignCombFilter(scalar: MagnitudeScalar.ln)
+                    .call(data),
+                title: 'reassign comb G ${e.context}',
+              )));
+        });
+
+        test('r G-all ET-scale', () async {
+          final data = await DataSet().G;
+          await Future.wait([
+            factory1024_0,
+            factory2048_0,
+            factory4096_0,
+            factory8192_0,
+            factory16384_0,
+          ].map((e) => plot(
+                e.guitar.reassignment(scalar: MagnitudeScalar.ln).call(data),
+                title: 'reassignment G ${e.context}',
+              )));
+        });
+
         test('r G', () async {
           await plot(cc(await DataSet().G));
         });
@@ -307,13 +337,13 @@ void main() {
         await Future.wait([
           writer(
             magsSTFT,
-            title: '${factory.context.chunkSize} stft $scalar',
+            title: '${factory.context.chunkSize} stft ${scalar.name}',
             yMin: yMin,
             yMax: yMax,
           ),
           writer(
             magsReassignment,
-            title: '${factory.context.chunkSize} reassignment $scalar',
+            title: '${factory.context.chunkSize} reassignment ${scalar.name}',
             yMin: yMin,
             yMax: yMax,
           ),

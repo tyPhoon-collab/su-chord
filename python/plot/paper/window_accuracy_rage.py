@@ -29,32 +29,45 @@ LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
 
 
 def __get_index(basename: str) -> int:
-    if "normal_distribution_comb_filter__stft_mags_ln_scaled" in basename:
+    # scale = "none"
+    scale = "ln"
+    if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
         return 0
-    if "sparse_non_reassign_frequency_ln_scaled" in basename:
+    if f"sparse_non_reassign_frequency_{scale}_scaled" in basename:
         return 1
-    if "normal_distribution_comb_filter__sparse_mags_ln_scaled" in basename:
+    if f"normal_distribution_comb_filter__sparse_mags_{scale}_scaled" in basename:
         return 2
-    if "sparse_ln_scaled" in basename:
+    if f"sparse_{scale}_scaled" in basename:
         return 3
 
-    raise NotImplementedError()
+    return -1
 
 
-scores = np.zeros((4, len(WINDOW_SIZES)))
+scores_list = np.zeros((4, len(WINDOW_SIZES)))
+
+max_score = 0.0
+max_window = 0.0
 
 for i, window in enumerate(WINDOW_SIZES):
     for path in get_sorted_csv_paths(DIRECTORY_PATH.format(window)):
+        index = __get_index(os.path.basename(path))
+        if index == -1:
+            continue
+
         df = pd.read_csv(path, skiprows=1, header=None)
-        score = get_scores_with_average(df)[-1]
+        score = get_scores_with_average(df)[-1] * 100
 
-        scores[__get_index(os.path.basename(path)), i] = score
+        if max_score < score:
+            max_score = score
+            max_window = window
 
-print(scores)
-for i, score in enumerate(scores):
+        scores_list[index, i] = score
+
+print(scores_list)
+for i, scores in enumerate(scores_list):
     plt.plot(
         WINDOW_SIZES,
-        score,
+        scores,
         marker=MARKERS[i],
         linestyle=LINESTYLES[i],
         label=LABELS[i],
@@ -62,15 +75,24 @@ for i, score in enumerate(scores):
 
 plt.xscale("log")
 plt.xticks(WINDOW_SIZES)
-plt.ylim(0, 1)
+plt.ylim(0, 100)
 plt.xlabel("Window Size")
-plt.ylabel("Accuracy")
+plt.ylabel("Accuracy Rate[%]")
 
 xaxis = plt.gca().get_xaxis()
 
 xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
 xaxis.set_tick_params(which="minor", size=0)
 xaxis.set_tick_params(which="minor", width=0)
+
+plt.annotate(
+    f"Max: {max_score:.3f}",
+    (max_window, max_score),
+    textcoords="offset points",
+    xytext=(0, 30),
+    ha="center",
+    arrowprops=dict(color="gray", arrowstyle="-|>"),
+)
 
 plt.legend()
 

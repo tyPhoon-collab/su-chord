@@ -114,13 +114,15 @@ class ReassignmentCalculator extends STFTCalculator {
 
     for (int i = 0; i < s.length; ++i) {
       for (int j = 0; j < s[i].length; ++j) {
-        if (magnitudes[i][j] < aMin || s[i][j] == Float64x2.zero()) continue;
+        if (magnitudes[i][j] < aMin) continue;
+
+        late final isZero = s[i][j] == Float64x2.zero();
 
         points.add(Point(
-          x: isReassignTime
+          x: isReassignTime && !isZero
               ? i * dt + complexDivision(sT[i][j], s[i][j]).x / sr
               : i * dt,
-          y: isReassignFrequency
+          y: isReassignFrequency && !isZero
               ? j * df - complexDivision(sD[i][j], s[i][j]).y * (0.5 * sr / pi)
               : j * df,
           weight: magnitudes[i][j],
