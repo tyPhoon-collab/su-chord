@@ -8,24 +8,23 @@ import 'package:flutter_test/flutter_test.dart';
 import '../data_set.dart';
 
 void main() {
-  final cfc = CombFilterChromaCalculator(
-    magnitudesCalculable: MagnitudesCalculator(),
-  );
+  final f = factory8192_0;
+  final calculate = f.guitar.combFilter();
+
   test('one note', () async {
-    final chroma = cfc(await DataSet().osawa.C3).first;
+    final chroma = calculate(await DataSet().osawa.C3).first;
 
     debugPrint(chroma.toString());
     expect(chroma.maxIndex, 0);
   });
 
   test('chord', () async {
-    final chroma = cfc(await DataSet().osawa.C).first;
+    final chroma = calculate(await DataSet().osawa.C).first;
 
     expect(chroma, isNotNull);
   });
 
   test('std dev coef', () async {
-    final f = factory8192_0;
     const contexts = [
       CombFilterContext(hzStdDevCoefficient: 1 / 24),
       CombFilterContext(hzStdDevCoefficient: 1 / 48),
@@ -36,10 +35,7 @@ void main() {
 
     for (final c in contexts) {
       final chroma = average(
-        CombFilterChromaCalculator(
-          magnitudesCalculable: f.magnitude.stft(),
-          context: c,
-        ).call(await DataSet().G),
+        f.guitar.combFilter(combFilterContext: c).call(await DataSet().G),
       ).first.l2normalized;
 
       debugPrint(chroma.toString());
@@ -48,7 +44,6 @@ void main() {
 
   test('log vs normal', () async {
     final data = await DataSet().G;
-    final f = factory8192_0;
 
     debugPrint(average(
       f.big.combFilter().call(data),
@@ -60,8 +55,7 @@ void main() {
   });
 
   test('guitar tuning', () async {
-    final chromas =
-        average(factory8192_0.guitar.combFilter().call(await DataSet().G));
+    final chromas = average(calculate(await DataSet().G));
 
     expect(chromas[0], isNotNull);
   });

@@ -1,4 +1,3 @@
-import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/factory.dart';
@@ -39,10 +38,10 @@ void main() {
   test('reassignment', () async {
     final f = factory4096_0;
 
-    final (points, mags) = ReassignmentCalculator.hanning(
-      chunkSize: f.context.chunkSize,
-      chunkStride: f.context.chunkStride,
-    ).reassign(await DataSet().G);
+    final (points, mags) =
+        (f.magnitude.reassignment() as ReassignmentMagnitudesCalculator)
+            .reassignmentCalculator
+            .reassign(await DataSet().G);
 
     logTest(mags.length);
 

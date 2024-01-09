@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
@@ -188,8 +189,8 @@ Future<void> main() async {
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             chordSelectable: f.selector.flatFive,
-            // ignore: avoid_redundant_argument_values
             context:
+                // ignore: avoid_redundant_argument_values
                 meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 4)),
           ),
           MeanTemplatePatternMatchingChordEstimator(
@@ -295,7 +296,7 @@ Future<void> main() async {
     });
   });
 
-  test('for ICS', () async {
+  test('ICS', () async {
     const folderName = 'ICS';
 
     final factories = [
@@ -421,6 +422,71 @@ Future<void> main() async {
       ).evaluate(contexts, header: estimator.toString());
 
       await table.toCSV('${directory.path}/$fileName.csv');
+    }
+  });
+
+  test('window function', () async {
+    const folderPath = 'test/outputs/cross_validations/window_function';
+
+    final directory = await Directory(folderPath).create(recursive: true);
+    const scalar = MagnitudeScalar.ln;
+
+    for (final f in [
+      factory1024_0,
+      factory2048_0,
+      factory4096_0,
+      factory8192_0,
+      factory16384_0,
+    ]) {
+      for (final estimator in [
+        for (final windowFunction in [
+          NamedWindowFunction.hanning,
+          NamedWindowFunction.blackman,
+        ])
+          for (final chromaCalculable in [
+            f.guitar.stftCombFilter(
+              scalar: scalar,
+              windowFunction: windowFunction,
+            ),
+            f.guitar.reassignment(
+              scalar: scalar,
+              isReassignFrequency: false,
+              windowFunction: windowFunction,
+            ),
+            f.guitar.reassignCombFilter(
+              scalar: scalar,
+              windowFunction: windowFunction,
+            ),
+            f.guitar.reassignment(
+              scalar: scalar,
+              windowFunction: windowFunction,
+            ),
+          ])
+            MeanTemplatePatternMatchingChordEstimator(
+              chromaCalculable: chromaCalculable,
+              chordChangeDetectable: f.hcdf.eval,
+              chordSelectable: f.selector.flatFive,
+              context: MeanTemplateContext.harmonicScaling(
+                until: 6,
+                detectableChords: ChromaChordEstimator.convDetectableChords,
+                meanScalar: const LogChromaScalar(),
+                sortedScoreTakeCount: 3,
+                scoreThreshold: 0.8,
+              ),
+            ),
+      ]) {
+        final fileName = estimator.sanitize();
+
+        logTest(estimator);
+
+        final table = Evaluator(
+          estimator: estimator,
+          validator: (progression) => progression.length == 20,
+        ).evaluate(contexts, header: estimator.toString());
+
+        await table.toCSV(
+            '${directory.path}/window_sizes/${f.context.sanitize()}/$fileName.csv');
+      }
     }
   });
 }

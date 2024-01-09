@@ -50,13 +50,12 @@ enum MagnitudeScalar {
   double _log10(double x) => log(x) / ln10;
 }
 
-class MagnitudesCalculator extends STFTCalculator
+class MagnitudesCalculator extends HasSTFTCalculatorMethodChained
     implements MagnitudesCalculable {
-  MagnitudesCalculator({
-    super.chunkSize,
-    super.chunkStride,
+  MagnitudesCalculator(
+    super.stftCalculator, {
     this.scalar = MagnitudeScalar.none,
-  }) : super.hanning();
+  });
 
   final MagnitudeScalar scalar;
 
@@ -86,20 +85,17 @@ class MagnitudesCalculator extends STFTCalculator
       stft.indexOfFrequency(freq, sampleRate.toDouble());
 }
 
-class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
+class ReassignmentMagnitudesCalculator
+    extends HasReassignmentCalculatorMethodChained
     with SampleRateCacheManager
     implements MagnitudesCalculable {
-  ReassignmentMagnitudesCalculator({
-    super.chunkSize,
-    super.chunkStride,
-    super.isReassignFrequency,
-    super.isReassignTime,
-    super.scalar,
-    super.aMin,
+  ReassignmentMagnitudesCalculator(
+    super.reassignmentCalculator, {
     this.overrideChunkSize,
-  })  : assert(overrideChunkSize == null || isReassignFrequency),
-        assert(!isReassignTime, 'not supported now'),
-        super.hanning();
+  }) {
+    assert(overrideChunkSize == null || isReassignFrequency);
+    assert(!isReassignTime, 'not supported now');
+  }
 
   ///再割り当て法は擬似的に周波数分解能を向上させることができる
   ///例えば、chunkSize=2048であっても、overrideChunkSizeを8192とすれば
@@ -113,13 +109,12 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
 
-  int get _chunkSize => overrideChunkSize ?? super.chunkSize;
+  int get _chunkSize => overrideChunkSize ?? chunkSize;
 
   @override
   String toString() =>
       'sparse mags ${scalar.name} scaled${overrideChunkSize != null ? ' override by $overrideChunkSize' : ''}';
 
-  @override
   double deltaFrequency(int sampleRate) => sampleRate / _chunkSize;
 
   @override
@@ -130,7 +125,7 @@ class ReassignmentMagnitudesCalculator extends ReassignmentCalculator
 
   @override
   Magnitudes call(AudioData data, [bool flush = true]) {
-    final (points, magnitudes) = reassign(data, flush);
+    final (points, magnitudes) = reassignmentCalculator.reassign(data, flush);
 
     updateCacheSampleRate(data.sampleRate);
 

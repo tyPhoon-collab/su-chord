@@ -1,7 +1,6 @@
 import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/estimator.dart';
@@ -376,10 +375,10 @@ void main() {
     const writer = Hist2DChartWriter();
 
     test('parts of reassignment', () async {
-      final (points, mags) = ReassignmentCalculator.hanning(
-        chunkSize: f.context.chunkSize,
-        chunkStride: f.context.chunkStride,
-      ).reassign(await DataSet().G);
+      final (points, mags) =
+          (f.magnitude.reassignment() as ReassignmentMagnitudesCalculator)
+              .reassignmentCalculator
+              .reassign(await DataSet().G);
       await writer(
         points,
         xBin: List.generate(mags.length, (i) => i * f.context.deltaTime),

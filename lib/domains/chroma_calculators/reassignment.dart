@@ -10,19 +10,19 @@ import '../magnitudes_calculator.dart';
 import 'chroma_calculator.dart';
 
 abstract class ReassignmentChromaCalculator
+    extends HasReassignmentCalculatorMethodChained
     with SampleRateCacheManager
     implements ChromaCalculable, HasMagnitudes {
-  ReassignmentChromaCalculator({
-    required this.reassignmentCalculator,
+  ReassignmentChromaCalculator(
+    super.reassignmentCalculator, {
     this.chromaContext = ChromaContext.guitar,
   });
 
   final ChromaContext chromaContext;
-  final ReassignmentCalculator reassignmentCalculator;
 
   @override
   String toString() =>
-      'sparse ${!reassignmentCalculator.isReassignFrequency ? 'non reassign frequency ' : ''}${magnitudeScalar.name} scaled, $chromaContext';
+      'sparse ${!isReassignFrequency ? 'non reassign frequency ' : ''}${magnitudeScalar.name} scaled, $chromaContext';
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
@@ -35,24 +35,23 @@ abstract class ReassignmentChromaCalculator
   List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes);
 
   @override
-  double deltaTime(int sampleRate) =>
-      reassignmentCalculator.deltaTime(sampleRate);
-
-  @override
-  MagnitudeScalar get magnitudeScalar => reassignmentCalculator.scalar;
+  MagnitudeScalar get magnitudeScalar => scalar;
 }
 
 ///ET scale => weighted histogram based on frequencies from the equal-tempered scale
 ///再割り当て後、平均律に従って重み付きヒストグラムをかける
 final class ReassignmentETScaleChromaCalculator
     extends ReassignmentChromaCalculator {
-  ReassignmentETScaleChromaCalculator({
-    required super.reassignmentCalculator,
+  ReassignmentETScaleChromaCalculator(
+    super.reassignmentCalculator, {
     super.chromaContext,
   });
 
   late final _binY = chromaContext.toEqualTemperamentBin();
   late final _hzList = chromaContext.toHzList();
+
+  @override
+  String toString() => 'et-scale, ${super}';
 
   @override
   List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes) {

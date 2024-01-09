@@ -16,20 +16,35 @@ abstract interface class ChromaCalculable {
   double deltaTime(int sampleRate);
 }
 
+enum NamedWindowFunction {
+  hanning,
+  blackman;
+
+  Float64List toWindow(int chunkSize) => switch (this) {
+        NamedWindowFunction.hanning => Window.hanning(chunkSize),
+        NamedWindowFunction.blackman => Window.blackman(chunkSize),
+      };
+}
+
 ///STFTに必要な変数群を定義したクラス
-///継承して使用する
-///実際にSTFTの計算をする際は、パッケージの実装の都合上、stft変数から行うので
+///窓関数と窓幅、移動幅の責任を持つ
+///STFTの計算をする際は、パッケージの実装の都合上、[stft]から行うので
 ///STFTの計算をする関数自体はこのクラスにはない
 class STFTCalculator {
-  STFTCalculator.hanning({
+  STFTCalculator({
+    required this.window,
     this.chunkSize = 2048,
     this.chunkStride = 1024,
-  }) : window = Window.hanning(chunkSize) {
-    stft = STFT(chunkSize, window);
-  }
+  });
+
+  STFTCalculator.window(
+    NamedWindowFunction type, {
+    this.chunkSize = 2048,
+    this.chunkStride = 1024,
+  }) : window = type.toWindow(chunkSize);
 
   final Float64List window;
-  late final STFT stft;
+  late final STFT stft = STFT(chunkSize, window);
   final int chunkSize;
   final int chunkStride;
 
@@ -39,15 +54,34 @@ class STFTCalculator {
   double deltaFrequency(int sampleRate) => sampleRate / chunkSize;
 }
 
-class ReassignmentCalculator extends STFTCalculator {
-  ReassignmentCalculator.hanning({
-    super.chunkSize,
-    super.chunkStride,
+class HasSTFTCalculatorMethodChained {
+  HasSTFTCalculatorMethodChained(this.stftCalculator);
+
+  final STFTCalculator stftCalculator;
+
+  late final stft = stftCalculator.stft;
+  late final window = stftCalculator.window;
+
+  int get chunkSize => stftCalculator.chunkSize;
+
+  int get chunkStride => stftCalculator.chunkStride;
+
+  double deltaTime(int sampleRate) => stftCalculator.deltaTime(sampleRate);
+}
+
+class ReassignmentCalculator extends HasSTFTCalculatorMethodChained {
+  ReassignmentCalculator(
+    super.stftCalculator, {
     this.isReassignTime = false,
     this.isReassignFrequency = true,
     this.scalar = MagnitudeScalar.none,
     this.aMin = 1e-5,
-  }) : super.hanning() {
+  }) {
+    _setUpDerivativeSTFT();
+    _setUpTimeSTFT();
+  }
+
+  void _setUpDerivativeSTFT() {
     if (isReassignFrequency) {
       final windowD = Float64List.fromList(
         window
@@ -56,7 +90,9 @@ class ReassignmentCalculator extends STFTCalculator {
       );
       stftD = STFT(chunkSize, windowD);
     }
+  }
 
+  void _setUpTimeSTFT() {
     if (isReassignTime) {
       final windowT = Float64List.fromList(
         window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
@@ -66,12 +102,13 @@ class ReassignmentCalculator extends STFTCalculator {
     }
   }
 
-  STFT? stftD;
-  STFT? stftT;
   final MagnitudeScalar scalar;
   final bool isReassignTime;
   final bool isReassignFrequency;
   final double aMin;
+
+  STFT? stftD;
+  STFT? stftT;
 
   ///デバッグのしやすさとモジュール強度を考慮して
   ///ヒストグラム化する関数と再割り当てする関数を分ける
@@ -132,4 +169,23 @@ class ReassignmentCalculator extends STFTCalculator {
 
     return (points, magnitudes);
   }
+}
+
+class HasReassignmentCalculatorMethodChained {
+  HasReassignmentCalculatorMethodChained(this.reassignmentCalculator);
+
+  final ReassignmentCalculator reassignmentCalculator;
+
+  late final stft = reassignmentCalculator.stft;
+  late final window = reassignmentCalculator.window;
+  late final isReassignTime = reassignmentCalculator.isReassignTime;
+  late final isReassignFrequency = reassignmentCalculator.isReassignFrequency;
+  late final scalar = reassignmentCalculator.scalar;
+
+  int get chunkSize => reassignmentCalculator.chunkSize;
+
+  int get chunkStride => reassignmentCalculator.chunkStride;
+
+  double deltaTime(int sampleRate) =>
+      reassignmentCalculator.deltaTime(sampleRate);
 }
