@@ -21,7 +21,10 @@ WINDOW_SIZES = [
 
 # DIRECTORY_PATH = "test/outputs/cross_validations/NCSP_paper/window_sizes/chunkSize_{}__chunkStride_0__sampleRate_22050"  # noqa
 # DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hanning"  # noqa
-DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackman"  # noqa
+# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackman"  # noqa
+# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hamming"  # noqa
+# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_bartlett"  # noqa
+DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackmanHarris"  # noqa
 
 # MARKERS = ["o", "s", "^", "v", "<", ">", "x", "+", "*"]
 MARKERS = ["o", "s", "^", "*"]

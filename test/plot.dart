@@ -1,6 +1,7 @@
 import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
+import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
@@ -575,6 +576,28 @@ void main() {
           xMax: xMax,
           xLabel: 'Frequency',
         );
+      });
+    });
+
+    group('window', () {
+      Future<void> plot(
+        NamedWindowFunction windowFunction, {
+        String? title,
+      }) async {
+        const chunkSize = 512;
+        final window = windowFunction.toWindow(chunkSize);
+        await writer(
+          List.generate(chunkSize, (i) => i),
+          window,
+          title: title,
+        );
+      }
+
+      test('blackman harris', () async {
+        await plot(NamedWindowFunction.blackmanHarris);
+      });
+      test('blackman', () async {
+        await plot(NamedWindowFunction.blackman);
       });
     });
   });

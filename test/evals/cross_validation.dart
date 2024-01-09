@@ -424,24 +424,24 @@ Future<void> main() async {
     const scalar = MagnitudeScalar.ln;
 
     for (final f in [
-      f_1024,
-      f_2048,
-      f_4096,
-      f_8192,
-      f_16384,
-      f_1024.copyWith(windowFunction: NamedWindowFunction.blackman),
-      f_2048.copyWith(windowFunction: NamedWindowFunction.blackman),
-      f_4096.copyWith(windowFunction: NamedWindowFunction.blackman),
-      f_8192.copyWith(windowFunction: NamedWindowFunction.blackman),
-      f_16384.copyWith(windowFunction: NamedWindowFunction.blackman),
+      for (final windowFunction in [
+        NamedWindowFunction.hanning,
+        // NamedWindowFunction.hamming,
+        NamedWindowFunction.blackman,
+        // NamedWindowFunction.blackmanHarris,
+        // NamedWindowFunction.bartlett,
+      ]) ...[
+        f_1024.copyWith(windowFunction: windowFunction),
+        f_2048.copyWith(windowFunction: windowFunction),
+        f_4096.copyWith(windowFunction: windowFunction),
+        f_8192.copyWith(windowFunction: windowFunction),
+        f_16384.copyWith(windowFunction: windowFunction),
+      ]
     ]) {
       for (final estimator in [
         for (final chromaCalculable in [
           f.guitar.stftCombFilter(scalar: scalar),
-          f.guitar.reassignment(
-            scalar: scalar,
-            isReassignFrequency: false,
-          ),
+          f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
           f.guitar.reassignCombFilter(scalar: scalar),
           f.guitar.reassignment(scalar: scalar),
         ])

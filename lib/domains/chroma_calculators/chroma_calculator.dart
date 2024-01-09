@@ -18,11 +18,17 @@ abstract interface class ChromaCalculable {
 
 enum NamedWindowFunction {
   hanning,
-  blackman;
+  hamming,
+  blackman,
+  blackmanHarris,
+  bartlett;
 
   Float64List toWindow(int chunkSize) => switch (this) {
         NamedWindowFunction.hanning => Window.hanning(chunkSize),
+        NamedWindowFunction.hamming => Window.hamming(chunkSize),
         NamedWindowFunction.blackman => Window.blackman(chunkSize),
+        NamedWindowFunction.blackmanHarris => _Window.blackmanHarris(chunkSize),
+        NamedWindowFunction.bartlett => Window.bartlett(chunkSize),
       };
 }
 
@@ -188,4 +194,25 @@ class HasReassignmentCalculatorMethodChained {
 
   double deltaTime(int sampleRate) =>
       reassignmentCalculator.deltaTime(sampleRate);
+}
+
+extension _Window on Float64List {
+  //https://jp.mathworks.com/help/signal/ref/blackmanharris.html
+  static Float64List blackmanHarris(int size) {
+    final window = Float64List(size);
+
+    const a0 = 0.35875;
+    const a1 = 0.48829;
+    const a2 = 0.14128;
+    const a3 = 0.01168;
+
+    for (var n = 0; n < size; n++) {
+      window[n] = a0 +
+          -a1 * cos((2 * pi * n) / (size - 1)) +
+          a2 * cos((4 * pi * n) / (size - 1)) +
+          -a3 * cos((6 * pi * n) / (size - 1));
+    }
+
+    return window;
+  }
 }
