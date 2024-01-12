@@ -100,7 +100,7 @@ void main() {
     test('hz list', () {
       const lowest = Pitch.E2;
       const highest = Pitch(Note.E, 3);
-      final l = Pitch.hzList(lowest, highest);
+      final l = Pitch.list(lowest, highest).toHzList();
       expect(l.first, lowest.toHz());
       expect(l.last, highest.toHz());
     });

@@ -2,6 +2,7 @@ import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
+import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
@@ -42,8 +43,31 @@ void main() {
       await write(mags[3].sublist(i - 8, i + 8), title: 'parts of mags');
     });
 
+    test('E2-D#6', () async {
+      final combFilterCalculator =
+          f_8192.guitar.stftCombFilter(scalar: MagnitudeScalar.ln)
+              as CombFilterChromaCalculator;
+
+      final data = await DataSet().C;
+      final powers = average(combFilterCalculator
+              .magnitudesCalculable(data)
+              .map(
+                (mag) => Chroma(Pitch.list(Pitch.E2, Pitch.Ds6)
+                    .toHzList()
+                    .map(
+                      (hz) => combFilterCalculator.calculatePower(
+                          mag, data.sampleRate, hz),
+                    )
+                    .toList()),
+              )
+              .toList())
+          .first;
+
+      await write(powers);
+    });
+
     group('pcp', () {
-      const writer = PCPChartWriter();
+      const write = PCPChartWriter();
 
       test('different window size', () async {
         final factories = [
@@ -55,13 +79,39 @@ void main() {
         await Future.wait([
           for (final f in factories)
             for (final cc in [
-              f.guitar.combFilter(),
+              f.guitar.stftCombFilter(),
               f.guitar.reassignCombFilter(),
             ])
-              writer(
+              write(
                 average(cc(await DataSet().G)).first.l2normalized,
                 title: 'pcp of G, ${f.context} $cc',
               )
+        ]);
+      });
+
+      test('comb filter sigma', () async {
+        hideTitle = true;
+        const contexts = [
+          CombFilterContext(hzStdDevCoefficient: 1 / 24),
+          CombFilterContext(hzStdDevCoefficient: 1 / 48),
+          // ignore: avoid_redundant_argument_values
+          CombFilterContext(hzStdDevCoefficient: 1 / 72),
+          CombFilterContext(hzStdDevCoefficient: 1 / 96),
+        ];
+
+        await Future.wait([
+          for (final context in contexts)
+            write(
+              average(
+                f_8192.guitar
+                    .stftCombFilter(
+                      scalar: MagnitudeScalar.ln,
+                      combFilterContext: context,
+                    )
+                    .call(await DataSet().C),
+              ).first.l2normalized,
+              title: context.toString(),
+            )
         ]);
       });
 
@@ -72,7 +122,7 @@ void main() {
 
           final cc = f_4096.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
-          await writer(
+          await write(
             average(cc(data.cutEvaluationAudioByIndex(index)))
                 .first
                 .l2normalized,
@@ -109,7 +159,7 @@ void main() {
               f.guitar.reassignCombFilter(),
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
             ])
-              writer(
+              write(
                 average(cc.call(data)).first.l2normalized,
                 title: 'pcp of G $cc ${f.context}',
               )
@@ -119,7 +169,7 @@ void main() {
       group('template', () {
         test('template C', () async {
           final chord = Chord.parse('C');
-          await writer(
+          await write(
             chord.unitPCP.l2normalized,
             title: 'template $chord',
           );
@@ -129,7 +179,7 @@ void main() {
           test('third scaled template of C', () async {
             final chord = Chord.parse('C');
 
-            await writer(
+            await write(
               const OnlyThirdHarmonicChromaScalar(0.2)
                   .call(chord.unitPCP)
                   .l2normalized,
@@ -141,7 +191,7 @@ void main() {
             test('4th', () async {
               final chord = Chord.parse('C');
 
-              await writer(
+              await write(
                 HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
                 title: 'template $chord 4 harmonics scaled ',
               );
@@ -150,7 +200,7 @@ void main() {
             test('6th', () async {
               final chord = Chord.parse('Cm7');
 
-              await writer(
+              await write(
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
@@ -205,7 +255,7 @@ void main() {
                   .where((e) => e.root == note)
                   .toSet(),
             ).meanTemplateChromas.keys.first;
-            await writer(
+            await write(
               pcp.l2normalized,
               title: 'mean template $note',
             );
@@ -220,7 +270,7 @@ void main() {
                   DetectableChords.conv.where((e) => e.root == note).toSet(),
               meanScalar: const LogChromaScalar(),
             ).meanTemplateChromas.keys.first;
-            await writer(
+            await write(
               pcp.l2normalized,
               title: 'mean template ln $note',
             );
@@ -236,7 +286,7 @@ void main() {
 
         Future<void> plot(List<Chroma> chromas, {String? title}) async {
           final pcp = average(chromas).first;
-          await writer(
+          await write(
             pcp.l2normalized,
             title: title,
           );

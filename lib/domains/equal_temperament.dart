@@ -16,6 +16,10 @@ abstract interface class DegreeIndex<T> {
   int degreeIndexTo(T other);
 }
 
+extension ToHzList on List<Pitch> {
+  List<double> toHzList() => map((e) => e.toHz()).toList();
+}
+
 @immutable
 class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
   const Pitch(this.note, this.height);
@@ -23,15 +27,16 @@ class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
   static const A0 = Pitch(Note.A, 0);
   static const C1 = Pitch(Note.C, 1);
   static const E2 = Pitch(Note.E, 2);
+  static const Ds6 = Pitch(Note.Ds, 6);
+  static const Ds8 = Pitch(Note.Ds, 8);
 
   static final ratio = pow(2, 1 / 12);
   static const hzOfA0 = 27.5;
 
-  static List<double> hzList(Pitch lowest, Pitch highest) {
-    final hz = lowest.toHz();
+  static List<Pitch> list(Pitch lowest, Pitch highest) {
     return List.generate(
       lowest.degreeIndexTo(highest) + 1,
-      (i) => hz * pow(ratio, i),
+      (i) => lowest.transpose(i),
     );
   }
 
@@ -265,7 +270,10 @@ Bin equalTemperamentBin(Pitch lowest, Pitch highest) {
   // 音域の参考サイト: https://tomari.org/main/java/oto.html
   // ビン幅は前の音と対象の音の中点 ~ 対象の音と次の音の中点
   // よって指定された音域分のビンを作成するには上下に１つずつ余分な音域を考える必要がある
-  final hzList = Pitch.hzList(lowest.transpose(-1), highest.transpose(1));
+  final hzList = Pitch.list(
+    lowest.transpose(-1),
+    highest.transpose(1),
+  ).toHzList();
 
   final bins = <double>[];
   for (var i = 0; i < hzList.length - 1; i++) {

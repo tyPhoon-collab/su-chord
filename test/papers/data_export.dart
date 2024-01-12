@@ -11,7 +11,7 @@ void main() {
   final f = f_8192;
 
   test('spectrum', () async {
-    final data = await DataSet().G;
+    final data = await DataSet().C;
 
     final mags = f.magnitude.stft().call(data);
 
@@ -26,7 +26,7 @@ void main() {
     final averageSpec =
         spec.map((e) => e / mags.length).map((e) => e.toString()).toList();
 
-    await Table([averageSpec]).toCSV('assets/csv/osawa/spectrum_G.csv');
+    await Table([averageSpec]).toCSV('assets/csv/osawa/spectrum_C.csv');
   });
 
   test('spectrogram', () async {

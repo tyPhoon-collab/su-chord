@@ -172,7 +172,7 @@ final class ChromaCalculatorFactory {
     MagnitudesCalculable? magnitudesCalculable,
   }) =>
       CombFilterChromaCalculator(
-        magnitudesCalculable: magnitudesCalculable ?? _magnitude.stft(),
+        magnitudesCalculable ?? _magnitude.stft(),
         chromaContext: chromaContext,
         context: combFilterContext ?? const CombFilterContext(),
       );

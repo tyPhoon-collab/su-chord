@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -6,9 +7,14 @@ import pandas as pd
 from scipy.stats import norm
 
 
-def __load_data() -> Any:
-    data = pd.read_csv("assets/csv/osawa/spectrum_G.csv", header=None)
-    return data.to_numpy(dtype=float)[0]
+@dataclass
+class __Loader:
+    hz: float
+    path: str
+    note_label: str
+
+    def load_data(self) -> Any:
+        return pd.read_csv(self.path, header=None).to_numpy(dtype=float)[0], self.hz, self.note_label
 
 
 def __load_gaussian_data(mu: float, sigma: float, start: float, end: float) -> Any:
@@ -19,20 +25,23 @@ def __load_gaussian_data(mu: float, sigma: float, start: float, end: float) -> A
 
 
 def __annotate_mu(label: str, mu: float) -> None:
-    plt.axvline(x=mu, color="red", linestyle="--")
+    plt.axvline(x=mu, color="black", linestyle="--", lw=3)
 
     plt.annotate(
         label,
         xy=(mu, 0),
-        xytext=(mu + 2, -5),
-        arrowprops=dict(facecolor="black", arrowstyle="->"),
+        xytext=(mu + 1, -3),
+        arrowprops=dict(facecolor="tab:gray", arrowstyle="->"),
         ha="center",
     )
 
 
-data = __load_data()
+loader = __Loader(hz=195.998, path="assets/csv/osawa/spectrum_G.csv", note_label="G3")
+# loader = __Loader(hz=130.813, path="assets/csv/osawa/spectrum_C.csv", note_label="C3")
 
-mu = 195.998
+
+data, mu, label = loader.load_data()
+
 sigma = mu / 72
 offset = 6 * sigma
 delta_freq = 22050 / 8192
@@ -52,9 +61,9 @@ plt.bar(
 )
 
 # ガウス分布を重ねてプロット
-plt.plot(x, gaussian * max(data) * 4, color="black")
+plt.plot(x, gaussian * max(data) * 4, color="tab:red", lw=3)
 
-__annotate_mu(f"G3 ({mu}Hz)", mu)
+__annotate_mu(f"{label} ({mu}Hz)", mu)
 
 
 plt.xlim(mu - offset, mu + offset)

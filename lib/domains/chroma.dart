@@ -156,5 +156,5 @@ class ChromaContext {
 
   Bin toEqualTemperamentBin() => equalTemperamentBin(lowest, highest);
 
-  List<double> toHzList() => Pitch.hzList(lowest, highest);
+  List<double> toHzList() => Pitch.list(lowest, highest).toHzList();
 }
