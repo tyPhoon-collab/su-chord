@@ -1,8 +1,8 @@
 import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
+import 'package:chord/domains/chroma_calculators/window.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
@@ -632,9 +632,12 @@ void main() {
       Future<void> plot(
         NamedWindowFunction windowFunction, {
         String? title,
+        bool derivative = false,
       }) async {
         const chunkSize = 512;
-        final window = windowFunction.toWindow(chunkSize);
+        final window = derivative
+            ? windowFunction.toDerivativeWindow(chunkSize)
+            : windowFunction.toWindow(chunkSize);
         await writer(
           List.generate(chunkSize, (i) => i),
           window,
@@ -647,6 +650,35 @@ void main() {
       });
       test('blackman', () async {
         await plot(NamedWindowFunction.blackman);
+      });
+
+      test('derivative hanning', () async {
+        await plot(NamedWindowFunction.hanning, derivative: true);
+      });
+
+      test('compare derivative', () async {
+        const window = NamedWindowFunction.blackmanHarris;
+        const chunkSize = 512;
+
+        final x = List.generate(chunkSize, (i) => i);
+
+        await Future.wait([
+          writer(
+            x,
+            window.toWindow(chunkSize),
+            title: 'window ${window.name}',
+          ),
+          writer(
+            x,
+            window.toDerivativeWindow(chunkSize),
+            title: 'window ${window.name} using derivative function',
+          ),
+          writer(
+            x,
+            WindowExtension.gradient(window.toWindow(chunkSize)),
+            title: 'window ${window.name} using gradient',
+          )
+        ]);
       });
     });
   });

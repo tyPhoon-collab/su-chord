@@ -117,9 +117,9 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 }
 
 ///Am7b5とCm6などの関係は同じ構成音であるため、PCPだけでは区別ができない
-///また、平均化されたPCPをテンプレートに使用する際に、b5の影響で誤分類が多い
+///また、平均化されたPCPをテンプレートに使用する際に、P5が存在しないため、根音のパワーが小さい場合に誤分類が多い
 ///そのため、m7b5系に対して、一般に高確率でマイナーが選ばれる条件をもとに絞り込みを行う
-// ignore: camel_case_types
+///具体例にはIIm7b5-VとIV#m7b5-IV
 class FlatFiveChordSelector implements ChordSelectable {
   const FlatFiveChordSelector();
 

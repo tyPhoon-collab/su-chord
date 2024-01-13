@@ -1,5 +1,6 @@
 import os
 import sys
+from enum import StrEnum
 
 import matplotlib
 import numpy as np
@@ -19,12 +20,18 @@ WINDOW_SIZES = [
     16384,
 ]
 
-# DIRECTORY_PATH = "test/outputs/cross_validations/NCSP_paper/window_sizes/chunkSize_{}__chunkStride_0__sampleRate_22050"  # noqa
-# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hanning"  # noqa
-# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackman"  # noqa
-# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hamming"  # noqa
-# DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_bartlett"  # noqa
-DIRECTORY_PATH = "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_blackmanHarris"  # noqa
+
+class WindowFunction(StrEnum):
+    HANNING = ("hanning",)
+    HAMMING = ("hamming",)
+    BLACKMAN = ("blackman",)
+    BLACKMAN_HARRIS = ("blackmanHarris",)
+    BARTLETT = ("bartlett",)
+
+
+DIRECTORY_PATH = (
+    "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_{}"  # noqa
+)
 
 # MARKERS = ["o", "s", "^", "v", "<", ">", "x", "+", "*"]
 MARKERS = ["o", "s", "^", "*"]
@@ -53,11 +60,11 @@ scores_list = np.zeros((4, len(WINDOW_SIZES)))
 max_score = 0.0
 max_window = 0.0
 
-for i, window in enumerate(WINDOW_SIZES):
-    dir_path = DIRECTORY_PATH.format(window)
+for i, size in enumerate(WINDOW_SIZES):
+    dir_path = DIRECTORY_PATH.format(size, WindowFunction.BLACKMAN)
     paths = get_sorted_csv_paths(dir_path)
     if len(paths) == 0:
-        print(f"There is no files window size of {window}. Please check directory path: {dir_path}")
+        print(f"There is no files window size of {size}. Please check directory path: {dir_path}")
     for path in paths:
         index = __get_index(os.path.basename(path))
         if index == -1:
@@ -68,7 +75,7 @@ for i, window in enumerate(WINDOW_SIZES):
 
         if max_score < score:
             max_score = score
-            max_window = window
+            max_window = size
 
         scores_list[index, i] = score
 

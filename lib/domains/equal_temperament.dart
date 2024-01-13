@@ -27,6 +27,7 @@ class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
   static const A0 = Pitch(Note.A, 0);
   static const C1 = Pitch(Note.C, 1);
   static const E2 = Pitch(Note.E, 2);
+  static const C3 = Pitch(Note.C, 3);
   static const Ds6 = Pitch(Note.Ds, 6);
   static const Ds8 = Pitch(Note.Ds, 8);
 

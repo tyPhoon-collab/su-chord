@@ -426,10 +426,10 @@ Future<void> main() async {
     for (final f in [
       for (final windowFunction in [
         NamedWindowFunction.hanning,
-        // NamedWindowFunction.hamming,
+        NamedWindowFunction.hamming,
         NamedWindowFunction.blackman,
-        // NamedWindowFunction.blackmanHarris,
-        // NamedWindowFunction.bartlett,
+        NamedWindowFunction.blackmanHarris,
+        NamedWindowFunction.bartlett,
       ]) ...[
         f_1024.copyWith(windowFunction: windowFunction),
         f_2048.copyWith(windowFunction: windowFunction),

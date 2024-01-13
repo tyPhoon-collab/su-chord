@@ -13,7 +13,7 @@ class __Loader:
     path: str
     note_label: str
 
-    def load_data(self) -> Any:
+    def load_data(self) -> tuple[Any, float, str]:
         return pd.read_csv(self.path, header=None).to_numpy(dtype=float)[0], self.hz, self.note_label
 
 
@@ -36,6 +36,8 @@ def __annotate_mu(label: str, mu: float) -> None:
     )
 
 
+# 周波数は以下のURLを参照
+# https://tomari.org/main/java/oto.html
 loader = __Loader(hz=195.998, path="assets/csv/osawa/spectrum_G.csv", note_label="G3")
 # loader = __Loader(hz=130.813, path="assets/csv/osawa/spectrum_C.csv", note_label="C3")
 
