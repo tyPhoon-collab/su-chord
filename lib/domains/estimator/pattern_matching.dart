@@ -26,7 +26,7 @@ class TemplateContext {
   factory TemplateContext.harmonicScaling({
     int until = 4,
     double factor = 0.6,
-    Set<Chord>? templates,
+    Set<Chord>? detectableChords,
     ScoreCalculator? scoreCalculator,
     double? scoreThreshold,
   }) =>
@@ -34,7 +34,7 @@ class TemplateContext {
         scalar: HarmonicsChromaScalar(until: until, factor: factor),
         scoreCalculator: scoreCalculator,
         scoreThreshold: scoreThreshold,
-        detectableChords: templates,
+        detectableChords: detectableChords,
       );
 
   final Set<Chord> detectableChords;

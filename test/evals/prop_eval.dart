@@ -154,7 +154,7 @@ Future<void> main() async {
               chordChangeDetectable: f.hcdf.eval,
               context: TemplateContext.harmonicScaling(
                 until: 6,
-                templates: DetectableChords.conv,
+                detectableChords: DetectableChords.conv,
               ),
             ),
           )

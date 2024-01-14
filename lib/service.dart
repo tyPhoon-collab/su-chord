@@ -100,17 +100,21 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
   final detectableChords = ref.watch(detectableChordsProvider);
 
   return {
-    'main': () async => PatternMatchingChordEstimator(
+    'main': () async => MeanTemplatePatternMatchingChordEstimator(
           chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 30,
-            scoreThreshold: 0.9,
+            scoreThreshold: 0.75,
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
-          context: TemplateContext.harmonicScaling(
+          chordSelectable: f.selector.flatFive,
+          context: MeanTemplateContext.harmonicScaling(
             until: 6,
-            templates: detectableChords,
+            detectableChords: detectableChords,
+            scoreThreshold: 0.75,
+            sortedScoreTakeCount: 3,
+            meanScalar: const LogChromaScalar(),
           ),
         ),
     'matching + reassign + template scaled': () async =>
@@ -122,7 +126,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           ],
           context: TemplateContext.harmonicScaling(
             until: 6,
-            templates: detectableChords,
+            detectableChords: detectableChords,
           ),
         ),
     'konoki': () async => SearchTreeChordEstimator(

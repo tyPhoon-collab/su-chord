@@ -155,7 +155,9 @@ class FlatFiveChordSelector implements ChordSelectable {
       cells.add(cell);
     }
 
-    cells.add(progression.last);
+    if (progression.isNotEmpty) {
+      cells.add(progression.last);
+    }
 
     return ChordProgression(cells);
   }
