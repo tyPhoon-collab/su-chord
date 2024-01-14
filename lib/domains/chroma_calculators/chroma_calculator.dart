@@ -69,9 +69,8 @@ class ReassignmentCalculator extends EmbeddedSTFTCalculator {
   late final windowT = Float64List.fromList(
     window.mapIndexed((i, data) => data * (i - chunkSize / 2)).toList(),
   );
-  late final windowD = windowFunction != null
-      ? windowFunction!.toDerivativeWindow(chunkSize)
-      : WindowExtension.gradient(window);
+  late final windowD = windowFunction?.toDerivativeWindow(chunkSize) ??
+      WindowExtension.gradient(window);
 
   late final STFT stftD;
   late final STFT stftT;
@@ -139,21 +138,32 @@ class ReassignmentCalculator extends EmbeddedSTFTCalculator {
   }
 }
 
-class EmbeddedSTFTCalculator {
+class EmbeddedSTFTCalculator implements STFTCalculator {
   EmbeddedSTFTCalculator(this.stftCalculator);
 
   final STFTCalculator stftCalculator;
 
+  @override
   late final stft = stftCalculator.stft;
+  @override
   late final window = stftCalculator.window;
+  @override
   late final windowFunction = stftCalculator.windowFunction;
 
+  @override
   late final chunkSize = stftCalculator.chunkSize;
+  @override
   late final chunkStride = stftCalculator.chunkStride;
 
+  @override
   double deltaTime(int sampleRate) => stftCalculator.deltaTime(sampleRate);
+
+  @override
+  double deltaFrequency(int sampleRate) =>
+      stftCalculator.deltaFrequency(sampleRate);
 }
 
+//一部のみ
 class EmbeddedReassignmentCalculator {
   EmbeddedReassignmentCalculator(this.reassignmentCalculator);
 
