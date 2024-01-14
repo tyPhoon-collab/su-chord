@@ -104,7 +104,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 30,
-            scoreThreshold: 0.75,
+            scoreThreshold: 0.85,
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),

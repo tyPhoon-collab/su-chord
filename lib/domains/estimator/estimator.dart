@@ -68,6 +68,7 @@ abstract class ChromaChordEstimator
     final chroma = measure(
       'chroma calc',
       () => chromaCalculable(data, flush),
+      withTotal: true,
     );
 
     _chromas.addAll(chroma);
@@ -75,6 +76,7 @@ abstract class ChromaChordEstimator
     _filteredChromas = measure(
       'filter calc',
       () => filters.fold(_chromas, (pre, filter) => filter(pre)),
+      withTotal: true,
     );
 
     final slices = measure(
@@ -82,6 +84,7 @@ abstract class ChromaChordEstimator
       () =>
           overridable?.slices(this, data) ??
           chordChangeDetectable(_filteredChromas),
+      withTotal: true,
     );
 
     _slicedChromas = average(_filteredChromas, slices);
@@ -89,6 +92,7 @@ abstract class ChromaChordEstimator
     final progression = measure(
       'estimate calc',
       () => estimateFromChroma(_slicedChromas),
+      withTotal: true,
     );
 
     if (flush) _flush();
@@ -103,6 +107,7 @@ abstract class ChromaChordEstimator
 
   void _flush() {
     _chromas = [];
+    calculateTimes.clear();
   }
 
   ChordProgression<Chord> estimateFromChroma(List<Chroma> chroma);
@@ -129,7 +134,10 @@ abstract class ChromaChordEstimator
         ),
         DebugChip(
           titleText: 'Calculate Times',
-          builder: (_) => CalculateTimeTableView(table: calculateTimes),
+          builder: (_) => CalculateTimeTableView(
+            table: calculateTimes,
+            needsKeySort: true,
+          ),
         )
       ];
 

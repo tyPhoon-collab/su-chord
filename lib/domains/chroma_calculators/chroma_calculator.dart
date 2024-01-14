@@ -55,7 +55,7 @@ class ReassignmentCalculator extends EmbeddedSTFTCalculator {
     this.isReassignTime = false,
     this.isReassignFrequency = true,
     this.scalar = MagnitudeScalar.none,
-    this.aMin = 1e-5,
+    this.aMin = 1e-6,
   }) {
     if (isReassignFrequency) stftD = STFT(chunkSize, windowD);
     if (isReassignTime) stftT = STFT(chunkSize, windowT);
