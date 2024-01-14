@@ -1,5 +1,5 @@
 import 'package:chord/domains/equal_temperament.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

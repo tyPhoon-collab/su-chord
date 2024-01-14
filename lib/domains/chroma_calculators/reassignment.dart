@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../utils/histogram.dart';
 import '../../utils/loaders/audio.dart';
