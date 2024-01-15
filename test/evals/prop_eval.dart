@@ -8,6 +8,7 @@ import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
+import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'evaluator.dart';
@@ -251,7 +252,7 @@ Future<void> main() async {
               chromaCalculable:
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.flatFive,
+              chordSelectable: f.selector.minorFlatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
                 detectableChords: DetectableChords.conv,
@@ -263,12 +264,13 @@ Future<void> main() async {
         });
 
         test('m ln', () async {
+          Table.bypass = true;
           await Evaluator(
             estimator: MeanTemplatePatternMatchingChordEstimator(
               chromaCalculable:
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.flatFive,
+              chordSelectable: f.selector.minorFlatFive,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
                 detectableChords: DetectableChords.conv,

@@ -179,13 +179,13 @@ Future<void> main() async {
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            chordSelectable: f.selector.flatFive,
+            chordSelectable: f.selector.minorFlatFive,
             context: meanContext,
           ),
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            chordSelectable: f.selector.flatFive,
+            chordSelectable: f.selector.minorFlatFive,
             context:
                 // ignore: avoid_redundant_argument_values
                 meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 4)),
@@ -193,7 +193,7 @@ Future<void> main() async {
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            chordSelectable: f.selector.flatFive,
+            chordSelectable: f.selector.minorFlatFive,
             context:
                 meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 6)),
           ),
@@ -229,7 +229,7 @@ Future<void> main() async {
             MeanTemplatePatternMatchingChordEstimator(
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.flatFive,
+              chordSelectable: f.selector.minorFlatFive,
               context:
                   meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 6)),
             ),
@@ -271,7 +271,7 @@ Future<void> main() async {
               MeanTemplatePatternMatchingChordEstimator(
                 chromaCalculable: chromaCalculable,
                 chordChangeDetectable: f.hcdf.eval,
-                chordSelectable: f.selector.flatFive,
+                chordSelectable: f.selector.minorFlatFive,
                 context: meanContext.copyWith(
                     scalar: HarmonicsChromaScalar(until: 6)),
               ),
@@ -389,7 +389,7 @@ Future<void> main() async {
         MeanTemplatePatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          chordSelectable: f.selector.flatFive,
+          chordSelectable: f.selector.minorFlatFive,
           context: MeanTemplateContext.harmonicScaling(until: 6),
         ),
         SearchTreeChordEstimator(
@@ -421,7 +421,6 @@ Future<void> main() async {
     const folderPath = 'test/outputs/cross_validations/window_function';
 
     final directory = await Directory(folderPath).create(recursive: true);
-    const scalar = MagnitudeScalar.ln;
 
     for (final f in [
       for (final windowFunction in [
@@ -440,15 +439,20 @@ Future<void> main() async {
     ]) {
       for (final estimator in [
         for (final chromaCalculable in [
-          f.guitar.stftCombFilter(scalar: scalar),
-          f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
-          f.guitar.reassignCombFilter(scalar: scalar),
-          f.guitar.reassignment(scalar: scalar),
+          f.guitar.stftCombFilter(),
+          f.guitar.reassignment(isReassignFrequency: false),
+          f.guitar.reassignCombFilter(),
+          f.guitar.reassignment(),
+          f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
+          f.guitar.reassignment(
+              scalar: MagnitudeScalar.ln, isReassignFrequency: false),
+          f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
+          f.guitar.reassignment(scalar: MagnitudeScalar.ln),
         ])
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            chordSelectable: f.selector.flatFive,
+            chordSelectable: f.selector.minorFlatFive,
             context: MeanTemplateContext.harmonicScaling(
               until: 6,
               detectableChords: DetectableChords.conv,

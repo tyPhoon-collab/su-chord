@@ -120,11 +120,11 @@ class ChordProgressionDBChordSelector implements ChordSelectable {
 ///また、平均化されたPCPをテンプレートに使用する際に、P5が存在しないため、根音のパワーが小さい場合に誤分類が多い
 ///そのため、m7b5系に対して、一般に高確率でマイナーが選ばれる条件をもとに絞り込みを行う
 ///具体例にはIIm7b5-VとIV#m7b5-IV
-class FlatFiveChordSelector implements ChordSelectable {
-  const FlatFiveChordSelector();
+class MinorFlatFiveChordSelector implements ChordSelectable {
+  const MinorFlatFiveChordSelector();
 
   @override
-  String toString() => 'flat five priority';
+  String toString() => 'minor flat five priority';
 
   @override
   ChordProgression<Chord> call(ChordProgression<Chord> progression) {

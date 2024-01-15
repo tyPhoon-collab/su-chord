@@ -2,6 +2,7 @@ import os
 import sys
 from enum import StrEnum
 
+import japanize_matplotlib  # noqa
 import matplotlib
 import numpy as np
 import pandas as pd
@@ -37,19 +38,20 @@ DIRECTORY_PATH = (
 MARKERS = ["o", "s", "^", "*"]
 LINESTYLES = ["-", "--", "-.", ":"]
 
-LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
+# LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
+LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
 
 
 def __get_index(basename: str) -> int:
-    # scale = "none"
-    scale = "ln"
+    scale = "none"
+    # scale = "ln"
     if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
         return 0
-    if f"sparse_non_reassign_frequency_{scale}_scaled" in basename:
+    if f"et-scale_sparse_non_reassign_frequency_{scale}_scaled" in basename:
         return 1
     if f"normal_distribution_comb_filter__sparse_mags_{scale}_scaled" in basename:
         return 2
-    if f"sparse_{scale}_scaled" in basename:
+    if f"et-scale_sparse_{scale}_scaled" in basename:
         return 3
 
     return -1

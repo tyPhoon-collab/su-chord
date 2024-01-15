@@ -108,7 +108,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
-          chordSelectable: f.selector.flatFive,
+          chordSelectable: f.selector.minorFlatFive,
           context: MeanTemplateContext.harmonicScaling(
             until: 6,
             detectableChords: detectableChords,
