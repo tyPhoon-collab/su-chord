@@ -1,29 +1,3 @@
-"""
-卒論に向けて、交差検証した結果を表にできるように出力するスクリプト
-
-入力: csvのファイルが格納されているディレクトリ
-出力: 表のLaTeX
-
-手法が4つ
-
-窓幅を横に取って
-
-コムフィルタ
-コムフィルタ+対数
-平均律ビン
-平均律ビン+対数
-コムフィルタ*
-コムフィルタ+対数*
-平均律ビン*
-平均律ビン+対数*
-
-*はスパース信号処理あり
-
-を縦に取る
-
-
-"""
-
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -35,11 +9,7 @@ import pandas as pd
 
 sys.path.append(".")
 
-from python.analyzer.analyze import (  # noqa
-    MUSIC_PIECES_LENGTH,
-    SOUND_SOURCE_LENGTH,
-    get_scores,
-)
+from python.analyzer.analyze import get_scores_with_average  # noqa
 from python.path_util import get_sorted_csv_paths  # noqa
 from python.terminal_util import print_divider  # noqa
 
@@ -150,7 +120,7 @@ class BoldLaTeXFormatter(LaTeXFormattable):
 
 
 def __get_experiment_dir_path(window_length: int) -> str:
-    base_path = "test/outputs/cross_validations/ICS/chunkSize_{}__chunkStride_0__sampleRate_22050"
+    base_path = "test/outputs/cross_validations/ICS/chunkSize_{}__chunkStride_0__sampleRate_22050__window_hanning"
     return base_path.format(window_length)
 
 
@@ -158,13 +128,13 @@ def __get_figure_key(basename: str) -> str:
     if "search_tree" in basename:
         return "search tree"
 
-    if "cosine_similarity_matching_none_template_scaled" in basename:
+    if "mean_matching_cosine_similarity_none_template_scaled" in basename:
         return "matching"
 
-    if "cosine_similarity_matching_harmonic_0.6-4_template_scaled" in basename:
+    if "mean_matching_cosine_similarity_harmonic_0.6-4_template_scaled" in basename:
         return "matching 4"
 
-    if "cosine_similarity_matching_harmonic_0.6-6_template_scaled" in basename:
+    if "mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled" in basename:
         return "matching 6"
 
     raise NotImplementedError()
@@ -175,17 +145,17 @@ def __get_index(basename: str) -> int:
         return 0
     if "normal_distribution_comb_filter__stft_mags_ln_scaled" in basename:
         return 1
-    if "sparse_non_reassign_frequency_none_scaled" in basename:
+    if "et-scale_sparse_non_reassign_frequency_none_scaled" in basename:
         return 2
-    if "sparse_non_reassign_frequency_ln_scaled" in basename:
+    if "et-scale_sparse_non_reassign_frequency_ln_scaled" in basename:
         return 3
     if "normal_distribution_comb_filter__sparse_mags_none_scaled" in basename:
         return 4
     if "normal_distribution_comb_filter__sparse_mags_ln_scaled" in basename:
         return 5
-    if "sparse_none_scaled" in basename:
+    if "et-scale_sparse_none_scaled" in basename:
         return 6
-    if "sparse_ln_scaled" in basename:
+    if "et-scale_sparse_ln_scaled" in basename:
         return 7
 
     raise NotImplementedError()
@@ -200,7 +170,7 @@ for window_index, window_length in enumerate(WINDOW_LENGTHS):
         df = pd.read_csv(path, dtype=str, skiprows=1, header=None)
 
         basename = os.path.basename(path)
-        score = sum(get_scores(df)) / (MUSIC_PIECES_LENGTH * SOUND_SOURCE_LENGTH)
+        score = get_scores_with_average(df)[-1]
 
         figure_key = __get_figure_key(basename)
         row_index = __get_index(basename)
