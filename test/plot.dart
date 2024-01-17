@@ -2,6 +2,7 @@ import 'package:chord/domains/analyzer.dart';
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/comb_filter.dart';
+import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/chroma_calculators/window.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/equal_temperament.dart';
@@ -43,27 +44,45 @@ void main() {
       await write(mags[3].sublist(i - 8, i + 8), title: 'parts of mags');
     });
 
-    test('E2-D#6', () async {
-      final combFilterCalculator =
-          f_8192.guitar.stftCombFilter(scalar: MagnitudeScalar.ln)
-              as CombFilterChromaCalculator;
+    group('all chroma', () {
+      final f = f_8192.guitar;
+      test('_comb', () async {
+        final data = await DataSet().C;
 
-      final data = await DataSet().C;
-      final powers = average(combFilterCalculator
-              .magnitudesCalculable(data)
-              .map(
-                (mag) => Chroma(Pitch.list(Pitch.E2, Pitch.Ds6)
-                    .toHzList()
-                    .map(
-                      (hz) => combFilterCalculator.calculatePower(
-                          mag, data.sampleRate, hz),
-                    )
-                    .toList()),
-              )
-              .toList())
-          .first;
+        final calculator = f.stftCombFilter(scalar: MagnitudeScalar.ln)
+            as CombFilterChromaCalculator;
 
-      await write(powers);
+        final powers = calculator
+            .magnitudesCalculable(data)
+            .map(
+              (mag) => Chroma(Pitch.list(Pitch.E2, Pitch.Ds6)
+                  .toHzList()
+                  .map((hz) =>
+                      calculator.calculatePower(mag, data.sampleRate, hz))
+                  .toList()),
+            )
+            .toList()
+            .average()
+            .first;
+
+        await write(powers);
+      });
+
+      test('_et-scale', () async {
+        final data = await DataSet().C;
+
+        final calculator = f.reassignment(scalar: MagnitudeScalar.ln)
+            as ReassignmentETScaleChromaCalculator;
+
+        final (points, magnitudes) = calculator.reassign(data);
+        final mags = calculator.calculateMagnitude(
+          points,
+          magnitudes,
+          data.sampleRate,
+        );
+        final powers = mags.average().first;
+        await write(powers);
+      });
     });
 
     group('pcp', () {
@@ -83,7 +102,7 @@ void main() {
               f.guitar.reassignCombFilter(),
             ])
               write(
-                average(cc(await DataSet().G)).first.l2normalized,
+                cc(await DataSet().G).average().first.l2normalized,
                 title: 'pcp of G, ${f.context} $cc',
               )
         ]);
@@ -102,14 +121,13 @@ void main() {
         await Future.wait([
           for (final context in contexts)
             write(
-              average(
-                f_8192.guitar
-                    .stftCombFilter(
-                      scalar: MagnitudeScalar.ln,
-                      combFilterContext: context,
-                    )
-                    .call(await DataSet().C),
-              ).first.l2normalized,
+              f_8192.guitar
+                  .stftCombFilter(
+                      scalar: MagnitudeScalar.ln, combFilterContext: context)
+                  .call(await DataSet().C)
+                  .average()
+                  .first
+                  .l2normalized,
               title: context.toString(),
             )
         ]);
@@ -123,7 +141,8 @@ void main() {
           final cc = f_4096.guitar.reassignment(scalar: MagnitudeScalar.ln);
 
           await write(
-            average(cc(data.cutEvaluationAudioByIndex(index)))
+            cc(data.cutEvaluationAudioByIndex(index))
+                .average()
                 .first
                 .l2normalized,
             title: title,
@@ -160,7 +179,7 @@ void main() {
               f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
             ])
               write(
-                average(cc.call(data)).first.l2normalized,
+                cc.call(data).average().first.l2normalized,
                 title: 'pcp of G $cc ${f.context}',
               )
         ]);
@@ -285,14 +304,11 @@ void main() {
         // final cc = f.guitar.stftCombFilter(scalar: MagnitudeScalar.dB);
 
         Future<void> plot(List<Chroma> chromas, {String? title}) async {
-          final pcp = average(chromas).first;
-          await write(
-            pcp.l2normalized,
-            title: title,
-          );
+          final pcp = chromas.average().first;
+          await write(pcp.l2normalized, title: title);
         }
 
-        test('r G-all r-comb', () async {
+        test('r all window r-comb', () async {
           final data = await DataSet().G;
           await Future.wait([
             f_1024,
@@ -308,7 +324,7 @@ void main() {
               )));
         });
 
-        test('r G-all ET-scale', () async {
+        test('r all-window ET-scale', () async {
           final data = await DataSet().G;
           await Future.wait([
             f_1024,
@@ -328,6 +344,23 @@ void main() {
 
         test('r C', () async {
           await plot(cc(await DataSet().C));
+        });
+
+        test('r all', () async {
+          final f = f_4096;
+          final data = await DataSet().C;
+          await Future.wait([
+            for (final scalar in [
+              MagnitudeScalar.none,
+              MagnitudeScalar.ln,
+              // MagnitudeScalar.dB
+            ]) ...[
+              f.guitar.reassignment(scalar: scalar),
+              f.guitar.reassignment(scalar: scalar, isReassignFrequency: false),
+              f.guitar.stftCombFilter(scalar: scalar),
+              f.guitar.reassignCombFilter(scalar: scalar),
+            ]
+          ].map((e) => plot(e(data), title: 'real C $e')));
         });
 
         test('r F#m7b5', () async {

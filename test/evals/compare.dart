@@ -242,7 +242,7 @@ void main() {
     ];
 
     for (final value in cc) {
-      final pcp = average(value(await DataSet().C)).first;
+      final pcp = value(await DataSet().C).average().first;
       final score = const ScoreCalculator.cosine().call(pcp, template);
 
       logTest(score, title: value.toString());

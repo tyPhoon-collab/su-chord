@@ -34,9 +34,12 @@ void main() {
     ];
 
     for (final c in contexts) {
-      final chroma = average(
-        f.guitar.combFilter(combFilterContext: c).call(await DataSet().G),
-      ).first.l2normalized;
+      final chroma = f.guitar
+          .combFilter(combFilterContext: c)
+          .call(await DataSet().G)
+          .average()
+          .first
+          .l2normalized;
 
       debugPrint(chroma.toString());
     }
@@ -45,17 +48,20 @@ void main() {
   test('log vs normal', () async {
     final data = await DataSet().G;
 
-    debugPrint(average(
-      f.big.combFilter().call(data),
-    ).first.l2normalized.toString());
+    debugPrint(
+        f.big.combFilter().call(data).average().first.l2normalized.toString());
 
-    debugPrint(average(
-      f.big.stftCombFilter(scalar: MagnitudeScalar.ln).call(data),
-    ).first.l2normalized.toString());
+    debugPrint(f.big
+        .stftCombFilter(scalar: MagnitudeScalar.ln)
+        .call(data)
+        .average()
+        .first
+        .l2normalized
+        .toString());
   });
 
   test('guitar tuning', () async {
-    final chromas = average(calculate(await DataSet().G));
+    final chromas = calculate(await DataSet().G).average();
 
     expect(chromas[0], isNotNull);
   });

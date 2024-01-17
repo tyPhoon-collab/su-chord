@@ -11,26 +11,42 @@ abstract interface class ChromaChordChangeDetectable {
   List<Slice> call(List<Chroma> chroma);
 }
 
-///渡されたクロマのリストをスライスして平均値のリストを返す
-///[slices]を渡さないときは全ての平均をとる
-List<Chroma> average(List<Chroma> source, [List<Slice>? slices]) {
-  slices ??= [Slice(0, source.length)];
+extension ChromaListAverage on List<Chroma> {
+  ///渡されたクロマのリストをスライスして平均値のリストを返す
+  ///[slices]を渡さないときは全ての平均をとる
+  List<Chroma> average([List<Slice>? slices]) {
+    slices ??= [Slice(0, length)];
 
-  final averages = <Chroma>[];
+    if (isEmpty || slices.isEmpty) return [];
 
-  for (final slice in slices) {
-    var end = slice.end;
-    if (end > source.length) {
-      end = source.length;
-      debugPrint(
-          'end is over length, end: ${slice.end}, length: ${source.length}');
+    final averages = <Chroma>[];
+
+    for (final slice in slices) {
+      var end = slice.end;
+      if (end > length) {
+        end = length;
+        debugPrint('end is over length, end: ${slice.end}, length: $length');
+      }
+
+      var sum = Chroma.zero(first.length);
+      for (int i = slice.start; i < end; i++) {
+        sum += this[i];
+      }
+      averages.add(sum / slice.size);
     }
-    final sliced = source.sublist(slice.start, end);
-    final sum = sliced.reduce((a, b) => a + b);
-    averages.add(sum / slice.size);
-  }
 
-  return averages;
+    return averages;
+  }
+}
+
+extension MagnitudesAverage on Magnitudes {
+  ///渡された振幅に対してスライスして平均値のリストを返す
+  ///[slices]を渡さないときは全ての平均をとる
+  ///see also: [ChromaListAverage]
+  List<Chroma> average([List<Slice>? slices]) {
+    final chromas = map((e) => Chroma(e)).toList();
+    return chromas.average(slices);
+  }
 }
 
 class FrameChordChangeDetector implements ChromaChordChangeDetectable {

@@ -9,7 +9,6 @@ import 'package:chord/factory.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
 
 import '../data_set.dart';
 
@@ -45,8 +44,7 @@ void main() {
     final chromas =
         f.guitar.reassignCombFilter().call(await DataSet().G_Em_Bm_C);
 
-    final pcp =
-        average(chromas, f.hcdf.interval(4.seconds).call(chromas)).first;
+    final pcp = chromas.average(f.hcdf.eval.call(chromas)).first;
     final template =
         PCP(const [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]).l2normalized;
     debugPrint(const CosineSimilarity().call(pcp, template).toString());
@@ -78,7 +76,7 @@ void main() {
     ];
 
     for (final c in calculator) {
-      final chroma = average(c(await DataSet().osawa.C)).first;
+      final chroma = c(await DataSet().osawa.C).average().first;
       debugPrint('chroma: ${chroma.l2normalized}');
       for (final value in templates) {
         final cs = const CosineSimilarity().call(chroma, value.unitPCP);
@@ -98,7 +96,7 @@ void main() {
       ]
     ];
     for (final c in cs) {
-      final chroma = average(c(await DataSet().G)).first.l2normalized;
+      final chroma = c(await DataSet().G).average().first.l2normalized;
       debugPrint(chroma.toString());
     }
   });

@@ -54,10 +54,21 @@ final class ReassignmentETScaleChromaCalculator
   String toString() => 'et-scale ${super.toString()}';
 
   @override
-  List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes) {
+  List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes) =>
+      calculateMagnitude(
+        points,
+        magnitudes,
+        cachedSampleRate!,
+      ).map(_fold).toList();
+
+  Magnitudes calculateMagnitude(
+    List<Point> points,
+    Magnitudes magnitudes,
+    int sampleRate,
+  ) {
     final binX = List.generate(
       magnitudes.length + 1,
-      (i) => i * deltaTime(cachedSampleRate!),
+      (i) => i * deltaTime(sampleRate),
     );
     final histogram2d = WeightedHistogram2d.from(
       points,
@@ -65,9 +76,7 @@ final class ReassignmentETScaleChromaCalculator
       binY: _binY,
     );
 
-    final mags = histogram2d.values;
-
-    return mags.map(_fold).toList();
+    return histogram2d.values;
   }
 
   Chroma _fold(Magnitude value) {

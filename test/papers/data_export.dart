@@ -47,7 +47,7 @@ void main() {
 
   test('pcp', () async {
     final cc = f.guitar.reassignment(scalar: MagnitudeScalar.ln);
-    final pcp = average(cc(await DataSet().C)).map((e) => e.l2normalized);
+    final pcp = cc(await DataSet().C).average().map((e) => e.l2normalized);
     await Table.fromMatrix(pcp).toCSV('assets/csv/osawa/pcp_C.csv');
   });
 }

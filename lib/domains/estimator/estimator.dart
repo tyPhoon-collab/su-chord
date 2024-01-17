@@ -87,7 +87,7 @@ abstract class ChromaChordEstimator
       withTotal: true,
     );
 
-    _slicedChromas = average(_filteredChromas, slices);
+    _slicedChromas = _filteredChromas.average(slices);
 
     final progression = measure(
       'estimate calc',

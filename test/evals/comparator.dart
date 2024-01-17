@@ -29,7 +29,7 @@ class SpotComparator {
     final data = await SimpleAudioLoader(path: source).load(sampleRate: 22050);
 
     final pcp =
-        average(chromaCalculable(data.cutEvaluationAudioByIndex(index))).first;
+        chromaCalculable(data.cutEvaluationAudioByIndex(index)).average().first;
 
     await writer?.call(pcp.l2normalized);
 
@@ -71,9 +71,10 @@ class MeanScoreSpotComparator {
   }) async {
     final data = await loader.load(source);
 
-    final pcp =
-        average(chromaCalculable.call(data.cutEvaluationAudioByIndex(index)))
-            .first;
+    final pcp = chromaCalculable
+        .call(data.cutEvaluationAudioByIndex(index))
+        .average()
+        .first;
 
     const scoreCalculator = ScoreCalculator.cosine();
 

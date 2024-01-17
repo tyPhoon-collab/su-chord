@@ -38,9 +38,10 @@ void main() {
     final template =
         HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
 
-    final pcp = average(f.guitar
-            .reassignment(scalar: MagnitudeScalar.ln)
-            .call(await DataSet().C))
+    final pcp = f.guitar
+        .reassignment(scalar: MagnitudeScalar.ln)
+        .call(await DataSet().C)
+        .average()
         .first;
 
     final score = const ScoreCalculator.cosine().call(pcp, template);
