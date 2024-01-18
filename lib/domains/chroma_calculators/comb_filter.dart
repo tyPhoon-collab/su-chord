@@ -42,7 +42,7 @@ class EmbeddedMagnitudesCalculable {
 ///コムフィルタを使用してクロマを求める
 class CombFilterChromaCalculator extends EmbeddedMagnitudesCalculable
     implements ChromaCalculable, HasMagnitudes {
-  const CombFilterChromaCalculator(
+  CombFilterChromaCalculator(
     super.magnitudesCalculable, {
     this.chromaContext = ChromaContext.guitar,
     this.context = const CombFilterContext(),
@@ -51,6 +51,8 @@ class CombFilterChromaCalculator extends EmbeddedMagnitudesCalculable
   final CombFilterContext context;
   final ChromaContext chromaContext;
 
+  late final _hzList = chromaContext.toHzList();
+
   @override
   String toString() =>
       'normal distribution comb filter, $magnitudesCalculable, $chromaContext';
@@ -58,30 +60,27 @@ class CombFilterChromaCalculator extends EmbeddedMagnitudesCalculable
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
     return magnitudesCalculable(data, flush)
-        .map((e) => Chroma(
-              List.generate(
-                12,
-                (i) => calculateSumPower(
-                  e,
-                  data.sampleRate,
-                  chromaContext.lowest.transpose(i),
-                ),
-              ),
-            ).shift(-chromaContext.lowest.note.degreeIndexTo(Note.C)))
+        .map((e) => _fold(calculatePowers(e, data.sampleRate)))
         .toList();
+  }
+
+  Chroma _fold(Chroma value) {
+    return PCP(List.generate(12, (i) {
+      double sum = 0;
+
+      //折りたたむ
+      for (var j = 0; j < chromaContext.perOctave; j++) {
+        final index = i + 12 * j;
+        sum += value[index];
+      }
+      return sum;
+    })).shift(-chromaContext.lowest.note.degreeIndexTo(Note.C));
   }
 
   ///各音階ごとに正規分布によるコムフィルタを適用した結果を取得する
   ///正規分布の平均値は各音階の周波数、標準偏差は[CombFilterContext]の値を参照する
-  double calculateSumPower(Magnitude magnitude, int sr, Pitch lowest) =>
-      List.generate(
-        chromaContext.perOctave,
-        (i) => calculatePower(
-          magnitude,
-          sr,
-          lowest.transpose(i * 12).toHz(),
-        ),
-      ).sum;
+  Chroma calculatePowers(Magnitude magnitude, int sr) =>
+      Chroma(_hzList.map((e) => calculatePower(magnitude, sr, e)).toList());
 
   double calculatePower(Magnitude magnitude, int sr, double hz) {
     final mean = hz;

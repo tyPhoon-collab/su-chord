@@ -45,43 +45,68 @@ void main() {
     });
 
     group('all chroma', () {
-      final f = f_8192.guitar;
-      test('_comb', () async {
-        final data = await DataSet().C;
+      const scalar = MagnitudeScalar.ln;
 
-        final calculator = f.stftCombFilter(scalar: MagnitudeScalar.ln)
+      Future<void> plotCombFilter(EstimatorFactory f, AudioData data) async {
+        final calculator = f.guitar.stftCombFilter(scalar: scalar)
             as CombFilterChromaCalculator;
 
         final powers = calculator
             .magnitudesCalculable(data)
-            .map(
-              (mag) => Chroma(Pitch.list(Pitch.E2, Pitch.Ds6)
-                  .toHzList()
-                  .map((hz) =>
-                      calculator.calculatePower(mag, data.sampleRate, hz))
-                  .toList()),
-            )
+            .map((e) => calculator.calculatePowers(e, data.sampleRate))
             .toList()
             .average()
             .first;
 
-        await write(powers);
-      });
+        await write(
+          powers,
+          title: 'all chromas comb filter ${f.context}',
+        );
+      }
 
-      test('_et-scale', () async {
-        final data = await DataSet().C;
-
-        final calculator = f.reassignment(scalar: MagnitudeScalar.ln)
+      Future<void> plotETScale(EstimatorFactory f, AudioData data) async {
+        final calculator = f.guitar.reassignment(scalar: scalar)
             as ReassignmentETScaleChromaCalculator;
 
         final (points, magnitudes) = calculator.reassign(data);
-        final mags = calculator.calculateMagnitude(
-          points,
-          magnitudes,
-          data.sampleRate,
+
+        final powers = calculator
+            .calculateMagnitude(
+              points,
+              magnitudes,
+              data.sampleRate,
+            )
+            .average()
+            .first;
+
+        await write(
+          powers,
+          title: 'all chromas et-scale ${f.context}',
         );
-        final powers = mags.average().first;
-        await write(powers);
+      }
+
+      test('ac all', () async {
+        final data = await DataSet().C;
+        final factories = [f_1024, f_4096, f_16384];
+
+        await Future.wait([
+          for (final f in factories) ...[
+            plotCombFilter(f, data),
+            plotETScale(f, data),
+          ]
+        ]);
+      });
+
+      test('ac comb', () async {
+        final f = f_4096;
+        final data = await DataSet().C;
+        await plotCombFilter(f, data);
+      });
+
+      test('ac et-scale', () async {
+        final f = f_4096;
+        final data = await DataSet().C;
+        await plotETScale(f, data);
       });
     });
 
