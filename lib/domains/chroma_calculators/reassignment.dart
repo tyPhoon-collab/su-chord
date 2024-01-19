@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 
 import '../../utils/histogram.dart';
 import '../../utils/loaders/audio.dart';
-import '../cache_manager.dart';
 import '../chroma.dart';
 import '../equal_temperament.dart';
 import '../magnitudes_calculator.dart';
@@ -11,7 +10,6 @@ import 'chroma_calculator.dart';
 
 abstract class ReassignmentChromaCalculator
     extends EmbeddedReassignmentCalculator
-    with SampleRateCacheManager
     implements ChromaCalculable, HasMagnitudes {
   ReassignmentChromaCalculator(
     super.reassignmentCalculator, {
@@ -26,13 +24,16 @@ abstract class ReassignmentChromaCalculator
 
   @override
   List<Chroma> call(AudioData data, [bool flush = true]) {
-    updateCacheSampleRate(data.sampleRate);
     final (points, magnitudes) = reassign(data, flush);
-    return calculateFromPoints(points, magnitudes);
+    return calculateFromPoints(points, magnitudes, data.sampleRate);
   }
 
   @protected
-  List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes);
+  List<Chroma> calculateFromPoints(
+    List<Point> points,
+    Magnitudes magnitudes,
+    int sampleRate,
+  );
 
   @override
   MagnitudeScalar get magnitudeScalar => scalar;
@@ -54,12 +55,12 @@ final class ReassignmentETScaleChromaCalculator
   String toString() => 'et-scale ${super.toString()}';
 
   @override
-  List<Chroma> calculateFromPoints(List<Point> points, Magnitudes magnitudes) =>
-      calculateMagnitude(
-        points,
-        magnitudes,
-        cachedSampleRate!,
-      ).map(_fold).toList();
+  List<Chroma> calculateFromPoints(
+    List<Point> points,
+    Magnitudes magnitudes,
+    int sampleRate,
+  ) =>
+      calculateMagnitude(points, magnitudes, sampleRate).map(_fold).toList();
 
   Magnitudes calculateMagnitude(
     List<Point> points,

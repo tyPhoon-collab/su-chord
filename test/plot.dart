@@ -25,29 +25,68 @@ void main() {
   group('bar', () {
     const write = BarChartWriter();
 
-    test('parts of mags', () async {
-      final f = f_4096;
-      final mc = f.magnitude.stft(scalar: MagnitudeScalar.ln);
+    group('magnitude', () {
+      test('m part', () async {
+        final f = f_4096;
+        final mc = f.magnitude.stft(scalar: MagnitudeScalar.ln);
 
-      final mags = mc(await DataSet().G);
+        final mags = mc(await DataSet().G);
 
-      final floatIndex = mc.indexOfFrequency(
-        const Pitch(Note.G, 3).toHz(),
-        f.context.sampleRate,
-      );
-      final i = floatIndex.toInt();
-      final freq = mc.frequency(i, f.context.sampleRate);
+        final floatIndex = mc.indexOfFrequency(
+          const Pitch(Note.G, 3).toHz(),
+          f.context.sampleRate,
+        );
+        final i = floatIndex.toInt();
+        final freq = mc.frequency(i, f.context.sampleRate);
 
-      debugPrint(floatIndex.toString());
-      debugPrint(freq.toString());
+        debugPrint(floatIndex.toString());
+        debugPrint(freq.toString());
 
-      await write(mags[3].sublist(i - 8, i + 8), title: 'parts of mags');
+        await write(
+          mags.average().first.toList().sublist(i - 8, i + 8),
+          title: 'part of mag',
+        );
+      });
+
+      test('m all', () async {
+        final f = f_8192;
+        final mc = f.magnitude.reassignment(scalar: MagnitudeScalar.ln);
+
+        final mags = mc(await DataSet().C);
+
+        await write(
+          mags.average().first,
+          title: 'mag',
+        );
+      });
+
+      test('m et all', () async {
+        final f = f_16384;
+        const scalar = MagnitudeScalar.none;
+        final calculator = f.guitar.reassignment(scalar: scalar)
+            as ReassignmentETScaleChromaCalculator;
+        final data = await DataSet().C;
+        final (points, magnitudes) = calculator.reassign(data);
+        final mags = calculator.calculateMagnitude(
+          points,
+          magnitudes,
+          data.sampleRate,
+        );
+
+        final chroma = mags.average().first;
+
+        await write(chroma, title: 'et mag');
+      });
     });
 
     group('all chroma', () {
-      const scalar = MagnitudeScalar.ln;
+      const write = PitchChartWriter();
 
-      Future<void> plotCombFilter(EstimatorFactory f, AudioData data) async {
+      Future<void> plotCombFilter(
+        EstimatorFactory f,
+        AudioData data,
+        MagnitudeScalar scalar,
+      ) async {
         final calculator = f.guitar.stftCombFilter(scalar: scalar)
             as CombFilterChromaCalculator;
 
@@ -60,11 +99,15 @@ void main() {
 
         await write(
           powers,
-          title: 'all chromas comb filter ${f.context}',
+          title: 'all chromas comb filter ${scalar.name} ${f.context}',
         );
       }
 
-      Future<void> plotETScale(EstimatorFactory f, AudioData data) async {
+      Future<void> plotETScale(
+        EstimatorFactory f,
+        AudioData data,
+        MagnitudeScalar scalar,
+      ) async {
         final calculator = f.guitar.reassignment(scalar: scalar)
             as ReassignmentETScaleChromaCalculator;
 
@@ -81,18 +124,20 @@ void main() {
 
         await write(
           powers,
-          title: 'all chromas et-scale ${f.context}',
+          title: 'all chromas et-scale ${scalar.name} ${f.context}',
         );
       }
 
       test('ac all', () async {
         final data = await DataSet().C;
-        final factories = [f_1024, f_4096, f_16384];
+        final factories = [f_2048, f_4096, f_8192];
 
         await Future.wait([
           for (final f in factories) ...[
-            plotCombFilter(f, data),
-            plotETScale(f, data),
+            plotCombFilter(f, data, MagnitudeScalar.ln),
+            plotCombFilter(f, data, MagnitudeScalar.none),
+            plotETScale(f, data, MagnitudeScalar.ln),
+            plotETScale(f, data, MagnitudeScalar.none),
           ]
         ]);
       });
@@ -100,13 +145,13 @@ void main() {
       test('ac comb', () async {
         final f = f_4096;
         final data = await DataSet().C;
-        await plotCombFilter(f, data);
+        await plotCombFilter(f, data, MagnitudeScalar.ln);
       });
 
       test('ac et-scale', () async {
         final f = f_4096;
         final data = await DataSet().C;
-        await plotETScale(f, data);
+        await plotETScale(f, data, MagnitudeScalar.ln);
       });
     });
 
@@ -557,6 +602,29 @@ void main() {
 
   group('line', () {
     const writer = LineChartWriter();
+
+    group('magnitude', () {
+      test('ml all', () async {
+        final f = f_4096;
+        final calculator = f.guitar.reassignment(scalar: MagnitudeScalar.ln)
+            as ReassignmentETScaleChromaCalculator;
+        final data = await DataSet().C;
+        final (points, magnitudes) = calculator.reassign(data);
+        final mags = calculator.calculateMagnitude(
+          points,
+          magnitudes,
+          data.sampleRate,
+        );
+
+        final chroma = mags.average().first;
+        final times = List.generate(
+          chroma.length,
+          (i) => calculator.deltaTime(data.sampleRate) * (i + 1),
+        );
+
+        await writer(times, chroma, title: 'mag');
+      });
+    });
 
     group('HCDF', () {
       final f = f_4096;

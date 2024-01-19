@@ -118,6 +118,7 @@ class ReassignmentMagnitudesCalculator extends EmbeddedReassignmentCalculator
 
   @override
   void onSampleRateChanged(int newSampleRate) {
+    super.onSampleRateChanged(newSampleRate);
     final df = deltaFrequency(newSampleRate);
     _binY = List.generate(_chunkSize ~/ 2 + 2, (i) => i * df);
   }

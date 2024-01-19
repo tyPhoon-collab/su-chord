@@ -5,7 +5,6 @@ import '../../utils/loaders/audio.dart';
 import '../../utils/measure.dart';
 import '../../widgets/plot_view.dart';
 import '../annotation.dart';
-import '../cache_manager.dart';
 import '../chord.dart';
 import '../chord_progression.dart';
 import '../chord_selector.dart';
@@ -32,7 +31,7 @@ abstract interface class ChromaChordEstimatorOverridable {
 
 ///Chromaからコードを推定する場合は、このクラスを継承すると良い
 abstract class ChromaChordEstimator
-    with Measure, SampleRateCacheManager
+    with Measure
     implements ChordEstimable, HasDebugViews, HasChromaList {
   ChromaChordEstimator({
     required this.chromaCalculable,
@@ -52,19 +51,12 @@ abstract class ChromaChordEstimator
   List<Chroma> _chromas = [];
   List<Chroma> _filteredChromas = [];
   List<Chroma> _slicedChromas = [];
-  double _deltaTime = 0;
 
   @override
   String toString() => chromaCalculable.toString();
 
   @override
-  void onSampleRateChanged(int newSampleRate) {
-    _deltaTime = chromaCalculable.deltaTime(newSampleRate);
-  }
-
-  @override
   ChordProgression<Chord> estimate(AudioData data, [bool flush = true]) {
-    updateCacheSampleRate(data.sampleRate);
     final chroma = measure(
       'chroma calc',
       () => chromaCalculable(data, flush),
@@ -96,9 +88,11 @@ abstract class ChromaChordEstimator
     );
 
     if (flush) _flush();
+    final deltaTime = chromaCalculable.deltaTime(data.sampleRate);
+
     return ChordProgression(progression
         .mapIndexed(
-            (i, chord) => chord.copyWith(time: slices[i].toTime(_deltaTime)))
+            (i, chord) => chord.copyWith(time: slices[i].toTime(deltaTime)))
         .toList());
   }
 

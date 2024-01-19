@@ -53,7 +53,26 @@ class PCPChartWriter {
         ...data.map((e) => e.toString()),
         ..._createTitleArgs(title),
         ..._createLimitArgs(_Axis.y, 0, 1),
-        '--pcp',
+        '--x_label_type',
+        'pcp',
+      ],
+    );
+    _debugPrintIfNotEmpty(result.stderr);
+  }
+}
+
+class PitchChartWriter {
+  const PitchChartWriter();
+
+  Future<void> call(Iterable<num> data, {String? title}) async {
+    final result = await Process.run(
+      _python,
+      [
+        'python/plot/bar.py',
+        ...data.map((e) => e.toString()),
+        ..._createTitleArgs(title),
+        '--x_label_type',
+        'pitch',
       ],
     );
     _debugPrintIfNotEmpty(result.stderr);
