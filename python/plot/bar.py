@@ -33,6 +33,14 @@ def __set_figure_size(x_label_type: XLabelType) -> None:
         plt.subplots_adjust(left=0.05, right=0.95)
 
 
+def __set_params(x_label_type: XLabelType) -> None:
+    if x_label_type == XLabelType.NONE:
+        plt.tick_params(labelbottom=False, bottom=False)
+    elif x_label_type == XLabelType.PCP:
+        plt.xlabel("Pitch Class")
+        plt.ylabel("Power")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("values", type=float, nargs="+", help="List of values")
@@ -55,8 +63,7 @@ if __name__ == "__main__":
 
     plt.bar(__get_x_labels(x_label_type), args.values)
 
-    if x_label_type == XLabelType.NONE:
-        plt.tick_params(labelbottom=False, bottom=False)
+    __set_params(x_label_type)
 
     set_y_limit(args)
 

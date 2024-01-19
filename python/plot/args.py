@@ -1,6 +1,7 @@
 from argparse import Namespace
 
 import matplotlib.pyplot as plt
+# import ncsp_rcParams  # noqa
 
 
 def set_x_limit(args: Namespace) -> None:
@@ -33,6 +34,8 @@ def output(args: Namespace, as_suptitle: bool = False) -> None:
             plt.suptitle(title)
         else:
             plt.title(title)
+
+    plt.tight_layout()
 
     if args.output:
         plt.savefig(args.output)

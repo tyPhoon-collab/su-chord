@@ -313,14 +313,14 @@ typedef _Args = List<String>;
 
 enum _Axis { x, y }
 
-_Args _createTitleArgs(String? title) => [
+_Args _createTitleArgs(String? title, [String extension = 'pdf']) => [
       if (title != null) ...[
         if (!hideTitle) ...[
           '--title',
           title,
         ],
         '--output',
-        'test/outputs/plots/${title.sanitize()}.png',
+        'test/outputs/plots/${title.sanitize()}.$extension',
       ],
     ];
 

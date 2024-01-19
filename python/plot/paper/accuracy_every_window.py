@@ -38,13 +38,14 @@ DIRECTORY_PATH = (
 MARKERS = ["o", "s", "^", "*"]
 LINESTYLES = ["-", "--", "-.", ":"]
 
-# LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
-LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
+plt.rcParams["font.size"] = 14
+LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
+# LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
 
 
 def __get_index(basename: str) -> int:
-    scale = "none"
-    # scale = "ln"
+    # scale = "none"
+    scale = "ln"
     if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
         return 0
     if f"et-scale_sparse_non_reassign_frequency_{scale}_scaled" in basename:
@@ -104,7 +105,7 @@ xaxis.set_tick_params(which="minor", size=0)
 xaxis.set_tick_params(which="minor", width=0)
 
 plt.annotate(
-    f"Max: {max_score:.3f}",
+    f"Max: {max_score:.3f}%",
     (max_window, max_score),
     textcoords="offset points",
     xytext=(0, 30),

@@ -29,8 +29,10 @@ librosa.display.specshow(
     cmap="magma",
 )
 
+
+plt.xlabel("Time[s]")
 if args.y_axis == "log":
-    plt.ylabel("Frequency")
+    plt.ylabel("Frequency[Hz]")
 
 set_y_limit(args)
 

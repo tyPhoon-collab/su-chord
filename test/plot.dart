@@ -278,22 +278,20 @@ void main() {
 
           group('harmonics scaled', () {
             test('4th', () async {
-              final chord = Chord.parse('C');
-
+              final chord = Chord.C;
               await write(
                 HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
-                title: 'template $chord 4 harmonics scaled ',
+                title: 'template 4 $chord',
               );
             });
 
             test('6th', () async {
-              final chord = Chord.parse('Cm7');
-
+              final chord = Chord.C;
               await write(
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
-                title: 'template $chord 6 harmonics scaled ',
+                title: 'template 6 $chord',
               );
             });
 
@@ -308,7 +306,7 @@ void main() {
                         HarmonicsChromaScalar(until: 6)
                             .call(chord.unitPCP)
                             .l2normalized,
-                        title: 'template $chord 6 harmonics scaled ',
+                        title: 'mean template $chord 6 harmonics scaled',
                       ),
                     ),
               );
@@ -409,11 +407,17 @@ void main() {
         });
 
         test('r G', () async {
-          await plot(cc(await DataSet().G));
+          await plot(
+            cc(await DataSet().G),
+            title: 'real G',
+          );
         });
 
         test('r C', () async {
-          await plot(cc(await DataSet().C));
+          await plot(
+            cc(await DataSet().C),
+            title: 'real C',
+          );
         });
 
         test('r all', () async {
@@ -501,6 +505,9 @@ void main() {
 
       test('1024', () async {
         await plot(f_1024);
+      });
+      test('2048', () async {
+        await plot(f_2048);
       });
       test('16384', () async {
         await plot(f_16384);
