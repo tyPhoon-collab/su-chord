@@ -132,6 +132,7 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
     num? yMin,
     num? yMax,
     String? xLabel,
+    String? yLabel,
   }) async =>
       runWithTempCSVFile(
         Table([
@@ -147,6 +148,7 @@ class LineChartWriter with _UsingTempCSVFileChartWriter {
             ..._createLimitArgs(_Axis.x, xMin, xMax),
             ..._createLimitArgs(_Axis.y, yMin, yMax),
             ..._createLabelArgs(_Axis.x, xLabel),
+            ..._createLabelArgs(_Axis.y, yLabel),
           ],
         ),
       );

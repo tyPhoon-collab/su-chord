@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from typing import Any
 
@@ -5,6 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
+
+sys.path.append(".")
+
+import python.plot.ncsp_rcParams  # noqa
 
 
 @dataclass
@@ -25,27 +30,28 @@ def __load_gaussian_data(mu: float, sigma: float, start: float, end: float) -> A
 
 
 def __annotate_mu(label: str, mu: float) -> None:
-    plt.axvline(x=mu, color="black", linestyle="--", lw=3)
+    plt.axvline(x=mu, color="tab:orange", linestyle="--", lw=3)
 
     plt.annotate(
         label,
         xy=(mu, 0),
-        xytext=(mu + 1, -3),
-        arrowprops=dict(facecolor="tab:gray", arrowstyle="->"),
+        xytext=(mu + 1, -5),
+        arrowprops=dict(facecolor="black", arrowstyle="->"),
         ha="center",
     )
 
 
 # 周波数は以下のURLを参照
 # https://tomari.org/main/java/oto.html
-loader = __Loader(hz=195.998, path="assets/csv/osawa/spectrum_G.csv", note_label="G3")
-# loader = __Loader(hz=130.813, path="assets/csv/osawa/spectrum_C.csv", note_label="C3")
+# loader = __Loader(hz=195.998, path="assets/csv/osawa/spectrum_G.csv", note_label="G3")
+loader = __Loader(hz=130.813, path="assets/csv/osawa/spectrum_C.csv", note_label="C3")
+# loader = __Loader(hz=130.813 * 2, path="assets/csv/osawa/spectrum_C.csv", note_label="C4")
 
 
 data, mu, label = loader.load_data()
 
 sigma = mu / 72
-offset = 6 * sigma
+offset = 5 * sigma
 delta_freq = 22050 / 8192
 
 x, gaussian = __load_gaussian_data(
@@ -63,14 +69,17 @@ plt.bar(
 )
 
 # ガウス分布を重ねてプロット
-plt.plot(x, gaussian * max(data) * 4, color="tab:red", lw=3)
+plt.plot(x, gaussian * max(data) * 4, color="tab:orange", lw=3)
 
 __annotate_mu(f"{label} ({mu}Hz)", mu)
 
 
 plt.xlim(mu - offset, mu + offset)
 
-plt.yticks(color="None")
+# plt.yticks(color="None")
+
+plt.ylabel("Power")
+# plt.xlabel("")
 
 # グラフの表示
 plt.show()

@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 
 sys.path.append(".")
 
+import python.plot.ics_rcParams  # noqa
 from python.analyzer.analyze import get_scores_with_average  # noqa
 from python.path_util import get_sorted_csv_paths  # noqa
 
@@ -44,8 +45,8 @@ LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
 
 
 def __get_index(basename: str) -> int:
-    # scale = "none"
-    scale = "ln"
+    scale = "none"
+    # scale = "ln"
     if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
         return 0
     if f"et-scale_sparse_non_reassign_frequency_{scale}_scaled" in basename:

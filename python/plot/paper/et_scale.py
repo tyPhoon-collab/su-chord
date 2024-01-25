@@ -25,6 +25,7 @@ x_data = df["x"].to_numpy()
 y_data = df["y"].to_numpy()
 c_data = df["c"].to_numpy()
 
+
 plt.hist2d(
     x_data,
     y_data,
@@ -42,8 +43,8 @@ plt.ylim(Y_TICKS[0], Y_TICKS[-1])
 
 plt.gca().set_yticks(Y_TICKS)
 
-plt.xlabel("Time")
-plt.ylabel("Frequency")
+plt.xlabel("Time[s]")
+plt.ylabel("Frequency[Hz]")
 
 # グラフの表示
 plt.show()

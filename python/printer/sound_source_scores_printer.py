@@ -12,7 +12,7 @@ from python.analyzer.analyze import (  # noqa
 )
 
 COLUMNS = ["GA" + str(i + 1) for i in range(SOUND_SOURCE_LENGTH)] + ["Average"]
-COLUMNS_JA = ["A", "B", "C", "D", "平均正解率"]
+COLUMNS_JA = ["A", "B", "C", "D", "平均"]
 
 
 @dataclass
@@ -31,6 +31,17 @@ method = __DataSource(
     ],
     index=["Search Tree", "Matching", "Matching-4", "Matching-6"],
     columns=COLUMNS,
+)
+
+method_ja = __DataSource(
+    paths=[
+        "test/outputs/cross_validations/NCSP_paper/methods/search_tree_0.55_threshold_4_notes__normal_distribution_comb_filter__stft_mags_ln_scaled__E2-D#6__select_by_db.csv",
+        "test/outputs/cross_validations/NCSP_paper/methods/mean_matching_cosine_similarity_none_template_scaled__normal_distribution_comb_filter__stft_mags_ln_scaled__E2-D#6__minor_flat_five_priority.csv",
+        "test/outputs/cross_validations/NCSP_paper/methods/mean_matching_cosine_similarity_harmonic_0.6-4_template_scaled__normal_distribution_comb_filter__stft_mags_ln_scaled__E2-D#6__minor_flat_five_priority.csv",
+        "test/outputs/cross_validations/NCSP_paper/methods/mean_matching_cosine_similarity_harmonic_0.6-6_template_scaled__normal_distribution_comb_filter__stft_mags_ln_scaled__E2-D#6__minor_flat_five_priority.csv",
+    ],
+    index=["Search Tree", "Matching", "Matching-4", "Matching-6"],
+    columns=COLUMNS_JA,
 )
 
 pcp_log_amp = __DataSource(
@@ -99,13 +110,14 @@ def __print(source: __DataSource) -> None:
     print(
         df.to_latex(
             column_format="lccccc",
-            float_format=lambda x: f"{x*100:.3f}",
+            float_format=lambda x: f"{x*100:.1f}",
         )
     )
 
 
 if __name__ == "__main__":
     # __print(method)
+    # __print(method_ja)
     # __print(pcp_log_amp)
     # __print(pcp)
     __print(pcp_log_amp_ja)

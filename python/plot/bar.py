@@ -2,6 +2,7 @@ import argparse
 from enum import StrEnum
 
 import matplotlib.pyplot as plt
+import ncsp_rcParams  # noqa
 from args import output, set_y_limit
 
 NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]

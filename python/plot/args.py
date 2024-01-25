@@ -1,6 +1,7 @@
 from argparse import Namespace
 
 import matplotlib.pyplot as plt
+
 # import ncsp_rcParams  # noqa
 
 
@@ -25,6 +26,11 @@ def set_y_limit(args: Namespace) -> None:
 def set_x_label(args: Namespace) -> None:
     if args.x_label is not None:
         plt.xlabel(args.x_label)
+
+
+def set_y_label(args: Namespace) -> None:
+    if args.y_label is not None:
+        plt.ylabel(args.x_label)
 
 
 def output(args: Namespace, as_suptitle: bool = False) -> None:

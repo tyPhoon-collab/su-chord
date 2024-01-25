@@ -287,12 +287,32 @@ void main() {
 
             test('6th', () async {
               final chord = Chord.C;
+              // final chord = Chord.parse('C7');
               await write(
                 HarmonicsChromaScalar(until: 6)
                     .call(chord.unitPCP)
                     .l2normalized,
                 title: 'template 6 $chord',
               );
+            });
+
+            test('hs for figure', () async {
+              await Future.wait([
+                for (final chord in [
+                  Chord.parse('C'),
+                  Chord.parse('Cm'),
+                  Chord.parse('A'),
+                  Chord.parse('Am'),
+                  Chord.parse('E'),
+                  Chord.parse('Em'),
+                ])
+                  write(
+                    HarmonicsChromaScalar(until: 6)
+                        .call(chord.unitPCP)
+                        .l2normalized,
+                    title: 'template 6 $chord',
+                  )
+              ]);
             });
 
             test('group', () async {
@@ -306,7 +326,7 @@ void main() {
                         HarmonicsChromaScalar(until: 6)
                             .call(chord.unitPCP)
                             .l2normalized,
-                        title: 'mean template $chord 6 harmonics scaled',
+                        title: 'template 6 $chord',
                       ),
                     ),
               );
@@ -333,7 +353,7 @@ void main() {
                 .where((e) => e.root == note)
                 .toList());
           });
-          test('mean', () async {
+          test('m mean', () async {
             const note = Note.C;
 
             final pcp = MeanTemplateContext.harmonicScaling(
@@ -348,7 +368,7 @@ void main() {
             );
           });
 
-          test('ln mean', () async {
+          test('m ln mean', () async {
             const note = Note.C;
 
             final pcp = MeanTemplateContext.harmonicScaling(
@@ -361,6 +381,22 @@ void main() {
               pcp.l2normalized,
               title: 'mean template ln $note',
             );
+          });
+
+          test('m for figure', () async {
+            await Future.wait([
+              for (final note in [Note.C, Note.A, Note.E])
+                write(
+                  MeanTemplateContext.harmonicScaling(
+                    until: 6,
+                    detectableChords: DetectableChords.conv
+                        .where((e) => e.root == note)
+                        .toSet(),
+                    meanScalar: const LogChromaScalar(),
+                  ).meanTemplateChromas.keys.first.l2normalized,
+                  title: 'mean template ln $note',
+                ),
+            ]);
           });
         });
       });
@@ -449,6 +485,28 @@ void main() {
   });
 
   group('spec', () {
+    test('tone', () async {
+      final f = f_8192;
+
+      final toneData = await const SimpleAudioLoader(
+              path: 'assets/evals/test_audio/tone.wav')
+          .load(sampleRate: f.context.sampleRate);
+
+      const yRange = 100;
+      const targetHz = 440;
+      Future<void> writer(Iterable<Iterable<num>> data) =>
+          SpecChartWriter(LibROSASpecShowContext.of(f.context)).call(
+            data,
+            yMin: targetHz - yRange,
+            yMax: targetHz + yRange,
+          );
+      const scalar = MagnitudeScalar.ln;
+
+      await Future.wait([
+        writer(f.magnitude.stft(scalar: scalar).call(toneData)),
+        writer(f.magnitude.reassignment(scalar: scalar).call(toneData)),
+      ]);
+    });
     group('spot', () {
       test('C F', () async {
         final f = f_4096.copyWith(chunkStride: 2048);
@@ -690,22 +748,31 @@ void main() {
       final xMin = bins.first;
       final xMax = bins.last;
 
+      Future<void> ltasWriter(
+        Iterable<num> x,
+        Iterable<num> y, {
+        String? title,
+      }) =>
+          writer(x, y,
+              title: title,
+              xMin: xMin,
+              xMax: xMax,
+              xLabel: 'Frequency[Hz]',
+              yLabel: 'Power');
+
       hideTitle = true;
 
       test('A', () async {
         final ltas = LTASCalculator(magnitudesCalculable: calc)
             .call(await DataSet().concat('assets/evals/Halion_CleanGuitarVX'));
 
-        await writer(
+        await ltasWriter(
           List.generate(
             ltas.length,
             (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS A',
-          xMin: xMin,
-          xMax: xMax,
-          xLabel: 'Frequency',
         );
       });
 
@@ -713,16 +780,13 @@ void main() {
         final ltas = LTASCalculator(magnitudesCalculable: calc).call(
             await DataSet().concat('assets/evals/Halion_CleanStratGuitar'));
 
-        await writer(
+        await ltasWriter(
           List.generate(
             ltas.length,
             (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS B',
-          xMin: xMin,
-          xMax: xMax,
-          xLabel: 'Frequency',
         );
       });
 
@@ -730,16 +794,13 @@ void main() {
         final ltas = LTASCalculator(magnitudesCalculable: calc)
             .call(await DataSet().concat('assets/evals/HojoGuitar'));
 
-        await writer(
+        await ltasWriter(
           List.generate(
             ltas.length,
             (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS C',
-          xMin: xMin,
-          xMax: xMax,
-          xLabel: 'Frequency',
         );
       });
 
@@ -747,16 +808,13 @@ void main() {
         final ltas = LTASCalculator(magnitudesCalculable: calc)
             .call(await DataSet().concat('assets/evals/RealStrat'));
 
-        await writer(
+        await ltasWriter(
           List.generate(
             ltas.length,
             (index) => calc.frequency(index, f.context.sampleRate),
           ),
           ltas,
           title: 'LTAS D',
-          xMin: xMin,
-          xMax: xMax,
-          xLabel: 'Frequency',
         );
       });
     });

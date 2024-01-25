@@ -166,7 +166,7 @@ void main() {
       meanScalar: const LogChromaScalar(),
     );
 
-    test('C', () async {
+    test('cm C', () async {
       await compare(
         source: 'assets/evals/Halion_CleanGuitarVX/1_青春の影.wav',
         index: 3,
