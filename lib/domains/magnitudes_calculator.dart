@@ -93,7 +93,7 @@ class ReassignmentMagnitudesCalculator extends EmbeddedReassignmentCalculator
     this.overrideChunkSize,
   }) {
     assert(overrideChunkSize == null || isReassignFrequency);
-    assert(!isReassignTime, 'not supported now');
+    // assert(!isReassignTime, 'not supported now');
   }
 
   ///再割り当て法は擬似的に周波数分解能を向上させることができる

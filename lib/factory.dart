@@ -115,6 +115,8 @@ final class MagnitudesFactory {
     MagnitudeScalar scalar = MagnitudeScalar.none,
     int? overrideChunkSize = 8192,
     bool useGreaterChunkSize = true,
+    bool isReassignTime = false,
+    bool isReassignFrequency = true,
   }) {
     if (useGreaterChunkSize &&
         overrideChunkSize != null &&
@@ -125,6 +127,8 @@ final class MagnitudesFactory {
       ReassignmentCalculator(
         _buildSTFTCalculator(_context),
         scalar: scalar,
+        isReassignFrequency: isReassignFrequency,
+        isReassignTime: isReassignTime,
       ),
       overrideChunkSize: overrideChunkSize,
     );

@@ -507,6 +507,35 @@ void main() {
         writer(f.magnitude.reassignment(scalar: scalar).call(toneData)),
       ]);
     });
+
+    test('chirp', () async {
+      // final f = f_4096;
+      // final f = f_4096.copyWith(chunkStride: 2048);
+      final f = f_16384;
+      // final f = f_16384.copyWith(chunkStride: 2048);
+
+      final toneData = await const SimpleAudioLoader(
+              path: 'assets/evals/test_audio/chirp.wav')
+          .load(sampleRate: f.context.sampleRate);
+
+      Future<void> writer(Iterable<Iterable<num>> data) =>
+          SpecChartWriter(LibROSASpecShowContext.of(f.context)).call(
+            data,
+            yMin: 100,
+            yMax: 1000,
+          );
+      const scalar = MagnitudeScalar.ln;
+
+      await Future.wait([
+        writer(f.magnitude.stft(scalar: scalar).call(toneData)),
+        writer(f.magnitude
+            .reassignment(
+              scalar: scalar,
+              // isReassignTime: true,
+            )
+            .call(toneData)),
+      ]);
+    });
     group('spot', () {
       test('C F', () async {
         final f = f_4096.copyWith(chunkStride: 2048);

@@ -72,7 +72,6 @@ class WeightedHistogram2d {
       }
     }
 
-    debugPrint('val: $val, left: $left, right: $right');
-    throw UnimplementedError();
+    throw UnimplementedError('val: $val, left: $left, right: $right');
   }
 }

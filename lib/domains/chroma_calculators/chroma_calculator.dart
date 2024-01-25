@@ -1,4 +1,4 @@
-import 'dart:math' hide Point;
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
