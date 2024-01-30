@@ -1,4 +1,5 @@
 import 'package:chord/domains/chord.dart';
+import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -231,8 +232,7 @@ void main() {
     final f = f_4096;
     final chord = Chord.C;
 
-    final template =
-        HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
+    final template = PCP.harmonicTemplate(chord, until: 6);
 
     final cc = [
       f.guitar.reassignment(),

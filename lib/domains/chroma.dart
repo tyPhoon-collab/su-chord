@@ -6,7 +6,10 @@ import 'package:flutter/foundation.dart';
 
 import '../utils/histogram.dart';
 import '../utils/table.dart';
+import 'chord.dart';
+import 'chroma_mapper.dart';
 import 'equal_temperament.dart';
+import 'estimator/pattern_matching.dart';
 
 typedef Magnitude = List<double>;
 typedef Magnitudes = List<Magnitude>;
@@ -119,6 +122,29 @@ class PCP extends Chroma {
     }
 
     return PCP(values);
+  }
+
+  factory PCP.template(Chord chord) => PCP(chord.unitPCP.l2normalized.toList());
+
+  factory PCP.harmonicTemplate(
+    Chord chord, {
+    int until = 4,
+    double factor = 0.6,
+  }) =>
+      PCP(
+        HarmonicsChromaScalar(
+          until: until,
+          factor: factor,
+        ).call(chord.unitPCP.l2normalized).toList(),
+      );
+
+  factory PCP.meanTemplate(MeanTemplateContext context) {
+    final root = context.detectableChords.firstOrNull?.root;
+    assert(
+      context.detectableChords.every((e) => e.root == root),
+      'Every detectableChords should be same note',
+    );
+    return PCP(context.meanTemplateChromas.keys.first.toList());
   }
 
   static final zero = PCP(List.filled(12, 0));

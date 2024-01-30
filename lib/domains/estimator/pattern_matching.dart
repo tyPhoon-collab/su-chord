@@ -114,7 +114,8 @@ class MeanTemplateContext extends TemplateContext {
     super.scalar,
     this.meanScalar,
     this.sortedScoreTakeCount = 2,
-  }) : assert(sortedScoreTakeCount <= 12);
+  })  : assert(sortedScoreTakeCount <= 12),
+        super();
 
   factory MeanTemplateContext.harmonicScaling({
     int until = 4,

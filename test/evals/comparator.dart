@@ -34,9 +34,7 @@ class SpotComparator {
     await writer?.call(pcp.l2normalized);
 
     for (final chord in chords) {
-      final template =
-          HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
-
+      final template = PCP.harmonicTemplate(chord, until: 6);
       // writer(template);
 
       final score = const ScoreCalculator.cosine().call(pcp, template);
@@ -58,12 +56,12 @@ class MeanScoreSpotComparator {
   final ChromaMappable? meanScalar;
   final CacheableAudioLoader loader;
 
-  Chroma _buildTemplate(Note note) => MeanTemplateContext(
+  Chroma _buildTemplate(Note note) => PCP.meanTemplate(MeanTemplateContext(
         scalar: scalar,
         meanScalar: meanScalar,
         detectableChords:
             DetectableChords.frontend.where((e) => e.root == note).toSet(),
-      ).meanTemplateChromas.keys.first;
+      ));
 
   Future<void> call({
     required String source,

@@ -35,8 +35,7 @@ void main() {
     final f = f_4096;
     final chord = Chord.parse('C');
 
-    final template =
-        HarmonicsChromaScalar(until: 6).call(chord.unitPCP).l2normalized;
+    final template = PCP.harmonicTemplate(chord, until: 6);
 
     final pcp = f.guitar
         .reassignment(scalar: MagnitudeScalar.ln)

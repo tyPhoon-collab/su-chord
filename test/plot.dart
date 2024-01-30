@@ -259,7 +259,7 @@ void main() {
         test('template C', () async {
           final chord = Chord.parse('C');
           await write(
-            chord.unitPCP.l2normalized,
+            PCP.template(chord),
             title: 'template $chord',
           );
         });
@@ -280,7 +280,8 @@ void main() {
             test('4th', () async {
               final chord = Chord.C;
               await write(
-                HarmonicsChromaScalar().call(chord.unitPCP).l2normalized,
+                // ignore: avoid_redundant_argument_values
+                PCP.harmonicTemplate(chord, until: 4),
                 title: 'template 4 $chord',
               );
             });
@@ -289,9 +290,7 @@ void main() {
               final chord = Chord.C;
               // final chord = Chord.parse('C7');
               await write(
-                HarmonicsChromaScalar(until: 6)
-                    .call(chord.unitPCP)
-                    .l2normalized,
+                PCP.harmonicTemplate(chord, until: 6),
                 title: 'template 6 $chord',
               );
             });
@@ -307,9 +306,7 @@ void main() {
                   Chord.parse('Em'),
                 ])
                   write(
-                    HarmonicsChromaScalar(until: 6)
-                        .call(chord.unitPCP)
-                        .l2normalized,
+                    PCP.harmonicTemplate(chord, until: 6),
                     title: 'template 6 $chord',
                   )
               ]);
@@ -323,9 +320,7 @@ void main() {
               await Future.wait(
                 DetectableChords.conv.where((e) => e.root == root).map(
                       (chord) => write(
-                        HarmonicsChromaScalar(until: 6)
-                            .call(chord.unitPCP)
-                            .l2normalized,
+                        PCP.harmonicTemplate(chord, until: 6),
                         title: 'template 6 $chord',
                       ),
                     ),
@@ -356,12 +351,12 @@ void main() {
           test('m mean', () async {
             const note = Note.C;
 
-            final pcp = MeanTemplateContext.harmonicScaling(
+            final pcp = PCP.meanTemplate(MeanTemplateContext.harmonicScaling(
               until: 6,
               detectableChords: DetectableChords.frontend
                   .where((e) => e.root == note)
                   .toSet(),
-            ).meanTemplateChromas.keys.first;
+            ));
             await write(
               pcp.l2normalized,
               title: 'mean template $note',
@@ -371,12 +366,12 @@ void main() {
           test('m ln mean', () async {
             const note = Note.C;
 
-            final pcp = MeanTemplateContext.harmonicScaling(
+            final pcp = PCP.meanTemplate(MeanTemplateContext.harmonicScaling(
               until: 6,
               detectableChords:
                   DetectableChords.conv.where((e) => e.root == note).toSet(),
               meanScalar: const LogChromaScalar(),
-            ).meanTemplateChromas.keys.first;
+            ));
             await write(
               pcp.l2normalized,
               title: 'mean template ln $note',
