@@ -4,7 +4,6 @@ import '../utils/score.dart';
 import '../utils/table.dart';
 import 'annotation.dart';
 import 'chord.dart';
-import 'equal_temperament.dart';
 
 class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
     implements Transposable<ChordProgression> {

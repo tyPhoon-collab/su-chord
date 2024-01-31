@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'domains/chord.dart';
+import 'domains/chord_search_tree.dart';
 import 'domains/chroma_calculators/chroma_calculator.dart';
 import 'domains/chroma_mapper.dart';
-import 'domains/equal_temperament.dart';
 import 'domains/estimator/estimator.dart';
 import 'domains/estimator/pattern_matching.dart';
 import 'domains/estimator/search.dart';
@@ -135,7 +135,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 3),
           noteExtractable: f.extractor.threshold(scalar: MagnitudeScalar.ln),
           chordSelectable: await f.selector.db,
-          detectableChords: detectableChords,
+          context: Possible(detectableChords),
         ),
   };
 }

@@ -1,3 +1,4 @@
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/factory.dart';
@@ -26,17 +27,7 @@ void main() {
       chromaCalculable: f.guitar.reassignment(),
       chordChangeDetectable: f.hcdf.eval,
       chordSelectable: await f.selector.db,
-    );
-
-    final chords = e.estimate(await DataSet().sample);
-
-    expect(chords.length, 20);
-  });
-
-  test('from notes', () async {
-    final e = FromNotesChordEstimator(
-      chromaCalculable: f.guitar.reassignCombFilter(),
-      chordChangeDetectable: f.hcdf.eval,
+      context: Possible(DetectableChords.frontend),
     );
 
     final chords = e.estimate(await DataSet().sample);

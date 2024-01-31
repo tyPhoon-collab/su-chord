@@ -8,7 +8,6 @@ import '../utils/histogram.dart';
 import '../utils/table.dart';
 import 'chord.dart';
 import 'chroma_mapper.dart';
-import 'equal_temperament.dart';
 import 'estimator/pattern_matching.dart';
 
 typedef Magnitude = List<double>;

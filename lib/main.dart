@@ -19,7 +19,6 @@ class MyApp extends StatelessWidget {
       title: 'Chord',
       theme: theme,
       darkTheme: darkTheme,
-      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
       home: const HomePage(),
       builder: EasyLoading.init(),
       // home: const TestPage(),

@@ -1,6 +1,5 @@
-import '../../service.dart';
 import '../chord.dart';
-import '../chord_selector.dart';
+import '../chord_search_tree.dart';
 import '../chroma.dart';
 import '../note_extractor.dart';
 import 'estimator.dart';
@@ -11,16 +10,16 @@ import 'estimator.dart';
 class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   SearchTreeChordEstimator({
     required super.chromaCalculable,
+    required this.context,
     super.chordChangeDetectable,
     super.chordSelectable,
     super.filters,
     this.noteExtractable = const ThresholdByMaxRatioExtractor(),
-    Set<Chord>? detectableChords,
-  })  : detectableChords = detectableChords ?? DetectableChords.frontend,
-        super();
+  }) : super();
 
-  final Set<Chord> detectableChords;
   final NoteExtractable noteExtractable;
+  final SearchTreeContext context;
+  late final searchChords = searchChordsClosure(context);
 
   @override
   String toString() => 'search tree $noteExtractable, ${super.toString()}';
@@ -28,35 +27,6 @@ class SearchTreeChordEstimator extends SelectableChromaChordEstimator {
   @override
   MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
     final notes = noteExtractable(chroma);
-    return MultiChordCell.first(
-      detectableChords
-          .where((e) => notes.every((note) => e.notes.contains(note)))
-          .toList(),
-    );
-  }
-}
-
-///クロマから演奏音を抽出し、その演奏音全てを含むコードのみを返す
-///もし、複数ある場合は、[ChordSelectable]によって絞り込みを行う
-class FromNotesChordEstimator extends SelectableChromaChordEstimator {
-  FromNotesChordEstimator({
-    required super.chromaCalculable,
-    super.chordChangeDetectable,
-    super.chordSelectable,
-    super.filters,
-    this.noteExtractable = const ThresholdByMaxRatioExtractor(),
-    Set<Chord>? detectableChords,
-  }) : detectableChords = detectableChords ?? DetectableChords.frontend;
-
-  final Set<Chord> detectableChords;
-  final NoteExtractable noteExtractable;
-
-  @override
-  String toString() => 'from notes $noteExtractable, ${super.toString()}';
-
-  @override
-  MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
-    final chords = Chord.fromNotes(noteExtractable(chroma)).toSet();
-    return MultiChordCell.first(chords.intersection(detectableChords).toList());
+    return MultiChordCell.first(searchChords(notes).toList());
   }
 }

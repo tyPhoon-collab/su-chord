@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import '../annotation.dart';
 import '../chord.dart';
 import '../chroma.dart';
-import '../equal_temperament.dart';
 import '../score_calculator.dart';
 
 abstract interface class ChromaChordChangeDetectable {

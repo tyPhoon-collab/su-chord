@@ -7,7 +7,6 @@ import '../chord_selector.dart';
 import '../chroma.dart';
 import '../chroma_calculators/chroma_calculator.dart';
 import '../chroma_mapper.dart';
-import '../equal_temperament.dart';
 import '../filters/chord_change_detector.dart';
 import '../filters/filter.dart';
 import '../score_calculator.dart';

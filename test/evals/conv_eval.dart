@@ -1,3 +1,4 @@
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/factory.dart';
@@ -36,6 +37,7 @@ Future<void> main() async {
 
     await Evaluator(
       estimator: SearchTreeChordEstimator(
+        context: Possible(DetectableChords.conv),
         chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),
         chordChangeDetectable: f.hcdf.eval,
         noteExtractable: logExtractor,

@@ -1,8 +1,6 @@
 import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord.dart';
-import 'package:chord/domains/equal_temperament.dart';
 import 'package:chord/utils/score.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -185,6 +183,10 @@ void main() {
       test('Cdim7', () {
         expect(Chord.parse('Cdim7').toString(), 'Cdim7');
       });
+
+      test('C(omit5)', () {
+        expect(Chord.parse('C(omit5)').toString(), 'C(omit5)');
+      });
     });
 
     group('degree name', () {
@@ -246,90 +248,6 @@ void main() {
   //     expect(cts.singleOrNull, ChordType.minor);
   //   });
   // });
-
-  group('chord from notes', () {
-    test('c e g -> C', () {
-      final cs = Chord.fromNotes([Note.C, Note.E, Note.G]);
-      expect(
-        cs.singleOrNull,
-        equals(Chord.fromType(
-          type: ChordType.major,
-          root: Note.C,
-        )),
-      );
-    });
-
-    test('c e g b -> CM7', () {
-      final cs = Chord.fromNotes([Note.C, Note.E, Note.G, Note.B]);
-      expect(
-        cs.singleOrNull,
-        equals(Chord.fromType(
-          type: ChordType.major,
-          root: Note.C,
-          tensions: ChordTensions.majorSeventh,
-        )),
-      );
-    });
-
-    test('c e g as -> C7', () {
-      final cs = Chord.fromNotes([Note.C, Note.E, Note.G, Note.As]);
-      expect(
-        cs.singleOrNull,
-        equals(Chord.fromType(
-          type: ChordType.major,
-          root: Note.C,
-          tensions: ChordTensions.seventh,
-        )),
-      );
-    });
-
-    test('c e g d -> Cadd9', () {
-      final cs = Chord.fromNotes([Note.C, Note.E, Note.G, Note.D]);
-      debugPrint(cs.length.toString());
-      expect(
-        cs.first,
-        equals(Chord.fromType(
-          type: ChordType.major,
-          root: Note.C,
-          tensions: ChordTensions(const {ChordTension.ninth}),
-        )),
-      );
-    });
-
-    test('c ds fs a -> Cdim7', () {
-      final cs = Chord.fromNotes([Note.C, Note.Ds, Note.Fs, Note.A]);
-      expect(
-        cs.firstOrNull,
-        equals(Chord.fromType(
-          type: ChordType.diminish7,
-          root: Note.C,
-        )),
-      );
-    });
-
-    test('c ds fs -> Cdim', () {
-      final cs = Chord.fromNotes([Note.C, Note.Ds, Note.Fs]);
-      expect(
-        cs.firstOrNull,
-        equals(Chord.fromType(
-          type: ChordType.diminish,
-          root: Note.C,
-        )),
-      );
-    });
-
-    test('c ds g as -> Cm7', () {
-      final cs = Chord.fromNotes([Note.C, Note.Ds, Note.G, Note.As]);
-      expect(
-        cs.firstOrNull,
-        equals(Chord.fromType(
-          type: ChordType.minor,
-          root: Note.C,
-          tensions: ChordTensions.seventh,
-        )),
-      );
-    });
-  });
 
   group('degree to chord', () {
     test(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/estimator.dart';
@@ -8,7 +9,6 @@ import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/note_extractor.dart';
 import 'package:chord/factory.dart';
-import 'package:chord/service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../util.dart';
@@ -36,6 +36,7 @@ Future<void> main() async {
   ];
 
   Evaluator.progressionWriter = null;
+  final detectableChords = DetectableChords.conv;
 
   test('cross validation', () async {
     // Table.bypass = true;
@@ -62,7 +63,7 @@ Future<void> main() async {
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          // templateScalar: HarmonicsChromaScalar(until: 6),
+          context: TemplateContext.harmonicScaling(until: 6),
         ),
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
@@ -70,6 +71,7 @@ Future<void> main() async {
           context: TemplateContext.harmonicScaling(until: 6),
         ),
         SearchTreeChordEstimator(
+          context: Possible(detectableChords),
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
           noteExtractable: switch (chromaCalculable) {
@@ -167,9 +169,9 @@ Future<void> main() async {
 
         for (final estimator in [
           SearchTreeChordEstimator(
+            context: Possible(detectableChords),
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
-            detectableChords: templates,
             noteExtractable: switch (chromaCalculable) {
               final HasMagnitudes value =>
                 f.extractor.threshold(scalar: value.magnitudeScalar),
@@ -325,6 +327,7 @@ Future<void> main() async {
           context: MeanTemplateContext.harmonicScaling(until: 6),
         ),
         SearchTreeChordEstimator(
+          context: Possible(detectableChords),
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
           chordSelectable: await f.selector.db,
@@ -463,9 +466,9 @@ Future<void> main() async {
             ]
           ]) ...[
             SearchTreeChordEstimator(
+              context: Possible(detectableChords),
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
-              detectableChords: detectableChords,
               noteExtractable: switch (chromaCalculable) {
                 final HasMagnitudes value =>
                   f.extractor.threshold(scalar: value.magnitudeScalar),

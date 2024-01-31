@@ -5,7 +5,6 @@ import '../utils/loaders/csv.dart';
 import '../utils/tree.dart';
 import 'chord.dart';
 import 'chord_progression.dart';
-import 'equal_temperament.dart';
 
 abstract interface class ChordSelectable {
   ChordProgression<Chord> call(ChordProgression<Chord> progression);
