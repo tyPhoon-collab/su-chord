@@ -252,7 +252,7 @@ Future<void> main() async {
               chromaCalculable:
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.minorFlatFive,
+              chordSelectable: f.selector.sixth,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
                 detectableChords: DetectableChords.conv,
@@ -270,7 +270,7 @@ Future<void> main() async {
               chromaCalculable:
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
-              chordSelectable: f.selector.minorFlatFive,
+              chordSelectable: f.selector.sixth,
               context: MeanTemplateContext.harmonicScaling(
                 until: 6,
                 detectableChords: DetectableChords.conv,

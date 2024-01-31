@@ -43,6 +43,7 @@ class DetectableChords extends _$DetectableChords {
     '7',
     'm7',
     'M7',
+    'M9',
     'mM7',
     'aug7',
     'm7b5',
@@ -108,7 +109,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
-          chordSelectable: f.selector.minorFlatFive,
+          chordSelectable: f.selector.sixth,
           context: MeanTemplateContext.harmonicScaling(
             until: 6,
             detectableChords: detectableChords,

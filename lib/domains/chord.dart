@@ -516,6 +516,8 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
     this.time,
   });
 
+  const ChordCell.of(this.chord) : time = null;
+
   static const noChordLabel = '***';
 
   final T? chord;

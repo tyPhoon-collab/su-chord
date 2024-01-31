@@ -40,13 +40,13 @@ MARKERS = ["o", "s", "^", "*"]
 LINESTYLES = ["-", "--", "-.", ":"]
 
 plt.rcParams["font.size"] = 14
-LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
-# LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
+# LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
+LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
 
 
 def __get_index(basename: str) -> int:
-    scale = "none"
-    # scale = "ln"
+    # scale = "none"
+    scale = "ln"
     if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
         return 0
     if f"et-scale_sparse_non_reassign_frequency_{scale}_scaled" in basename:

@@ -162,3 +162,59 @@ class MinorFlatFiveChordSelector implements ChordSelectable {
     return ChordProgression(cells);
   }
 }
+
+class SixthChordSelector implements ChordSelectable {
+  const SixthChordSelector();
+
+  @override
+  String toString() => 'sixth decision';
+
+  @override
+  ChordProgression<Chord> call(ChordProgression<Chord> progression) {
+    final cells = <ChordCell<Chord>>[];
+
+    for (int i = 0; i < progression.length - 1; i++) {
+      var cell = progression[i];
+
+      final nextChord = progression[i + 1].chord;
+
+      if (nextChord != null &&
+          cell is MultiChordCell<Chord> &&
+          cell.chords.length > 1) {
+        final chord = cell.chord;
+        if (chord != null && _isSixth(chord)) {
+          for (final chord in cell.chords) {
+            final degreeIndex =
+                chord.root.positiveDegreeIndexTo(nextChord.root);
+
+            if (chord.type
+                case ChordType.minorSeventhFlatFive || ChordType.minor) {
+              if (degreeIndex == NamedDegree.P4.degreeIndex ||
+                  degreeIndex == NamedDegree.M7.degreeIndex) {
+                cell = cell.copyWith(chord: chord);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      cells.add(cell);
+    }
+
+    if (progression.isNotEmpty) {
+      cells.add(progression.last);
+    }
+
+    return ChordProgression(cells);
+  }
+
+  bool _isSixth(Chord chord) {
+    if (chord.type case ChordType.major || ChordType.minor) {
+      if (chord.tensions.contains(ChordTension.sixth)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}

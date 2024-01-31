@@ -263,6 +263,9 @@ final class ChordSelectorFactory {
 
   @factory
   ChordSelectable get minorFlatFive => const MinorFlatFiveChordSelector();
+
+  @factory
+  ChordSelectable get sixth => const SixthChordSelector();
 }
 
 final class NoteExtractorFactory {
