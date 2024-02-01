@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../service.dart';
 import '../chord.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
@@ -12,45 +11,52 @@ import '../filters/filter.dart';
 import '../score_calculator.dart';
 import 'estimator.dart';
 
-class TemplateContext {
-  TemplateContext({
-    ScoreCalculator? scoreCalculator,
-    this.scoreThreshold,
-    this.scalar,
-    Set<Chord>? detectableChords,
-  })  : assert(detectableChords == null || detectableChords.isNotEmpty),
-        detectableChords = detectableChords ?? DetectableChords.frontend,
-        scoreCalculator = scoreCalculator ?? const ScoreCalculator.cosine();
-
-  factory TemplateContext.harmonicScaling({
-    int until = 4,
-    double factor = 0.6,
-    Set<Chord>? detectableChords,
-    ScoreCalculator? scoreCalculator,
-    double? scoreThreshold,
-  }) =>
-      TemplateContext(
-        scalar: HarmonicsChromaScalar(until: until, factor: factor),
-        scoreCalculator: scoreCalculator,
-        scoreThreshold: scoreThreshold,
-        detectableChords: detectableChords,
-      );
+abstract class PatternMatchingContext {
+  PatternMatchingContext(this.detectableChords)
+      : assert(detectableChords.isNotEmpty, detectableChords.toString());
 
   final Set<Chord> detectableChords;
-  final ScoreCalculator scoreCalculator;
-  final double? scoreThreshold;
-  final ChromaMappable? scalar;
 
-  late final threshold = scoreThreshold ?? double.negativeInfinity;
-  late final templateChromas = _toTemplate();
+  late final templateChromas = buildTemplateChroma();
 
-  Map<Chroma, List<Chord>> _toTemplate() => groupBy(
-        detectableChords,
-        (p0) => scalar?.call(p0.unitPCP) ?? p0.unitPCP,
-      );
+  Map<Chroma, List<Chord>> buildTemplateChroma() =>
+      groupBy(detectableChords, buildTemplate);
+
+  Chroma buildTemplate(Chord chord);
+}
+
+class Template extends PatternMatchingContext {
+  Template(super.detectableChords) : super();
 
   @override
-  String toString() => '$scoreCalculator ${scalar ?? 'none'} template scaled';
+  Chroma buildTemplate(Chord chord) => PCP.template(chord);
+
+  @override
+  String toString() => 'unit';
+}
+
+class ScaledTemplate extends PatternMatchingContext {
+  ScaledTemplate(
+    super.detectableChords, {
+    required this.scalar,
+  }) : super();
+
+  ScaledTemplate.overtoneBy4th(super.detectableChords, {double factor = 0.6})
+      // ignore: avoid_redundant_argument_values
+      : scalar = HarmonicsChromaScalar(until: 4, factor: factor),
+        super();
+
+  ScaledTemplate.overtoneBy6th(super.detectableChords, {double factor = 0.6})
+      : scalar = HarmonicsChromaScalar(until: 6, factor: factor),
+        super();
+
+  final ChromaMappable scalar;
+
+  @override
+  Chroma buildTemplate(Chord chord) => scalar(PCP.template(chord));
+
+  @override
+  String toString() => 'overtone $scalar';
 }
 
 class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
@@ -60,23 +66,28 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
     super.overridable,
     super.chordSelectable,
     super.filters,
-    TemplateContext? context,
-  }) : context = context ?? TemplateContext();
+    this.scoreCalculator = const ScoreCalculator.cosine(),
+    double? scoreThreshold,
+    required this.context,
+  })  : scoreThreshold = scoreThreshold ?? double.negativeInfinity,
+        super();
 
-  final TemplateContext context;
+  final PatternMatchingContext context;
+  final ScoreCalculator scoreCalculator;
+  final double scoreThreshold;
 
   @override
-  String toString() => 'matching $context, ${super.toString()}';
+  String toString() =>
+      '$scoreCalculator matching $context, ${super.toString()}';
 
-  //TODO 計算量削減
   @override
   MultiChordCell<Chord> getUnselectedMultiChordCell(Chroma chroma) {
     List<Chord>? chords;
     double maxScore = double.negativeInfinity;
 
     for (final MapEntry(:key, :value) in context.templateChromas.entries) {
-      final score = context.scoreCalculator(chroma, key);
-      if (score >= context.threshold && score > maxScore) {
+      final score = scoreCalculator(chroma, key);
+      if (score >= scoreThreshold && score > maxScore) {
         maxScore = score;
         chords = value;
       }
@@ -89,8 +100,10 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
   PatternMatchingChordEstimator copyWith({
     ChromaCalculable? chromaCalculable,
     ChromaChordChangeDetectable? chordChangeDetectable,
+    ScoreCalculator? scoreCalculator,
+    double? scoreThreshold,
     ChromaChordEstimatorOverridable? overridable,
-    TemplateContext? context,
+    PatternMatchingContext? context,
     ChordSelectable? chordSelectable,
     List<ChromaListFilter>? filters,
   }) =>
@@ -98,6 +111,8 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
         chromaCalculable: chromaCalculable ?? this.chromaCalculable,
         chordChangeDetectable:
             chordChangeDetectable ?? this.chordChangeDetectable,
+        scoreCalculator: scoreCalculator ?? this.scoreCalculator,
+        scoreThreshold: scoreThreshold ?? this.scoreThreshold,
         overridable: overridable ?? this.overridable,
         chordSelectable: chordSelectable ?? this.chordSelectable,
         context: context ?? this.context,
@@ -105,77 +120,98 @@ class PatternMatchingChordEstimator extends SelectableChromaChordEstimator {
       );
 }
 
-class MeanTemplateContext extends TemplateContext {
-  MeanTemplateContext({
-    super.scoreCalculator,
-    super.scoreThreshold,
-    super.detectableChords,
-    super.scalar,
-    this.meanScalar,
+abstract class MeanPatternMatchingContext {
+  MeanPatternMatchingContext(
+    this.detectableChords, {
+    required this.templateBuilder,
     this.sortedScoreTakeCount = 2,
   })  : assert(sortedScoreTakeCount <= 12),
+        assert(detectableChords.isNotEmpty),
         super();
 
-  factory MeanTemplateContext.harmonicScaling({
-    int until = 4,
-    double factor = 0.6,
-    Set<Chord>? detectableChords,
-    ScoreCalculator? scoreCalculator,
-    double? scoreThreshold,
-    int sortedScoreTakeCount = 2,
-    ChromaMappable? meanScalar,
-  }) =>
-      MeanTemplateContext(
-        scalar: HarmonicsChromaScalar(until: until, factor: factor),
-        scoreCalculator: scoreCalculator,
-        scoreThreshold: scoreThreshold,
-        detectableChords: detectableChords,
-        sortedScoreTakeCount: sortedScoreTakeCount,
-        meanScalar: meanScalar,
-      );
-
   final int sortedScoreTakeCount;
-  final ChromaMappable? meanScalar;
+  final Set<Chord> detectableChords;
+  final PatternMatchingContext Function(Set<Chord> chords) templateBuilder;
 
-  late final meanTemplateChromas = _toMeanTemplate();
+  late final meanTemplateChromas = buildMeanTemplateChromas();
 
   ///key  : 平均化されたPCPのクロマ
   ///value: 平均化されたPCPに使用されたテンプレートPCPとコード群のMap
-  Map<Chroma, Map<Chroma, List<Chord>>> _toMeanTemplate() {
-    Chroma scaledPCP(Chord e) => scalar?.call(e.unitPCP) ?? e.unitPCP;
-
-    return Map.fromEntries(Note.sharpNotes
-        .map((e) => detectableChords.where((chord) => chord.root == e))
-        .where((chords) => chords.isNotEmpty)
-        .map((chords) {
-      final mean = chords
-          .map((e) => scaledPCP(e))
-          .reduce((value, element) => value + element);
-
-      return MapEntry(
-        meanScalar?.call(mean) ?? mean,
-        groupBy(chords, (e) => scaledPCP(e)),
+  Map<Chroma, Map<Chroma, List<Chord>>> buildMeanTemplateChromas() =>
+      Map.fromIterable(
+        Note.sharpNotes,
+        key: (note) => buildMeanTemplate(note),
+        value: (note) {
+          final chords = detectableChords.where((e) => e.root == note).toSet();
+          return templateBuilder(chords).buildTemplateChroma();
+        },
       );
-    }));
-  }
 
-  MeanTemplateContext copyWith({
-    ScoreCalculator? scoreCalculator,
-    double? scoreThreshold,
-    Set<Chord>? detectableChords,
-    ChromaMappable? scalar,
-    ChromaMappable? meanScalar,
-    int? sortedScoreTakeCount,
-  }) {
-    return MeanTemplateContext(
-      scoreCalculator: scoreCalculator ?? this.scoreCalculator,
-      scoreThreshold: scoreThreshold ?? this.scoreThreshold,
-      detectableChords: detectableChords ?? this.detectableChords,
-      scalar: scalar ?? this.scalar,
-      meanScalar: meanScalar ?? this.meanScalar,
-      sortedScoreTakeCount: sortedScoreTakeCount ?? this.sortedScoreTakeCount,
-    );
-  }
+  Chroma buildMeanTemplate(Note note);
+}
+
+class MeanTemplate extends MeanPatternMatchingContext {
+  MeanTemplate(
+    super.detectableChords, {
+    required super.templateBuilder,
+    super.sortedScoreTakeCount = 2,
+  }) : super();
+
+  factory MeanTemplate.basic(Set<Chord> detectableChords) => MeanTemplate(
+        detectableChords,
+        templateBuilder: Template.new,
+      );
+
+  factory MeanTemplate.overtoneBy4th(Set<Chord> detectableChords) =>
+      MeanTemplate(
+        detectableChords,
+        templateBuilder: ScaledTemplate.overtoneBy4th,
+      );
+
+  factory MeanTemplate.overtoneBy6th(Set<Chord> detectableChords) =>
+      MeanTemplate(
+        detectableChords,
+        templateBuilder: ScaledTemplate.overtoneBy6th,
+      );
+
+  @override
+  Chroma buildMeanTemplate(Note note) => detectableChords
+      .where((e) => e.root == note)
+      .map(PCP.template)
+      .fold(Chroma.zero(12), (value, element) => value + element);
+}
+
+class LnMeanTemplate extends MeanPatternMatchingContext {
+  LnMeanTemplate(
+    super.detectableChords, {
+    required super.templateBuilder,
+    super.sortedScoreTakeCount = 3,
+  });
+
+  factory LnMeanTemplate.basic(Set<Chord> detectableChords) => LnMeanTemplate(
+        detectableChords,
+        templateBuilder: Template.new,
+      );
+
+  factory LnMeanTemplate.overtoneBy4th(Set<Chord> detectableChords) =>
+      LnMeanTemplate(
+        detectableChords,
+        templateBuilder: ScaledTemplate.overtoneBy4th,
+      );
+
+  factory LnMeanTemplate.overtoneBy6th(Set<Chord> detectableChords) =>
+      LnMeanTemplate(
+        detectableChords,
+        templateBuilder: ScaledTemplate.overtoneBy6th,
+      );
+
+  @override
+  Chroma buildMeanTemplate(Note note) => const LogChromaScalar().call(
+        detectableChords
+            .where((e) => e.root == note)
+            .map(PCP.template)
+            .fold(Chroma.zero(12), (value, element) => value + element),
+      );
 }
 
 ///ルート音を基準としてグループ化する
@@ -187,10 +223,15 @@ class MeanTemplatePatternMatchingChordEstimator
     super.overridable,
     super.chordSelectable,
     super.filters,
-    MeanTemplateContext? context,
-  }) : context = context ?? MeanTemplateContext();
+    this.scoreCalculator = const ScoreCalculator.cosine(),
+    double? scoreThreshold,
+    required this.context,
+  })  : scoreThreshold = scoreThreshold ?? double.negativeInfinity,
+        super();
 
-  final MeanTemplateContext context;
+  final MeanPatternMatchingContext context;
+  final ScoreCalculator scoreCalculator;
+  final double scoreThreshold;
 
   @override
   String toString() => 'mean matching $context, ${super.toString()}';
@@ -211,7 +252,7 @@ class MeanTemplatePatternMatchingChordEstimator
     return context.meanTemplateChromas.keys
         .map((e) => (
               chroma: e,
-              score: context.scoreCalculator(chroma, e),
+              score: scoreCalculator(chroma, e),
             ))
         .sorted((a, b) => b.score.compareTo(a.score));
   }
@@ -225,9 +266,9 @@ class MeanTemplatePatternMatchingChordEstimator
 
     for (final MapEntry(:key, :value)
         in context.meanTemplateChromas[scoreRecord.chroma]!.entries) {
-      final score = context.scoreCalculator(chroma, key);
+      final score = scoreCalculator(chroma, key);
       final weightedScore = score * scoreRecord.score;
-      if (score >= context.threshold && weightedScore > maxScore) {
+      if (score >= scoreThreshold && weightedScore > maxScore) {
         maxScore = weightedScore;
         chords = value;
       }
@@ -240,15 +281,19 @@ class MeanTemplatePatternMatchingChordEstimator
   MeanTemplatePatternMatchingChordEstimator copyWith({
     ChromaCalculable? chromaCalculable,
     ChromaChordChangeDetectable? chordChangeDetectable,
+    ScoreCalculator? scoreCalculator,
+    double? scoreThreshold,
     ChromaChordEstimatorOverridable? overridable,
     ChordSelectable? chordSelectable,
     List<ChromaListFilter>? filters,
-    MeanTemplateContext? context,
+    MeanPatternMatchingContext? context,
   }) =>
       MeanTemplatePatternMatchingChordEstimator(
         chromaCalculable: chromaCalculable ?? this.chromaCalculable,
         chordChangeDetectable:
             chordChangeDetectable ?? this.chordChangeDetectable,
+        scoreCalculator: scoreCalculator ?? this.scoreCalculator,
+        scoreThreshold: scoreThreshold ?? this.scoreThreshold,
         overridable: overridable ?? this.overridable,
         chordSelectable: chordSelectable ?? this.chordSelectable,
         filters: filters ?? this.filters,

@@ -6,6 +6,7 @@ import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,10 +55,12 @@ Future<void> main() async {
 
   group('HCDF', () {
     final f = f_4096;
-    final base = PatternMatchingChordEstimator(
+    final base = MeanTemplatePatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      context: TemplateContext.harmonicScaling(until: 6),
+      scoreThreshold: 0.8,
+      context: LnMeanTemplate.overtoneBy6th(DetectableChords.conv),
     );
+
     const threshold = 30.0;
 
     ChordEstimable estimable(String name) => switch (name) {

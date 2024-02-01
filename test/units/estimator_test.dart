@@ -10,14 +10,14 @@ import '../util.dart';
 
 void main() {
   final f = f_4096;
+  final estimator = PatternMatchingChordEstimator(
+    chromaCalculable: f.guitar.reassignment(),
+    chordChangeDetectable: f.hcdf.eval,
+    context: Template(DetectableChords.conv),
+  );
 
   test('reassignment', () async {
-    final e = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitar.reassignment(),
-      chordChangeDetectable: f.hcdf.eval,
-    );
-
-    final chords = e.estimate(await DataSet().sample);
+    final chords = estimator.estimate(await DataSet().sample);
 
     expect(chords.length, 20);
   });
@@ -37,16 +37,12 @@ void main() {
 
   group('stream', () {
     test('22050 chunk size', () async {
-      final e = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignment(),
-        chordChangeDetectable: f.hcdf.eval,
-      );
       await for (final chords in const AudioStreamEmulator()
           .stream(await DataSet().G_Em_Bm_C)
-          .map((data) => e.estimate(data, false))) {
+          .map((data) => estimator.estimate(data, false))) {
         debugPrint(chords.toString());
       }
-      debugPrint(e.flush().toString());
+      debugPrint(estimator.flush().toString());
     });
   });
 }

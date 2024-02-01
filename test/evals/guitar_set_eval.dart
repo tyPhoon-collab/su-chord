@@ -7,6 +7,7 @@ import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
+import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 import 'package:chord/utils/table.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,12 +36,8 @@ Future<void> main() async {
 
   final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-    context: MeanTemplateContext.harmonicScaling(
-      until: 6,
-      scoreThreshold: 0.8,
-      sortedScoreTakeCount: 3,
-      meanScalar: const LogChromaScalar(),
-    ),
+    scoreThreshold: 0.8,
+    context: LnMeanTemplate.overtoneBy6th(DetectableChords.conv),
   );
 
   const threshold = 15.0;

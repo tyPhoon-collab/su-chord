@@ -1,6 +1,7 @@
 import 'package:chord/domains/chord.dart';
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_mapper.dart';
+import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
@@ -162,9 +163,8 @@ void main() {
   group('compare mean template score', () {
     final f = f_4096;
     final compare = MeanScoreSpotComparator(
+      LnMeanTemplate.overtoneBy6th(DetectableChords.frontend),
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      scalar: HarmonicsChromaScalar(until: 6),
-      meanScalar: const LogChromaScalar(),
     );
 
     test('cm C', () async {
@@ -216,6 +216,14 @@ void main() {
         source:
             'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
         index: 5,
+      );
+    });
+
+    test('7 B7', () async {
+      await compare(
+        source:
+            'assets/evals/Halion_CleanStratGuitar/7_Halion_CleanStratGuitar.wav',
+        index: 1,
       );
     });
 

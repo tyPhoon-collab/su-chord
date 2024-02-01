@@ -4,7 +4,6 @@ import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
-import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';
 import 'package:chord/service.dart';
 import 'package:chord/utils/measure.dart';
@@ -36,6 +35,7 @@ Future<void> main() async {
   // Table.bypass = true;
   Measure.logger = null;
   Evaluator.progressionWriter = null;
+  final detectableChords = DetectableChords.conv;
 
   group('prop', () {
     final f = f_4096;
@@ -47,6 +47,7 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
+              context: Template(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'reassign comb')
@@ -59,6 +60,7 @@ Future<void> main() async {
               chromaCalculable:
                   f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
+              context: Template(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'ln reassign comb')
@@ -73,6 +75,7 @@ Future<void> main() async {
               filters: [
                 const CompressionFilter(),
               ],
+              context: Template(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'compression')
@@ -86,11 +89,8 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext(
-                scoreCalculator: const ScoreCalculator.cosine(
-                  ToTonalCentroid(),
-                ),
-              ),
+              context: ScaledTemplate(detectableChords,
+                  scalar: const ToTonalCentroid()),
             ),
           )
               .evaluate(contexts, header: 'tonal')
@@ -102,10 +102,9 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext(
-                scoreCalculator: const ScoreCalculator.cosine(
-                  ToTonalIntervalVector.musical(),
-                ),
+              context: ScaledTemplate(
+                detectableChords,
+                scalar: const ToTonalIntervalVector.musical(),
               ),
             ),
           )
@@ -118,10 +117,9 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext(
-                scoreCalculator: const ScoreCalculator.cosine(
-                  ToTonalIntervalVector.symbolic(),
-                ),
+              context: ScaledTemplate(
+                detectableChords,
+                scalar: const ToTonalIntervalVector.symbolic(),
               ),
             ),
           )
@@ -134,10 +132,9 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext(
-                scoreCalculator: const ScoreCalculator.cosine(
-                  ToTonalIntervalVector.harte(),
-                ),
+              context: ScaledTemplate(
+                detectableChords,
+                scalar: const ToTonalIntervalVector.harte(),
               ),
             ),
           )
@@ -153,10 +150,7 @@ Future<void> main() async {
               chromaCalculable:
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext.harmonicScaling(
-                until: 6,
-                detectableChords: DetectableChords.conv,
-              ),
+              context: ScaledTemplate.overtoneBy6th(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'reassign')
@@ -172,7 +166,7 @@ Future<void> main() async {
                 isReassignTime: false,
               ),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext.harmonicScaling(until: 6),
+              context: ScaledTemplate.overtoneBy6th(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'non reassign')
@@ -186,7 +180,8 @@ Future<void> main() async {
             estimator: PatternMatchingChordEstimator(
               chromaCalculable: f.guitar.reassignCombFilter(),
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext(
+              context: ScaledTemplate(
+                detectableChords,
                 scalar: const OnlyThirdHarmonicChromaScalar(0.2),
               ),
             ),
@@ -196,15 +191,16 @@ Future<void> main() async {
         });
 
         group('harmonics scaled', () {
-          late final estimator = PatternMatchingChordEstimator(
+          final estimator = PatternMatchingChordEstimator(
             chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
             chordChangeDetectable: f.hcdf.eval,
+            context: Template(detectableChords),
           );
 
           test('0.6 4', () async {
             await Evaluator(
               estimator: estimator.copyWith(
-                context: TemplateContext.harmonicScaling(),
+                context: ScaledTemplate.overtoneBy4th(detectableChords),
               ),
             )
                 .evaluate(contexts, header: 'harmonics scaled')
@@ -214,7 +210,7 @@ Future<void> main() async {
           test('0.6 6', () async {
             await Evaluator(
               estimator: estimator.copyWith(
-                context: TemplateContext.harmonicScaling(until: 6),
+                context: ScaledTemplate.overtoneBy6th(detectableChords),
               ),
             )
                 .evaluate(contexts, header: 'harmonics scaled')
@@ -224,7 +220,10 @@ Future<void> main() async {
           test('0.7 6', () async {
             await Evaluator(
               estimator: estimator.copyWith(
-                context: TemplateContext.harmonicScaling(factor: 0.7, until: 6),
+                context: ScaledTemplate.overtoneBy6th(
+                  detectableChords,
+                  factor: 0.7,
+                ),
               ),
             )
                 .evaluate(contexts, header: 'harmonics scaled')
@@ -234,7 +233,10 @@ Future<void> main() async {
           test('0.8 6', () async {
             await Evaluator(
               estimator: estimator.copyWith(
-                context: TemplateContext.harmonicScaling(factor: 0.8, until: 6),
+                context: ScaledTemplate.overtoneBy6th(
+                  detectableChords,
+                  factor: 0.8,
+                ),
               ),
             )
                 .evaluate(contexts, header: 'harmonics scaled')
@@ -253,10 +255,7 @@ Future<void> main() async {
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.sixth,
-              context: MeanTemplateContext.harmonicScaling(
-                until: 6,
-                detectableChords: DetectableChords.conv,
-              ),
+              context: MeanTemplate.overtoneBy6th(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'mean reassign')
@@ -271,17 +270,12 @@ Future<void> main() async {
                   f.guitar.reassignment(scalar: MagnitudeScalar.ln),
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.sixth,
-              context: MeanTemplateContext.harmonicScaling(
-                until: 6,
-                detectableChords: DetectableChords.conv,
-                meanScalar: const LogChromaScalar(),
-                sortedScoreTakeCount: 3,
-                scoreThreshold: 0.8,
-              ),
+              scoreThreshold: 0.8,
+              context: LnMeanTemplate.overtoneBy6th(detectableChords),
             ),
           )
               .evaluate(contexts, header: 'mean reassign ln')
-              .toCSV('test/outputs/mean_reassign_ln.csv');
+              .toCSV('test/outputs/mean_reassign_ln_new.csv');
         });
       });
     });

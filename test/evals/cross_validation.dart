@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
-import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/estimator.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
@@ -63,12 +62,17 @@ Future<void> main() async {
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          context: TemplateContext.harmonicScaling(until: 6),
+          context: Template(detectableChords),
         ),
         PatternMatchingChordEstimator(
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
-          context: TemplateContext.harmonicScaling(until: 6),
+          context: ScaledTemplate.overtoneBy4th(detectableChords),
+        ),
+        PatternMatchingChordEstimator(
+          chromaCalculable: chromaCalculable,
+          chordChangeDetectable: f.hcdf.eval,
+          context: ScaledTemplate.overtoneBy6th(detectableChords),
         ),
         SearchTreeChordEstimator(
           context: Possible(detectableChords),
@@ -128,7 +132,7 @@ Future<void> main() async {
             PatternMatchingChordEstimator(
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
-              context: TemplateContext.harmonicScaling(until: 6),
+              context: ScaledTemplate.overtoneBy6th(detectableChords),
             )
         ]) {
           final fileName = estimator.sanitize();
@@ -148,13 +152,6 @@ Future<void> main() async {
 
     group('paper', () {
       const folderName = 'NCSP_paper';
-      final templates = DetectableChords.conv;
-      final meanContext = MeanTemplateContext(
-        detectableChords: templates,
-        meanScalar: const LogChromaScalar(),
-        sortedScoreTakeCount: 3,
-        scoreThreshold: 0.8,
-      );
 
       //従来法と同じ条件で推定システムのみを変更する
       test('matching vs search', () async {
@@ -183,22 +180,19 @@ Future<void> main() async {
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             chordSelectable: f.selector.minorFlatFive,
-            context: meanContext,
+            context: LnMeanTemplate.basic(detectableChords),
           ),
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             chordSelectable: f.selector.minorFlatFive,
-            context:
-                // ignore: avoid_redundant_argument_values
-                meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 4)),
+            context: LnMeanTemplate.overtoneBy4th(detectableChords),
           ),
           MeanTemplatePatternMatchingChordEstimator(
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             chordSelectable: f.selector.minorFlatFive,
-            context:
-                meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 6)),
+            context: LnMeanTemplate.overtoneBy6th(detectableChords),
           ),
         ]) {
           final fileName = estimator.sanitize();
@@ -233,8 +227,7 @@ Future<void> main() async {
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.minorFlatFive,
-              context:
-                  meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 6)),
+              context: LnMeanTemplate.overtoneBy6th(detectableChords),
             ),
         ]) {
           final fileName = estimator.sanitize();
@@ -275,8 +268,7 @@ Future<void> main() async {
                 chromaCalculable: chromaCalculable,
                 chordChangeDetectable: f.hcdf.eval,
                 chordSelectable: f.selector.minorFlatFive,
-                context: meanContext.copyWith(
-                    scalar: HarmonicsChromaScalar(until: 6)),
+                context: LnMeanTemplate.overtoneBy6th(detectableChords),
               ),
           ]) {
             final fileName = estimator.sanitize();
@@ -324,7 +316,7 @@ Future<void> main() async {
           chromaCalculable: chromaCalculable,
           chordChangeDetectable: f.hcdf.eval,
           chordSelectable: f.selector.minorFlatFive,
-          context: MeanTemplateContext.harmonicScaling(until: 6),
+          context: LnMeanTemplate.overtoneBy6th(detectableChords),
         ),
         SearchTreeChordEstimator(
           context: Possible(detectableChords),
@@ -388,13 +380,8 @@ Future<void> main() async {
             chromaCalculable: chromaCalculable,
             chordChangeDetectable: f.hcdf.eval,
             chordSelectable: f.selector.minorFlatFive,
-            context: MeanTemplateContext.harmonicScaling(
-              until: 6,
-              detectableChords: DetectableChords.conv,
-              meanScalar: const LogChromaScalar(),
-              sortedScoreTakeCount: 3,
-              scoreThreshold: 0.8,
-            ),
+            scoreThreshold: 0.8,
+            context: LnMeanTemplate.overtoneBy6th(detectableChords),
           ),
       ]) {
         final fileName = estimator.sanitize();
@@ -428,13 +415,6 @@ Future<void> main() async {
 
     final directory = await Directory(folderPath).create(recursive: true);
     final detectableChords = DetectableChords.conv;
-
-    final meanContext = MeanTemplateContext(
-      detectableChords: detectableChords,
-      meanScalar: const LogChromaScalar(),
-      sortedScoreTakeCount: 3,
-      scoreThreshold: 0.8,
-    );
 
     await Future.wait([
       for (final f in [
@@ -480,22 +460,19 @@ Future<void> main() async {
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.minorFlatFive,
-              context: meanContext,
+              context: LnMeanTemplate.basic(detectableChords),
             ),
             MeanTemplatePatternMatchingChordEstimator(
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.minorFlatFive,
-              context:
-                  // ignore: avoid_redundant_argument_values
-                  meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 4)),
+              context: LnMeanTemplate.overtoneBy4th(detectableChords),
             ),
             MeanTemplatePatternMatchingChordEstimator(
               chromaCalculable: chromaCalculable,
               chordChangeDetectable: f.hcdf.eval,
               chordSelectable: f.selector.minorFlatFive,
-              context:
-                  meanContext.copyWith(scalar: HarmonicsChromaScalar(until: 6)),
+              context: LnMeanTemplate.overtoneBy6th(detectableChords),
             ),
           ]
         ])

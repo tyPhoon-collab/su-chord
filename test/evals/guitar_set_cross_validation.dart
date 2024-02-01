@@ -1,3 +1,4 @@
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -28,7 +29,8 @@ Future<void> main() async {
   // final base = PatternMatchingChordEstimator(
   final base = MeanTemplatePatternMatchingChordEstimator(
     chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-    context: MeanTemplateContext.harmonicScaling(until: 6, scoreThreshold: 0.8),
+    scoreThreshold: 0.8,
+    context: LnMeanTemplate.overtoneBy6th(DetectableChords.conv),
   );
 
   HCDFEvaluator.progressionWriter = null;

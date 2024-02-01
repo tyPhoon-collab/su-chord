@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:chord/domains/annotation.dart';
 import 'package:chord/domains/chord_progression.dart';
+import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
@@ -24,6 +25,10 @@ import '../writer.dart';
 Future<void> main() async {
   final f = f_8192;
   late final ChordProgression corrects;
+  final base = PatternMatchingChordEstimator(
+    chromaCalculable: f.guitar.reassignCombFilter(),
+    context: ScaledTemplate.overtoneBy6th(DetectableChords.conv),
+  );
 
   setUpAll(() async {
     corrects = ChordProgression.fromChordRow(
@@ -76,17 +81,6 @@ Future<void> main() async {
         const Slice(3, 4),
       ]); // same as chromas.length
     });
-
-    test('estimator', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignCombFilter(),
-        chordChangeDetectable: f.hcdf.eval,
-      );
-      final progress = estimator.estimate(await DataSet().sample);
-      debugPrint('deltaTime: ${f.context.deltaTime}');
-      debugPrint(progress.toDetailString());
-      expect(progress.length, 20);
-    });
   });
 
   group('threshold', () {
@@ -102,8 +96,7 @@ Future<void> main() async {
     });
 
     test('estimate', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignCombFilter(),
+      final estimator = base.copyWith(
         chordChangeDetectable: f.hcdf.threshold(15),
       );
       final progress = estimator.estimate(await DataSet().sample);
@@ -113,8 +106,7 @@ Future<void> main() async {
   });
 
   test('triad', () async {
-    final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitar.reassignCombFilter(),
+    final estimator = base.copyWith(
       chordChangeDetectable: f.hcdf.triad(threshold: 15),
     );
     final progress = estimator.estimate(await DataSet().sample);
@@ -123,8 +115,7 @@ Future<void> main() async {
 
   group('fold', () {
     test('no smoothing', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignCombFilter(),
+      final estimator = base.copyWith(
         chordChangeDetectable: f.hcdf.frame(20),
       );
       final progression = estimator.estimate(await DataSet().sample);
@@ -132,8 +123,7 @@ Future<void> main() async {
     });
 
     test('average', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignCombFilter(),
+      final estimator = base.copyWith(
         chordChangeDetectable: f.hcdf.frame(20),
         filters: [
           const AverageFilter(kernelRadius: 1),
@@ -144,8 +134,7 @@ Future<void> main() async {
     });
 
     test('gaussian', () async {
-      final estimator = PatternMatchingChordEstimator(
-        chromaCalculable: f.guitar.reassignCombFilter(),
+      final estimator = base.copyWith(
         chordChangeDetectable: f.hcdf.frame(20),
         filters: [
           GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
@@ -247,8 +236,7 @@ Future<void> main() async {
 
     group('cosine similarity', () {
       test('0.8', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreThreshold: 0.8,
@@ -259,8 +247,7 @@ Future<void> main() async {
       });
 
       test('0.9', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreThreshold: 0.9,
@@ -271,9 +258,7 @@ Future<void> main() async {
       });
 
       test('log', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable:
-              f.guitar.reassignCombFilter(scalar: MagnitudeScalar.ln),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: log(15),
             scoreThreshold: 0.8,
@@ -286,8 +271,7 @@ Future<void> main() async {
 
     group('tonal centroid', () {
       test('0.8', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
@@ -299,8 +283,7 @@ Future<void> main() async {
       });
 
       test('0.9', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreCalculator: const ScoreCalculator.cosine(ToTonalCentroid()),
@@ -314,8 +297,7 @@ Future<void> main() async {
 
     group('TIV', () {
       test('0.8', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreCalculator:
@@ -328,8 +310,7 @@ Future<void> main() async {
       });
 
       test('0.9', () async {
-        final estimator = PatternMatchingChordEstimator(
-          chromaCalculable: f.guitar.reassignCombFilter(),
+        final estimator = base.copyWith(
           chordChangeDetectable: f.hcdf.preFrameCheck(
             powerThreshold: 20,
             scoreCalculator:
@@ -349,7 +330,7 @@ Future<void> main() async {
     final estimator = PatternMatchingChordEstimator(
       chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
       chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 20),
-      context: TemplateContext.harmonicScaling(until: 6),
+      context: ScaledTemplate.overtoneBy6th(DetectableChords.conv),
     );
     final data = await DataSet().sample;
 

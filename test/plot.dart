@@ -340,22 +340,11 @@ void main() {
         });
 
         group('mean', () {
-          test('print chord group', () {
-            const note = Note.C;
-
-            logTest(DetectableChords.frontend
-                .where((e) => e.root == note)
-                .toList());
-          });
+          final detectableChords = DetectableChords.conv;
+          const note = Note.C;
           test('m mean', () async {
-            const note = Note.C;
-
-            final pcp = PCP.meanTemplate(MeanTemplateContext.harmonicScaling(
-              until: 6,
-              detectableChords: DetectableChords.frontend
-                  .where((e) => e.root == note)
-                  .toSet(),
-            ));
+            final pcp = MeanTemplate.overtoneBy6th(detectableChords)
+                .buildMeanTemplate(note);
             await write(
               pcp.l2normalized,
               title: 'mean template $note',
@@ -363,34 +352,12 @@ void main() {
           });
 
           test('m ln mean', () async {
-            const note = Note.C;
-
-            final pcp = PCP.meanTemplate(MeanTemplateContext.harmonicScaling(
-              until: 6,
-              detectableChords:
-                  DetectableChords.conv.where((e) => e.root == note).toSet(),
-              meanScalar: const LogChromaScalar(),
-            ));
+            final pcp = LnMeanTemplate.overtoneBy6th(detectableChords)
+                .buildMeanTemplate(note);
             await write(
               pcp.l2normalized,
               title: 'mean template ln $note',
             );
-          });
-
-          test('m for figure', () async {
-            await Future.wait([
-              for (final note in [Note.C, Note.A, Note.E])
-                write(
-                  MeanTemplateContext.harmonicScaling(
-                    until: 6,
-                    detectableChords: DetectableChords.conv
-                        .where((e) => e.root == note)
-                        .toSet(),
-                    meanScalar: const LogChromaScalar(),
-                  ).meanTemplateChromas.keys.first.l2normalized,
-                  title: 'mean template ln $note',
-                ),
-            ]);
           });
         });
       });

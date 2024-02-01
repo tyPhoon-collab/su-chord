@@ -109,13 +109,11 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
             scoreCalculator:
                 const ScoreCalculator.cosine(ToTonalIntervalVector.musical()),
           ),
+          scoreThreshold: 0.75,
           chordSelectable: f.selector.sixth,
-          context: MeanTemplateContext.harmonicScaling(
-            until: 6,
-            detectableChords: detectableChords,
-            scoreThreshold: 0.75,
-            sortedScoreTakeCount: 3,
-            meanScalar: const LogChromaScalar(),
+          context: LnMeanTemplate(
+            detectableChords,
+            templateBuilder: ScaledTemplate.overtoneBy6th,
           ),
         ),
     'matching + reassign + template scaled': () async =>
@@ -125,10 +123,7 @@ Map<String, AsyncValueGetter<ChordEstimable>> estimators(EstimatorsRef ref) {
           filters: [
             GaussianFilter.dt(stdDev: 0.5, dt: f.context.deltaTime),
           ],
-          context: TemplateContext.harmonicScaling(
-            until: 6,
-            detectableChords: detectableChords,
-          ),
+          context: ScaledTemplate.overtoneBy6th(detectableChords),
         ),
     'konoki': () async => SearchTreeChordEstimator(
           chromaCalculable: f.guitar.stftCombFilter(scalar: MagnitudeScalar.ln),

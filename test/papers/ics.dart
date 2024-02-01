@@ -1,6 +1,5 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
-import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
@@ -25,12 +24,8 @@ void main() {
 
     final template = PCP.template(Chord.C);
     final template6 = PCP.harmonicTemplate(Chord.C, until: 6);
-    final templateLn = PCP.meanTemplate(MeanTemplateContext.harmonicScaling(
-      until: 6,
-      meanScalar: const LogChromaScalar(),
-      detectableChords:
-          DetectableChords.conv.where((e) => e.root == Note.C).toSet(),
-    ));
+    final templateLn = LnMeanTemplate.overtoneBy6th(DetectableChords.conv)
+        .buildMeanTemplate(Note.C);
 
     const calcScore = ScoreCalculator.cosine();
 

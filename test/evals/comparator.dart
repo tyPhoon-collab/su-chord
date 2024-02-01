@@ -1,11 +1,9 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
-import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/score_calculator.dart';
-import 'package:chord/service.dart';
 import 'package:chord/utils/loaders/audio.dart';
 
 import '../data_set.dart';
@@ -44,23 +42,12 @@ class SpotComparator {
 }
 
 class MeanScoreSpotComparator {
-  MeanScoreSpotComparator({
-    required this.chromaCalculable,
-    this.scalar,
-    this.meanScalar,
-  }) : loader = CacheableAudioLoader(sampleRate: 22050);
+  MeanScoreSpotComparator(this.context, {required this.chromaCalculable})
+      : loader = CacheableAudioLoader(sampleRate: 22050);
 
   final ChromaCalculable chromaCalculable;
-  final ChromaMappable? scalar;
-  final ChromaMappable? meanScalar;
   final CacheableAudioLoader loader;
-
-  Chroma _buildTemplate(Note note) => PCP.meanTemplate(MeanTemplateContext(
-        scalar: scalar,
-        meanScalar: meanScalar,
-        detectableChords:
-            DetectableChords.frontend.where((e) => e.root == note).toSet(),
-      ));
+  final MeanPatternMatchingContext context;
 
   Future<void> call({
     required String source,
@@ -78,7 +65,7 @@ class MeanScoreSpotComparator {
     final noteScores = <Note, double>{};
 
     for (final note in Note.sharpNotes) {
-      final template = _buildTemplate(note);
+      final template = context.buildMeanTemplate(note);
       final score = scoreCalculator(pcp, template);
       noteScores[note] = score;
     }
