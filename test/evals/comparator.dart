@@ -1,7 +1,7 @@
 import 'package:chord/domains/chord.dart';
 import 'package:chord/domains/chroma.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
-import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/estimator/mean_pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/utils/loaders/audio.dart';
@@ -47,7 +47,7 @@ class MeanScoreSpotComparator {
 
   final ChromaCalculable chromaCalculable;
   final CacheableAudioLoader loader;
-  final MeanPatternMatchingContext context;
+  final MeanTemplateContext context;
 
   Future<void> call({
     required String source,

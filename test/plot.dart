@@ -5,7 +5,7 @@ import 'package:chord/domains/chroma_calculators/comb_filter.dart';
 import 'package:chord/domains/chroma_calculators/reassignment.dart';
 import 'package:chord/domains/chroma_calculators/window.dart';
 import 'package:chord/domains/chroma_mapper.dart';
-import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/estimator/mean_pattern_matching.dart';
 import 'package:chord/domains/filters/chord_change_detector.dart';
 import 'package:chord/domains/filters/filter.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';

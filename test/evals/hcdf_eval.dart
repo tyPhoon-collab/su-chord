@@ -2,7 +2,7 @@
 
 import 'package:chord/domains/chroma_mapper.dart';
 import 'package:chord/domains/estimator/estimator.dart';
-import 'package:chord/domains/estimator/pattern_matching.dart';
+import 'package:chord/domains/estimator/mean_pattern_matching.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';
 import 'package:chord/domains/score_calculator.dart';
 import 'package:chord/factory.dart';

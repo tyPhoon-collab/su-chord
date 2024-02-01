@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:chord/domains/chord_search_tree.dart';
 import 'package:chord/domains/chroma_calculators/chroma_calculator.dart';
 import 'package:chord/domains/estimator/estimator.dart';
+import 'package:chord/domains/estimator/mean_pattern_matching.dart';
 import 'package:chord/domains/estimator/pattern_matching.dart';
 import 'package:chord/domains/estimator/search.dart';
 import 'package:chord/domains/magnitudes_calculator.dart';

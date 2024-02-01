@@ -6,6 +6,7 @@ import 'domains/chord_search_tree.dart';
 import 'domains/chroma_calculators/chroma_calculator.dart';
 import 'domains/chroma_mapper.dart';
 import 'domains/estimator/estimator.dart';
+import 'domains/estimator/mean_pattern_matching.dart';
 import 'domains/estimator/pattern_matching.dart';
 import 'domains/estimator/search.dart';
 import 'domains/filters/filter.dart';
