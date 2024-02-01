@@ -175,10 +175,13 @@ class MeanTemplate extends MeanPatternMatchingContext {
       );
 
   @override
-  Chroma buildMeanTemplate(Note note) => detectableChords
-      .where((e) => e.root == note)
-      .map(PCP.template)
-      .fold(Chroma.zero(12), (value, element) => value + element);
+  Chroma buildMeanTemplate(Note note) {
+    final templateContext = templateBuilder(detectableChords);
+    return detectableChords
+        .where((e) => e.root == note)
+        .map(templateContext.buildTemplate)
+        .fold(Chroma.zero(12), (value, element) => value + element);
+  }
 }
 
 class LnMeanTemplate extends MeanPatternMatchingContext {
@@ -206,12 +209,16 @@ class LnMeanTemplate extends MeanPatternMatchingContext {
       );
 
   @override
-  Chroma buildMeanTemplate(Note note) => const LogChromaScalar().call(
-        detectableChords
-            .where((e) => e.root == note)
-            .map(PCP.template)
-            .fold(Chroma.zero(12), (value, element) => value + element),
-      );
+  Chroma buildMeanTemplate(Note note) {
+    final templateContext = templateBuilder(detectableChords);
+
+    return const LogChromaScalar().call(
+      detectableChords
+          .where((e) => e.root == note)
+          .map(templateContext.buildTemplate)
+          .fold(Chroma.zero(12), (value, element) => value + element),
+    );
+  }
 }
 
 ///ルート音を基準としてグループ化する
