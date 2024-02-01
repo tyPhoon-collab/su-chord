@@ -1,4 +1,4 @@
-import 'package:chord/domains/chord.dart';
+import 'package:chord/domains/chord_cell.dart';
 import 'package:chord/domains/chord_progression.dart';
 import 'package:chord/domains/chord_selector.dart';
 import 'package:flutter/foundation.dart';

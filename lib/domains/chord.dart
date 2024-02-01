@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
-import '../utils/score.dart';
-import 'annotation.dart';
 import 'chroma.dart';
 import 'equal_temperament.dart';
 
@@ -17,8 +15,8 @@ enum ChordOperation {
 
   final String label;
 
-  Iterable<NamedDegree> call(Iterable<NamedDegree> degrees) => switch (this) {
-        ChordOperation.omit5 => degrees.where((e) => e != _D.P5),
+  Set<NamedDegree> call(Iterable<NamedDegree> degrees) => switch (this) {
+        ChordOperation.omit5 => Set.of(degrees)..remove(_D.P5),
       };
 
   static ChordOperation? parse(String label) =>
@@ -88,7 +86,7 @@ enum ChordType {
   );
 
   const ChordType(
-    this.degrees, {
+    this._degrees, {
     required this.label,
     required this.availableTensions,
     this.isOperation = false,
@@ -110,7 +108,7 @@ enum ChordType {
     sus4,
   ];
 
-  final Set<NamedDegree> degrees;
+  final Set<NamedDegree> _degrees;
   final String label;
   final Set<ChordTension> availableTensions;
   final Set<ChordOperation> availableOperation;
@@ -119,8 +117,14 @@ enum ChordType {
   bool validate(ChordTensions tensions) =>
       tensions.every((e) => availableTensions.contains(e));
 
-  Notes toNotes(Note root) =>
-      degrees.map((d) => root.transpose(d.degreeIndex)).toList();
+  Set<NamedDegree> toDegrees([ChordOperation? operation]) =>
+      operation == null ? _degrees : operation(_degrees);
+
+  Notes toNotes(Note root, ChordOperation? operation) {
+    return toDegrees(operation)
+        .map((d) => root.transpose(d.degreeIndex))
+        .toList();
+  }
 }
 
 ///コードタイプに追加で付与されうる音
@@ -182,7 +186,9 @@ enum ChordTension {
 @immutable
 final class ChordTensions extends Iterable<ChordTension> {
   ChordTensions(this.values)
-      : assert(values.where((e) => !e.combinable).length <= 1);
+      : assert(
+          values.where((e) => !e.combinable).length <= 1,
+        );
 
   factory ChordTensions.parse(String label) {
     final parts = label.split('add');
@@ -230,22 +236,6 @@ final class ChordTensions extends Iterable<ChordTension> {
     return ChordTensions(qualities);
   }
 
-  static ChordTensions? fromTypeAndNotes({
-    required ChordType type,
-    required Note root,
-    required Notes notes,
-  }) {
-    try {
-      final indexes = notes.map((e) => root.positiveDegreeIndexTo(e)).toSet()
-        ..removeAll(type.degrees.map((e) => e.degreeIndex).toSet());
-      final degrees = indexes.map((e) => e < 9 ? e + 12 : e);
-      final values = degrees.map(ChordTension.fromDegreeIndex).toSet();
-      return ChordTensions(values);
-    } catch (e) {
-      return null;
-    }
-  }
-
   static final empty = ChordTensions(const {});
   static final seventh = ChordTensions(const {ChordTension.seventh});
   static final majorSeventh = ChordTensions(const {ChordTension.majorSeventh});
@@ -280,6 +270,8 @@ final class ChordTensions extends Iterable<ChordTension> {
       return '$base(${tensions.map((e) => e.label).join(",")})';
     }
   }
+
+  Notes toNotes(Note root) => values.map((e) => e.toNote(root)).toList();
 }
 
 @immutable
@@ -440,8 +432,8 @@ final class Chord extends ChordBase<Chord> {
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $tensions',
         ),
         notes = List.unmodifiable([
-          ...type.degrees.map((e) => root.transpose(e.degreeIndex)),
-          ...?tensions?.map((e) => root.transpose(e.degree.degreeIndex)),
+          ...type.toNotes(root, operation),
+          ...?tensions?.toNotes(root),
         ]);
 
   factory Chord.parse(String chord) {
@@ -497,140 +489,4 @@ final class Chord extends ChordBase<Chord> {
         root: root.transpose(degree),
         tensions: tensions,
       );
-}
-
-@immutable
-class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
-  const ChordCell({
-    this.chord,
-    this.time,
-  });
-
-  const ChordCell.of(this.chord) : time = null;
-
-  static const noChordLabel = '***';
-
-  final T? chord;
-  final Time? time;
-
-  @override
-  String toString() => chord?.toString() ?? noChordLabel;
-
-  String toDetailString() =>
-      '$chord${time != null ? '(${time!.start.toStringAsFixed(2)}-${time!.end.toStringAsFixed(2)})' : ''}';
-
-  @override
-  ChordCell<T> transpose(int degree) =>
-      ChordCell(chord: chord?.transpose(degree), time: time);
-
-  @override
-  bool operator ==(Object other) {
-    return other is ChordCell<T> && chord == other.chord && time == other.time;
-  }
-
-  @override
-  int get hashCode => chord.hashCode ^ time.hashCode;
-
-  ChordCell<T> copyWith({T? chord, Time? time}) {
-    return ChordCell<T>(
-      chord: chord ?? this.chord,
-      time: time ?? this.time,
-    );
-  }
-
-  ///自身が正解だとして、オーバーラップスコアを算出する
-  FScore overlapScore(ChordCell<T> other, {Time? limitation}) {
-    assert(this.time != null && other.time != null);
-
-    if (!time!.overlapStatus(other.time!).isOverlapping) {
-      return FScore.zero;
-    }
-
-    final isCorrect = chord == other.chord;
-
-    final min = limitation?.start ?? double.negativeInfinity;
-    final max = limitation?.end ?? double.infinity;
-
-    final start = time!.start.clamp(min, max);
-    final end = time!.end.clamp(min, max);
-    final otherStart = other.time!.start.clamp(min, max);
-    final otherEnd = other.time!.end.clamp(min, max);
-
-    double truthPositiveTime = 0;
-    double falsePositiveTime = 0;
-    double falseNegativeTime = 0;
-
-    void addPositive(double value) {
-      if (isCorrect) {
-        truthPositiveTime += value;
-      } else {
-        falsePositiveTime += value;
-      }
-    }
-
-    if (otherStart < start) {
-      falsePositiveTime += start - otherStart;
-
-      if (otherEnd < end) {
-        addPositive(otherEnd - start);
-        falseNegativeTime += end - otherEnd;
-      } else {
-        addPositive(time!.duration);
-        falsePositiveTime += otherEnd - end;
-      }
-    } else {
-      falseNegativeTime += otherStart - start;
-      if (otherEnd < end) {
-        addPositive(other.time!.duration);
-        falseNegativeTime += end - otherEnd;
-      } else {
-        addPositive(end - otherStart);
-        falsePositiveTime += otherEnd - end;
-      }
-    }
-
-    return FScore(truthPositiveTime, falsePositiveTime, falseNegativeTime);
-  }
-}
-
-class MultiChordCell<T extends ChordBase<T>> extends ChordCell<T> {
-  const MultiChordCell({
-    this.chords = const [],
-    super.chord,
-    super.time,
-  });
-
-  MultiChordCell.first(
-    this.chords, {
-    super.time,
-  }) : super(chord: chords.firstOrNull);
-
-  final List<T> chords;
-
-  @override
-  MultiChordCell<T> transpose(int degree) => MultiChordCell(
-        chords: chords.map((e) => e.transpose(degree)).toList(),
-        chord: chord?.transpose(degree),
-        time: time,
-      );
-
-  @override
-  MultiChordCell<T> copyWith({List<T>? chords, T? chord, Time? time}) {
-    return MultiChordCell<T>(
-      chords: chords ?? this.chords,
-      chord: chord ?? this.chord,
-      time: time ?? this.time,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is MultiChordCell<T> &&
-        listEquals(chords, other.chords) &&
-        chord == other.chord &&
-        time == other.time;
-  }
-
-  @override
-  int get hashCode => chords.hashCode ^ super.hashCode;
 }

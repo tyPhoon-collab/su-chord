@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../utils/loaders/csv.dart';
 import '../utils/tree.dart';
-import 'chord.dart';
+import 'chord_cell.dart';
 import 'chord_progression.dart';
 
 abstract interface class ChordSelectable {

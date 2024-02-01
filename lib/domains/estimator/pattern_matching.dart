@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
-import '../chord.dart';
+import '../chord_cell.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
 import '../chroma_calculators/chroma_calculator.dart';

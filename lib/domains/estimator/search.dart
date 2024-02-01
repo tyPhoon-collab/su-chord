@@ -1,4 +1,4 @@
-import '../chord.dart';
+import '../chord_cell.dart';
 import '../chord_search_tree.dart';
 import '../chroma.dart';
 import '../note_extractor.dart';

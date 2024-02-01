@@ -54,6 +54,10 @@ class DetectableChords extends _$DetectableChords {
     'm6',
     'add9',
     'madd9',
+    '(omit5)',
+    'm(omit5)',
+    'm7(omit5)',
+    'M7(omit5)',
   };
 
   ///service.dartから読み込んでいる。フロントエンドと同じコードタイプ群

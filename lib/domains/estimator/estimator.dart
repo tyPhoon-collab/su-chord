@@ -5,7 +5,7 @@ import '../../utils/loaders/audio.dart';
 import '../../utils/measure.dart';
 import '../../widgets/plot_view.dart';
 import '../annotation.dart';
-import '../chord.dart';
+import '../chord_cell.dart';
 import '../chord_progression.dart';
 import '../chord_selector.dart';
 import '../chroma.dart';
