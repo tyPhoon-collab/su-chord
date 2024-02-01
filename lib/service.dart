@@ -54,14 +54,10 @@ class DetectableChords extends _$DetectableChords {
     'm6',
     'add9',
     'madd9',
-    '(omit5)',
-    'm(omit5)',
-    'm7(omit5)',
-    'M7(omit5)',
   };
 
   ///service.dartから読み込んでいる。フロントエンドと同じコードタイプ群
-  static final frontend = fromQualities(qualities);
+  static final frontend = fromQualities(qualities, withOmit5: true);
 
   ///従来法と同じコードタイプ群
   static final conv = DetectableChords.fromQualities(const {
@@ -83,18 +79,33 @@ class DetectableChords extends _$DetectableChords {
     'add9',
   });
 
-  static Set<Chord> fromQualities(Set<String> qualities) {
-    return Set.unmodifiable([
+  static Set<Chord> fromQualities(
+    Set<String> qualities, {
+    bool withOmit5 = false,
+  }) {
+    final set = {
       for (final root in Note.sharpNotes)
         for (final quality in qualities) Chord.parse('$root$quality')
+    };
+    return Set.unmodifiable([
+      ...set,
+      if (withOmit5)
+        for (final value in set)
+          if (value.type.availableOperations.contains(ChordOperation.omit5))
+            Chord.fromType(
+              type: value.type,
+              root: value.root,
+              tensions: value.tensions,
+              operation: ChordOperation.omit5,
+            )
     ]);
   }
 
   @override
-  Set<Chord> build() => fromQualities(qualities);
+  Set<Chord> build() => frontend;
 
   void setFromQualities(Set<String> qualities) {
-    state = fromQualities(qualities);
+    state = fromQualities(qualities, withOmit5: true);
   }
 }
 

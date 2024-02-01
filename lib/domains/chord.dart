@@ -7,7 +7,7 @@ import 'equal_temperament.dart';
 export 'equal_temperament.dart';
 
 @immutable
-class ChordBase<T> implements Transposable<T> {
+base class ChordBase<T> implements Transposable<T> {
   const ChordBase({
     required this.type,
     this.tensions,
@@ -42,7 +42,7 @@ class ChordBase<T> implements Transposable<T> {
 
   static String _buildChordPattern() {
     final type =
-        "((?:${ChordType.patterns.expand((e) => e.label.all).where((e) => e.isNotEmpty).toSet().map((e) => e.replaceAll('+', r'\+')).join('|')}))?";
+        "((?:${ChordType.patterns.expand((e) => e.label.all.map((e) => RegExp.escape(e))).where((e) => e.isNotEmpty).toSet().join('|')}))?";
     const tensions = '((?:6|7|9|11|13|M7|M9|M11|M13))?';
     final sus = "((?:${ChordType.sus.expand((e) => e.label.all).join('|')}))?";
     const addition = '((?:add9|add11|add13))?';
@@ -81,7 +81,7 @@ class ChordBase<T> implements Transposable<T> {
     final base = type.isOperation
         ? '$tensionsString${type.label}'
         : '${type.label}$tensionsString';
-    final operationString = operation != null ? '(${operation!.name})' : '';
+    final operationString = operation?.label ?? '';
     return '$base$operationString';
   }
 
@@ -305,7 +305,6 @@ enum ChordType {
       ChordTension.eleventh,
       ChordTension.thirteenth
     },
-    isOperation: true,
   ),
   sus4(
     {_D.P1, _D.P4, _D.P5},
@@ -315,7 +314,6 @@ enum ChordType {
       ChordTension.ninth,
       ChordTension.thirteenth
     },
-    isOperation: true,
   ),
   minorSeventhFlatFive(
     {_D.P1, _D.m3, _D.dim5, _D.m7},
@@ -327,7 +325,6 @@ enum ChordType {
     this._degrees,
     this.label, {
     required this.availableTensions,
-    this.isOperation = false,
     this.availableOperations = const {},
   });
 
@@ -361,7 +358,8 @@ enum ChordType {
   final ChordLabel label;
   final Set<ChordTension> availableTensions;
   final Set<ChordOperation> availableOperations;
-  final bool isOperation; //操作系を表すコードタイプはテンションとコードタイプの表記が逆転する
+
+  bool get isOperation => sus.contains(this);
 
   bool validate(ChordTensions tensions) =>
       tensions.every((e) => availableTensions.contains(e));
