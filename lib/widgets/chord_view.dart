@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../domains/chord.dart';
 import '../domains/chord_progression.dart';
@@ -24,19 +23,18 @@ class ChordView extends StatelessWidget {
 
   final Chord? chord;
 
-  TextStyle? get style => Get.textTheme.displayLarge;
-
   @override
-  Widget build(BuildContext context) => chord == null
-      ? Text('No Chord', style: style)
-      : Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(chord.toString(), style: style),
-            Text(
-              chord!.notes.join(', '),
-              style: Get.textTheme.titleMedium,
-            ),
-          ],
-        );
+  Widget build(BuildContext context) {
+    final display = Theme.of(context).textTheme.displayLarge;
+    final detail = Theme.of(context).textTheme.titleMedium;
+    return chord == null
+        ? Text('No Chord', style: display)
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(chord.toString(), style: display),
+              Text(chord!.notes.join(', '), style: detail),
+            ],
+          );
+  }
 }

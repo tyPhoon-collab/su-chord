@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 abstract interface class HasDebugViews {
   List<DebugChip> build();
@@ -45,7 +44,7 @@ class _DebugChipState extends State<DebugChip> {
                   ),
                   Text(
                     widget.titleText,
-                    style: Get.textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
               ),

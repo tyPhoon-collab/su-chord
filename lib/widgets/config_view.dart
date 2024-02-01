@@ -126,60 +126,59 @@ class _SelectableDetectableChordsState
       _qualities.whereIndexed((i, _) => _isSelected[i]);
 
   @override
-  Widget build(BuildContext context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Wrap(
-            children: List.generate(
-              _qualities.length,
-              (i) {
-                final isRequiredChordType = _notSelectableIndexes.contains(i);
-                return ToggleButtons(
-                  disabledColor: isRequiredChordType
-                      ? Get.theme.colorScheme.primary
-                      : null,
-                  disabledBorderColor: isRequiredChordType
-                      ? Get.theme.colorScheme.primary
-                      : null,
-                  isSelected: [_isSelected[i]],
-                  constraints: const BoxConstraints(
-                    minHeight: 32,
-                    minWidth: 52,
-                  ),
-                  onPressed: !isRequiredChordType
-                      ? (_) {
-                          setState(() {
-                            _isSelected[i] = !_isSelected[i];
-                          });
-                        }
-                      : null,
-                  children: [Text(_qualities[i])],
-                );
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Wrap(
+          children: List.generate(
+            _qualities.length,
+            (i) {
+              final isRequiredChordType = _notSelectableIndexes.contains(i);
+              return ToggleButtons(
+                disabledColor: isRequiredChordType ? primary : null,
+                disabledBorderColor: isRequiredChordType ? primary : null,
+                isSelected: [_isSelected[i]],
+                constraints: const BoxConstraints(
+                  minHeight: 32,
+                  minWidth: 52,
+                ),
+                onPressed: !isRequiredChordType
+                    ? (_) {
+                        setState(() {
+                          _isSelected[i] = !_isSelected[i];
+                        });
+                      }
+                    : null,
+                children: [Text(_qualities[i])],
+              );
+            },
+          ),
+        ),
+        ButtonBar(
+          children: [
+            IconButton.outlined(
+              onPressed: () {
+                setState(() {
+                  _isSelected = _filledIsSelected(true);
+                });
               },
+              icon: const Icon(Icons.select_all),
             ),
-          ),
-          ButtonBar(
-            children: [
-              IconButton.outlined(
-                onPressed: () {
-                  setState(() {
-                    _isSelected = _filledIsSelected(true);
-                  });
-                },
-                icon: const Icon(Icons.select_all),
-              ),
-              IconButton.outlined(
-                onPressed: () {
-                  setState(() {
-                    _isSelected = _filledIsSelected(false);
-                  });
-                },
-                icon: const Icon(Icons.deselect),
-              ),
-            ],
-          ),
-        ],
-      );
+            IconButton.outlined(
+              onPressed: () {
+                setState(() {
+                  _isSelected = _filledIsSelected(false);
+                });
+              },
+              icon: const Icon(Icons.deselect),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _MicrophoneDeviceSelector extends StatelessWidget {

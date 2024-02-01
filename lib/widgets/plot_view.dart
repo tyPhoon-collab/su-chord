@@ -23,7 +23,7 @@ class Chromagram extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final values = chromas.map((e) => e.l2normalized).flattened.toList();
-    final color = this.color ?? Get.theme.colorScheme.primary;
+    final color = this.color ?? Theme.of(context).colorScheme.primary;
 
     return values.isEmpty
         ? SizedBox(height: height)
@@ -55,25 +55,31 @@ class AmplitudeChart extends StatelessWidget {
     super.key,
     required this.data,
     this.backgroundColor,
+    this.lineColor,
   });
 
   final List<double> data;
   final Color? backgroundColor;
+  final Color? lineColor;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final backgroundColor = this.backgroundColor ?? colorScheme.background;
+    final lineColor = this.lineColor ?? colorScheme.primary;
+
     return LineChart(
       LineChartData(
         minX: 0,
         maxX: data.length - 1,
         minY: -1,
         maxY: 1,
-        backgroundColor: backgroundColor ?? Get.theme.colorScheme.background,
+        backgroundColor: backgroundColor,
         lineBarsData: [
           LineChartBarData(
             spots:
                 data.indexed.map((e) => FlSpot(e.$1.toDouble(), e.$2)).toList(),
-            color: Get.theme.colorScheme.primary,
+            color: lineColor,
             isCurved: true,
             dotData: const FlDotData(show: false),
           ),
@@ -104,6 +110,7 @@ class SpectrogramChart extends StatelessWidget {
             painter: _HeatmapPainter(
               data: magnitudes,
               maxValue: magnitudes.map((e) => e.max).max,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         )
@@ -114,9 +121,8 @@ class _HeatmapPainter extends CustomPainter {
   _HeatmapPainter({
     required this.data,
     required this.maxValue,
-    // this.minValue = 0,
-    Color? color,
-  }) : color = color ?? Get.theme.colorScheme.primary;
+    required this.color,
+  });
 
   final List<List<double>> data;
   final double maxValue;

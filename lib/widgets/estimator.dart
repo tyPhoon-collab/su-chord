@@ -30,77 +30,81 @@ class EstimatorPage extends ConsumerStatefulWidget {
 class _EstimatorPageState extends ConsumerState<EstimatorPage> {
   ChordProgression<Chord> _progression = ChordProgression.chordEmpty();
 
-  Color get surface => Get.theme.colorScheme.surfaceVariant;
-
-  Color get onSurface => Get.theme.colorScheme.onSurfaceVariant;
-
   @override
-  Widget build(BuildContext context) => Builder(
-        builder: (_) {
-          final recorder = ref.watch(globalRecorderProvider);
-          final estimator = ref.watch(estimatorProvider);
-          final context = ref.watch(factoryContextProvider);
+  Widget build(BuildContext context) {
+    final surface = Theme.of(context).colorScheme.surfaceVariant;
+    final onSurface = Theme.of(context).colorScheme.onSurfaceVariant;
 
-          if (!estimator.hasValue) return const SizedBox();
+    return Builder(
+      builder: (_) {
+        final recorder = ref.watch(globalRecorderProvider);
+        final estimator = ref.watch(estimatorProvider);
+        final context = ref.watch(factoryContextProvider);
 
-          return ValueListenableBuilder(
-            valueListenable: recorder.state,
-            builder: (_, value, __) {
-              return Center(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: surface,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(32),
-                            bottomRight: Radius.circular(32),
-                          ),
-                        ),
-                        child: DefaultTextStyle.merge(
-                          style: TextStyle(color: onSurface),
-                          child: value == RecorderState.stopped &&
-                                  _progression.isEmpty
-                              ? const _WelcomeView()
-                              : value == RecorderState.stopped
-                                  ? _EstimatedView(
-                                      progression: _progression,
-                                      estimator: estimator.value!,
-                                    )
-                                  : _EstimatingStreamView(
-                                      stream: recorder.stream,
-                                      estimator: estimator.value!,
-                                      factoryContext: context,
-                                    ),
+        if (!estimator.hasValue) return const SizedBox();
+
+        return ValueListenableBuilder(
+          valueListenable: recorder.state,
+          builder: (_, value, __) {
+            return Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: surface,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
                         ),
                       ),
+                      child: DefaultTextStyle.merge(
+                        style: TextStyle(color: onSurface),
+                        child: value == RecorderState.stopped &&
+                                _progression.isEmpty
+                            ? const _WelcomeView()
+                            : value == RecorderState.stopped
+                                ? _EstimatedView(
+                                    progression: _progression,
+                                    estimator: estimator.value!,
+                                  )
+                                : _EstimatingStreamView(
+                                    stream: recorder.stream,
+                                    estimator: estimator.value!,
+                                    factoryContext: context,
+                                  ),
+                      ),
                     ),
-                    _EstimatorActionBar(
-                      recorder: recorder,
-                      recorderState: value,
-                      onStopped: () {
-                        setState(() {
-                          _progression = estimator.value!.flush();
-                        });
-                      },
-                      onFileLoaded: () async {
-                        await _estimateFromFileWithLoadingView(
-                          context.sampleRate,
-                          estimator.value!,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      );
+                  ),
+                  _EstimatorActionBar(
+                    recorder: recorder,
+                    recorderState: value,
+                    onStopped: () {
+                      setState(() {
+                        _progression = estimator.value!.flush();
+                      });
+                    },
+                    onFileLoaded: () async {
+                      await _estimateFromFileWithLoadingView(
+                        context.sampleRate,
+                        estimator.value!,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<void> _estimateFromFileWithLoadingView(
       int sampleRate, ChordEstimable estimator) async {
+    final surface = Theme.of(context).colorScheme.surface;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
     EasyLoading.instance
       ..backgroundColor = surface
       ..loadingStyle = EasyLoadingStyle.custom
@@ -248,7 +252,7 @@ class _WelcomeView extends StatelessWidget {
   Widget build(BuildContext context) => Center(
         child: Text(
           "Let's start playing chord!",
-          style: Get.textTheme.titleLarge,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       );
 }
@@ -316,7 +320,7 @@ class _EstimatorActionBar extends StatelessWidget {
                         ],
                       ),
                     ),
-                    backgroundColor: Get.theme.colorScheme.background,
+                    backgroundColor: Theme.of(context).colorScheme.background,
                   );
                 }
               : null,
