@@ -31,11 +31,9 @@ Future<void> main() async {
   );
 
   setUpAll(() async {
+    final correctsData = await CSVLoader.corrects.load();
     corrects = ChordProgression.fromChordRow(
-      (await CSVLoader.corrects.load())[1]
-          .skip(1)
-          .map((e) => e.toString())
-          .toList(),
+      correctsData[1].skip(1).map((e) => e.toString()).toList(),
     );
   });
 
@@ -324,30 +322,34 @@ Future<void> main() async {
     });
   });
 
-  test('stream', () async {
-    final f = f_4096;
-    const bufferChunkSize = 4096;
-    final estimator = PatternMatchingChordEstimator(
-      chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
-      chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 20),
-      context: ScaledTemplate.overtoneBy6th(DetectableChords.conv),
-    );
-    final data = await DataSet().sample;
+  test(
+    'stream',
+    () async {
+      final f = f_4096;
+      const bufferChunkSize = 4096;
+      final estimator = PatternMatchingChordEstimator(
+        chromaCalculable: f.guitar.reassignment(scalar: MagnitudeScalar.ln),
+        chordChangeDetectable: f.hcdf.preFrameCheck(powerThreshold: 20),
+        context: ScaledTemplate.overtoneBy6th(DetectableChords.conv),
+      );
+      final data = await DataSet().sample;
 
-    debugPrint('Stream emulating...');
-    int count = 0;
+      debugPrint('Stream emulating...');
+      int count = 0;
 
-    await for (final progression in const AudioStreamEmulator(
-      bufferChunkSize: bufferChunkSize,
-      sleepDuration: Duration(milliseconds: 100),
-    ).stream(data).map((data) => estimator.estimate(data, false))) {
-      count++;
+      await for (final progression in const AudioStreamEmulator(
+        bufferChunkSize: bufferChunkSize,
+        sleepDuration: Duration(milliseconds: 100),
+      ).stream(data).map((data) => estimator.estimate(data, false))) {
+        count++;
+        printSeparation();
+        debugPrint('count: $count');
+        debugPrint('seek : ${bufferChunkSize * count / f.context.sampleRate}');
+        debugPrint(progression.toString());
+      }
       printSeparation();
-      debugPrint('count: $count');
-      debugPrint('seek : ${bufferChunkSize * count / f.context.sampleRate}');
-      debugPrint(progression.toString());
-    }
-    printSeparation();
-    debugPrint(estimator.flush().toString());
-  });
+      debugPrint(estimator.flush().toString());
+    },
+    tags: 'simulation',
+  );
 }

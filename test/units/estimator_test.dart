@@ -36,13 +36,17 @@ void main() {
   });
 
   group('stream', () {
-    test('22050 chunk size', () async {
-      await for (final chords in const AudioStreamEmulator()
-          .stream(await DataSet().G_Em_Bm_C)
-          .map((data) => estimator.estimate(data, false))) {
-        debugPrint(chords.toString());
-      }
-      debugPrint(estimator.flush().toString());
-    });
+    test(
+      '22050 chunk size',
+      () async {
+        await for (final chords in const AudioStreamEmulator()
+            .stream(await DataSet().G_Em_Bm_C)
+            .map((data) => estimator.estimate(data, false))) {
+          debugPrint(chords.toString());
+        }
+        debugPrint(estimator.flush().toString());
+      },
+      tags: 'simulation',
+    );
   });
 }

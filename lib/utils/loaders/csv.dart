@@ -19,7 +19,8 @@ abstract interface class CSVLoader {
 
   static const corrects = SimpleCSVLoader(
     path: 'assets/csv/correct_only_sharp.csv',
-    eol: '\r\n',
+    // ignore: avoid_redundant_argument_values
+    eol: '\n',
   );
 }
 

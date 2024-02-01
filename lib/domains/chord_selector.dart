@@ -210,7 +210,7 @@ class SixthChordSelector implements ChordSelectable {
 
   bool _isSixth(Chord chord) {
     if (chord.type case ChordType.major || ChordType.minor) {
-      if (chord.tensions.contains(ChordTension.sixth)) {
+      if (chord.tensions?.contains(ChordTension.sixth) ?? false) {
         return true;
       }
     }
