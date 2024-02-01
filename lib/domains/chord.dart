@@ -16,27 +16,18 @@ class ChordBase<T> implements Transposable<T> {
 
   factory ChordBase.parse(String chord) {
     //現状の対応のみ。完全なパーサーは難しい
-    final exp = RegExp(
-      r'^'
-      r'((?:m|dim7|dim|aug|m7b5)?)' // タイプ
-      r'((?:6|7|9|11|13|M7|M9|M11|M13)?)' // テンション
-      r'((?:sus4|sus2)?)' // サスペンデッド
-      r'((?:add9|aad11|add13)?)' // アディショナル
-      r'(\(omit5\))?'
-      r'$',
-    );
+    final exp = RegExp(chordPattern);
 
     final match = exp.firstMatch(chord);
 
-    if (match == null) throw ArgumentError('invalid in ChordBase: $chord');
+    if (match == null) {
+      throw ArgumentError('invalid in ChordBase: $chord');
+    }
 
     try {
-      final type = ChordType.parse(
-        match.group(1)!.isNotEmpty ? match.group(1)! : match.group(3)!,
-      );
-      final qualities = ChordTensions.parse(
-        match.group(2)! + match.group(4)!,
-      );
+      final type = ChordType.parse(match.group(1) ?? match.group(3) ?? '');
+      final qualities =
+          ChordTensions.parse((match.group(2) ?? '') + (match.group(4) ?? ''));
       //現状はomit5のみ対応
       final operation = ChordOperation.parse(match.group(5) ?? '');
       //TODO コードタイプに対して可能なoperationかチェックする
@@ -45,6 +36,19 @@ class ChordBase<T> implements Transposable<T> {
     } catch (e) {
       rethrow;
     }
+  }
+
+  static final chordPattern = _buildChordPattern();
+
+  static String _buildChordPattern() {
+    final type =
+        "((?:${ChordType.patterns.expand((e) => e.label.all).where((e) => e.isNotEmpty).toSet().map((e) => e.replaceAll('+', r'\+')).join('|')}))?";
+    const tensions = '((?:6|7|9|11|13|M7|M9|M11|M13))?';
+    final sus = "((?:${ChordType.sus.expand((e) => e.label.all).join('|')}))?";
+    const addition = '((?:add9|add11|add13))?';
+    const operation = r'(\(omit5\))?';
+
+    return '^$type$tensions$sus$addition$operation' r'$';
   }
 
   final ChordType type;
@@ -240,21 +244,38 @@ enum ChordOperation {
       values.firstWhereOrNull((e) => e.label == label);
 }
 
-///基本的なコードタイプを列挙する
-///度数とラベル、各コードタイプにおいて、有効なテンションの情報を保持している
-///テンションなどはChordクラスで管理する
+enum LabelType { normal, verbose, jazz }
+
+class ChordLabel {
+  const ChordLabel(this._label, [this._map = const {}]);
+
+  ///default label string
+  final String _label;
+  final Map<LabelType, String> _map;
+
+  String call([LabelType type = LabelType.normal]) => _map[type] ?? _label;
+
+  Set<String> get all => {_label, ..._map.values};
+
+  @override
+  String toString() => _label;
+}
+
+typedef _L = LabelType;
+
+///基本的なコードタイプの情報を保持している
 ///dim7, m7b5もこちらに含める
 //m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
 enum ChordType {
   major(
     {_D.P1, _D.M3, _D.P5},
-    label: '',
+    ChordLabel('', {_L.verbose: 'maj', _L.jazz: '△'}),
     availableTensions: {...ChordTension.values},
     availableOperations: {ChordOperation.omit5},
   ),
   minor(
     {_D.P1, _D.m3, _D.P5},
-    label: 'm',
+    ChordLabel('m', {_L.verbose: 'min', _L.jazz: '-'}),
     availableTensions: {
       ...ChordTension.normalTensions,
       ...ChordTension.tonicTensions
@@ -263,22 +284,22 @@ enum ChordType {
   ),
   diminish(
     {_D.P1, _D.m3, _D.dim5},
-    label: 'dim',
+    ChordLabel('dim', {_L.jazz: 'o'}),
     availableTensions: {},
   ),
   diminish7(
     {_D.P1, _D.m3, _D.dim5, _D.M6},
-    label: 'dim7',
+    ChordLabel('dim7', {_L.jazz: 'o7'}),
     availableTensions: {},
   ),
   augment(
     {_D.P1, _D.M3, _D.aug5},
-    label: 'aug',
+    ChordLabel('aug', {_L.jazz: '+'}),
     availableTensions: {ChordTension.seventh},
   ),
   sus2(
     {_D.P1, _D.M2, _D.P5},
-    label: 'sus2',
+    ChordLabel('sus2'),
     availableTensions: {
       ...ChordTension.normalTensions,
       ChordTension.eleventh,
@@ -288,7 +309,7 @@ enum ChordType {
   ),
   sus4(
     {_D.P1, _D.P4, _D.P5},
-    label: 'sus4',
+    ChordLabel('sus4'),
     availableTensions: {
       ...ChordTension.normalTensions,
       ChordTension.ninth,
@@ -298,13 +319,13 @@ enum ChordType {
   ),
   minorSeventhFlatFive(
     {_D.P1, _D.m3, _D.dim5, _D.m7},
-    label: 'm7b5',
+    ChordLabel('m7b5', {_L.jazz: 'ø'}),
     availableTensions: ChordTension.tonicTensions,
   );
 
   const ChordType(
-    this._degrees, {
-    required this.label,
+    this._degrees,
+    this.label, {
     required this.availableTensions,
     this.isOperation = false,
     this.availableOperations = const {},
@@ -312,7 +333,7 @@ enum ChordType {
 
   factory ChordType.parse(String label) {
     for (final type in values) {
-      if (type.label == label) return type;
+      if (type.label.all.contains(label)) return type;
     }
     throw ArgumentError('Invalid label in ChordType $label');
   }
@@ -325,8 +346,19 @@ enum ChordType {
     sus4,
   ];
 
+  static const patterns = [
+    minor,
+    major,
+    diminish7,
+    diminish,
+    augment,
+    minorSeventhFlatFive
+  ];
+
+  static const sus = [sus4, sus2];
+
   final Set<NamedDegree> _degrees;
-  final String label;
+  final ChordLabel label;
   final Set<ChordTension> availableTensions;
   final Set<ChordOperation> availableOperations;
   final bool isOperation; //操作系を表すコードタイプはテンションとコードタイプの表記が逆転する
@@ -374,13 +406,6 @@ enum ChordTension {
     throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
-  factory ChordTension.fromDegreeIndex(int degreeIndex) {
-    for (final quality in values) {
-      if (quality.degree.degreeIndex == degreeIndex) return quality;
-    }
-    throw ArgumentError('Invalid degree $degreeIndex');
-  }
-
   static const tonicTensions = {
     ChordTension.ninth,
     ChordTension.eleventh,
@@ -406,7 +431,7 @@ final class ChordTensions extends Iterable<ChordTension> {
       : assert(_values.isNotEmpty &&
             _values.where((e) => !e.combinable).length <= 1);
 
-  factory ChordTensions.parse(String label) {
+  static ChordTensions? parse(String label) {
     final parts = label.split('add');
 
     assert(parts.length <= 2);
@@ -449,6 +474,7 @@ final class ChordTensions extends Iterable<ChordTension> {
           .where((e) => e.isNotEmpty)
           .map(ChordTension.parse));
     }
+    if (qualities.isEmpty) return null;
     return ChordTensions(qualities);
   }
 
