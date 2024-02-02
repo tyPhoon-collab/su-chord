@@ -56,7 +56,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          tensions: ChordTensions(const {ChordTension.ninth}),
+          tensions: const ChordTensions({ChordTension.ninth}),
         ),
       );
     });

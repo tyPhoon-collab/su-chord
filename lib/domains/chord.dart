@@ -1,3 +1,4 @@
+import 'package:chord/domains/musical_label.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
@@ -77,12 +78,12 @@ base class ChordBase<T> implements Transposable<T> {
 
   @override
   String toString() {
-    final tensionsString = tensions?.label ?? '';
-    final base = type.isOperation
+    final tensionsString = tensions?.toString() ?? '';
+    final baseString = ChordType.sus.contains(type)
         ? '$tensionsString${type.label}'
         : '${type.label}$tensionsString';
     final operationString = operation?.label ?? '';
-    return '$base$operationString';
+    return '$baseString$operationString';
   }
 
   @override
@@ -94,7 +95,7 @@ base class ChordBase<T> implements Transposable<T> {
   }
 
   @override
-  int get hashCode => type.hashCode ^ tensions.hashCode;
+  int get hashCode => type.hashCode ^ tensions.hashCode ^ operation.hashCode;
 
   @override
   T transpose(int degree) {
@@ -244,38 +245,20 @@ enum ChordOperation {
       values.firstWhereOrNull((e) => e.label == label);
 }
 
-enum LabelType { normal, verbose, jazz }
-
-class ChordLabel {
-  const ChordLabel(this._label, [this._map = const {}]);
-
-  ///default label string
-  final String _label;
-  final Map<LabelType, String> _map;
-
-  String call([LabelType type = LabelType.normal]) => _map[type] ?? _label;
-
-  Set<String> get all => {_label, ..._map.values};
-
-  @override
-  String toString() => _label;
-}
-
-typedef _L = LabelType;
+typedef _L = MusicalLabelType;
 
 ///基本的なコードタイプの情報を保持している
 ///dim7, m7b5もこちらに含める
-//m7b5に関しては、実質dim + seventhであるので、条件分岐をする前提ならこちらに含めなくて良い
 enum ChordType {
   major(
     {_D.P1, _D.M3, _D.P5},
-    ChordLabel('', {_L.verbose: 'maj', _L.jazz: '△'}),
+    MusicalLabel('', {_L.verbose: 'maj'}),
     availableTensions: {...ChordTension.values},
     availableOperations: {ChordOperation.omit5},
   ),
   minor(
     {_D.P1, _D.m3, _D.P5},
-    ChordLabel('m', {_L.verbose: 'min', _L.jazz: '-'}),
+    MusicalLabel('m', {_L.verbose: 'min', _L.jazz: '-'}),
     availableTensions: {
       ...ChordTension.normalTensions,
       ...ChordTension.tonicTensions
@@ -284,22 +267,22 @@ enum ChordType {
   ),
   diminish(
     {_D.P1, _D.m3, _D.dim5},
-    ChordLabel('dim', {_L.jazz: 'o'}),
+    MusicalLabel('dim', {_L.jazz: 'o'}),
     availableTensions: {},
   ),
   diminish7(
     {_D.P1, _D.m3, _D.dim5, _D.M6},
-    ChordLabel('dim7', {_L.jazz: 'o7'}),
+    MusicalLabel('dim7', {_L.jazz: 'o7'}),
     availableTensions: {},
   ),
   augment(
     {_D.P1, _D.M3, _D.aug5},
-    ChordLabel('aug', {_L.jazz: '+'}),
+    MusicalLabel('aug', {_L.jazz: '+'}),
     availableTensions: {ChordTension.seventh},
   ),
   sus2(
     {_D.P1, _D.M2, _D.P5},
-    ChordLabel('sus2'),
+    MusicalLabel('sus2'),
     availableTensions: {
       ...ChordTension.normalTensions,
       ChordTension.eleventh,
@@ -308,7 +291,7 @@ enum ChordType {
   ),
   sus4(
     {_D.P1, _D.P4, _D.P5},
-    ChordLabel('sus4'),
+    MusicalLabel('sus4'),
     availableTensions: {
       ...ChordTension.normalTensions,
       ChordTension.ninth,
@@ -317,7 +300,7 @@ enum ChordType {
   ),
   minorSeventhFlatFive(
     {_D.P1, _D.m3, _D.dim5, _D.m7},
-    ChordLabel('m7b5', {_L.jazz: 'ø'}),
+    MusicalLabel('m7b5', {_L.jazz: 'ø'}),
     availableTensions: ChordTension.tonicTensions,
   );
 
@@ -335,13 +318,7 @@ enum ChordType {
     throw ArgumentError('Invalid label in ChordType $label');
   }
 
-  static const triads = [
-    major,
-    minor,
-    diminish,
-    augment,
-    sus4,
-  ];
+  static const triads = [major, minor, diminish, augment, sus4];
 
   static const patterns = [
     minor,
@@ -355,11 +332,9 @@ enum ChordType {
   static const sus = [sus4, sus2];
 
   final Set<NamedDegree> _degrees;
-  final ChordLabel label;
+  final MusicalLabel label;
   final Set<ChordTension> availableTensions;
   final Set<ChordOperation> availableOperations;
-
-  bool get isOperation => sus.contains(this);
 
   bool validate(ChordTensions tensions) =>
       tensions.every((e) => availableTensions.contains(e));
@@ -404,16 +379,21 @@ enum ChordTension {
     throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
-  static const tonicTensions = {
-    ChordTension.ninth,
-    ChordTension.eleventh,
-    ChordTension.thirteenth,
-  };
+  static const tonicTensions = {ninth, eleventh, thirteenth};
 
-  static const normalTensions = {
-    ChordTension.sixth,
-    ChordTension.seventh,
-    ChordTension.majorSeventh,
+  static const normalTensions = {sixth, seventh, majorSeventh};
+
+  static const ninthTensions = {seventh, ninth};
+  static const eleventhTensions = {seventh, ninth, eleventh};
+  static const thirteenthTensions = {seventh, ninth, eleventh, thirteenth};
+
+  static const majorNinthTensions = {majorSeventh, ninth};
+  static const majorEleventhTensions = {majorSeventh, ninth, eleventh};
+  static const majorThirteenthTensions = {
+    majorSeventh,
+    ninth,
+    eleventh,
+    thirteenth
   };
 
   final NamedDegree degree;
@@ -425,9 +405,7 @@ enum ChordTension {
 
 @immutable
 final class ChordTensions extends Iterable<ChordTension> {
-  ChordTensions(this._values)
-      : assert(_values.isNotEmpty &&
-            _values.where((e) => !e.combinable).length <= 1);
+  const ChordTensions(this._values);
 
   static ChordTensions? parse(String label) {
     final parts = label.split('add');
@@ -435,35 +413,18 @@ final class ChordTensions extends Iterable<ChordTension> {
     assert(parts.length <= 2);
 
     final qualities = <ChordTension>{};
+    final tensions = parts[0];
 
     qualities.addAll(
-      switch (parts[0]) {
+      switch (tensions) {
         '' => [],
-        '9' => [ChordTension.seventh, ChordTension.ninth],
-        '11' => [
-            ChordTension.seventh,
-            ChordTension.ninth,
-            ChordTension.eleventh
-          ],
-        '13' => [
-            ChordTension.seventh,
-            ChordTension.ninth,
-            ChordTension.eleventh,
-            ChordTension.thirteenth
-          ],
-        'M9' => [ChordTension.majorSeventh, ChordTension.ninth],
-        'M11' => [
-            ChordTension.majorSeventh,
-            ChordTension.ninth,
-            ChordTension.eleventh
-          ],
-        'M13' => [
-            ChordTension.majorSeventh,
-            ChordTension.ninth,
-            ChordTension.eleventh,
-            ChordTension.thirteenth
-          ],
-        _ => [ChordTension.parse(parts[0])],
+        '9' => ChordTension.ninthTensions,
+        '11' => ChordTension.eleventhTensions,
+        '13' => ChordTension.thirteenthTensions,
+        'M9' => ChordTension.majorNinthTensions,
+        'M11' => ChordTension.majorEleventhTensions,
+        'M13' => ChordTension.majorThirteenthTensions,
+        _ => [ChordTension.parse(tensions)],
       },
     );
     if (parts.length == 2) {
@@ -476,11 +437,10 @@ final class ChordTensions extends Iterable<ChordTension> {
     return ChordTensions(qualities);
   }
 
-  static final seventh = ChordTensions(const {ChordTension.seventh});
-  static final majorSeventh = ChordTensions(const {ChordTension.majorSeventh});
+  static const seventh = ChordTensions({ChordTension.seventh});
+  static const majorSeventh = ChordTensions({ChordTension.majorSeventh});
 
   final Set<ChordTension> _values;
-  late final String label = _label();
 
   @override
   Iterator<ChordTension> get iterator => _values.iterator;
@@ -488,7 +448,7 @@ final class ChordTensions extends Iterable<ChordTension> {
   @override
   bool operator ==(Object other) {
     if (other is ChordTensions) {
-      return setEquals(_values.toSet(), other._values.toSet());
+      return setEquals(_values, other._values);
     }
     return false;
   }
@@ -496,9 +456,17 @@ final class ChordTensions extends Iterable<ChordTension> {
   @override
   int get hashCode => _values.fold(0, (value, e) => value ^ e.hashCode);
 
-  String _label() {
-    final base = _values.where((e) => !e.combinable).firstOrNull?.label ?? '';
+  @override
+  String toString() {
+    //特定のケースは特殊な表記がされる
+    if (_match(ChordTension.ninthTensions)) return '9';
+    if (_match(ChordTension.eleventhTensions)) return '11';
+    if (_match(ChordTension.thirteenthTensions)) return '13';
+    if (_match(ChordTension.majorNinthTensions)) return 'M9';
+    if (_match(ChordTension.majorEleventhTensions)) return 'M11';
+    if (_match(ChordTension.majorThirteenthTensions)) return 'M13';
 
+    final base = _values.where((e) => !e.combinable).firstOrNull?.label ?? '';
     final tensions = _values.where((e) => e.combinable);
 
     if (tensions.isEmpty) {
@@ -509,6 +477,11 @@ final class ChordTensions extends Iterable<ChordTension> {
       return '$base(${tensions.map((e) => e.label).join(",")})';
     }
   }
+
+  static bool validate(Set<ChordTension> values) =>
+      values.isNotEmpty && values.where((e) => !e.combinable).length <= 1;
+
+  bool _match(Set<ChordTension> tensions) => setEquals(_values, tensions);
 
   Notes toNotes(Note root) => _values.map((e) => e.toNote(root)).toList();
 }

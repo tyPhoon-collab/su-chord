@@ -116,7 +116,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          tensions: ChordTensions(const {ChordTension.ninth}),
+          tensions: const ChordTensions({ChordTension.ninth}),
         ).toString(),
         'Cadd9',
       );
@@ -127,7 +127,7 @@ void main() {
         Chord.fromType(
           type: ChordType.major,
           root: Note.C,
-          tensions: ChordTensions(const {
+          tensions: const ChordTensions({
             ChordTension.ninth,
             ChordTension.eleventh,
           }),

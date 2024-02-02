@@ -24,8 +24,9 @@ void main() {
     const testCases = [
       _ChordTestCase('C', 'C', {0, 4, 7}),
       _ChordTestCase('Cm7', 'Cm7', {0, 3, 7, 10}),
+      _ChordTestCase('CM9', 'CM9', {0, 4, 7, 11, 2}),
       _ChordTestCase('D7', 'D7', {2, 6, 9, 0}),
-      // ChordTestCase('Amaj9', 'Amaj9', {9, 1, 5, 8, 0}),
+      _ChordTestCase('A9', 'A9', {9, 1, 4, 7, 11}),
       _ChordTestCase('G#m', 'G#m', {8, 11, 3}),
       _ChordTestCase('C6', 'C6', {0, 4, 7, 9}),
       _ChordTestCase('F#M7', 'F#M7', {6, 10, 1, 5}),
