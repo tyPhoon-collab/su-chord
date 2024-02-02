@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 import '../utils/histogram.dart';
+import 'musical_label.dart';
 
 typedef Notes = List<Note>;
 
@@ -85,17 +86,28 @@ class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
 }
 
 enum Accidental {
-  natural(label: ''),
-  sharp(label: '#'),
-  flat(label: 'b');
+  natural(MusicalLabel('', {L.verbose: '♮'})),
+  sharp(MusicalLabel('#', {L.verbose: '♯'})),
+  flat(MusicalLabel('b', {L.verbose: '♭'}));
 
-  const Accidental({required this.label});
+  const Accidental(this.label);
 
-  final String label;
+  factory Accidental.parse(String label) {
+    for (final value in values) {
+      if (value.label.all.contains(label)) return value;
+    }
+
+    throw ArgumentError();
+  }
+
+  final MusicalLabel label;
+
+  @override
+  String toString() => label.toString();
 }
 
 //ディグリーネームにおいて、シャープの表記は一般的でない
-//適当な実装なので、後でなんとかする
+//あまり重要なものではなく、適当な実装なので、後でなんとかする
 enum DegreeName implements Transposable<DegreeName> {
   I(label: 'I'),
   bII(label: 'bII'),
@@ -141,7 +153,23 @@ enum DegreeName implements Transposable<DegreeName> {
   final String label;
 }
 
-enum NaturalNote { C, D, E, F, G, A, B }
+enum NaturalNote {
+  C,
+  D,
+  E,
+  F,
+  G,
+  A,
+  B;
+
+  factory NaturalNote.parse(String label) {
+    for (final value in values) {
+      if (value.name == label) return value;
+    }
+
+    throw ArgumentError();
+  }
+}
 
 /// Note
 /// Do not use [index]. It will be nonintuitive
@@ -184,10 +212,27 @@ enum Note implements Transposable<Note>, DegreeIndex<Note> {
       : accidental = Accidental.flat;
 
   factory Note.parse(String label) {
-    for (final note in values) {
-      if (note.toString() == label) return note;
+    final exp = RegExp(r'^([A-G])(.*?)$');
+    final match = exp.firstMatch(label);
+
+    if (match == null) {
+      throw ArgumentError();
     }
-    throw ArgumentError();
+
+    try {
+      final naturalNote = NaturalNote.parse(match.group(1)!);
+      final accidental = Accidental.parse(match.group(2)!);
+
+      for (final note in values) {
+        if (note.naturalNote == naturalNote && note.accidental == accidental) {
+          return note;
+        }
+      }
+
+      throw ArgumentError();
+    } catch (_) {
+      rethrow;
+    }
   }
 
   final NaturalNote naturalNote;
@@ -201,7 +246,7 @@ enum Note implements Transposable<Note>, DegreeIndex<Note> {
   static int length = 12;
 
   @override
-  String toString() => naturalNote.name + accidental.label;
+  String toString() => naturalNote.name + accidental.toString();
 
   ///度数を渡すと新しいNoteを返す
   ///ex)

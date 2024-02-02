@@ -1,9 +1,9 @@
-import 'package:chord/domains/musical_label.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import 'chroma.dart';
 import 'equal_temperament.dart';
+import 'musical_label.dart';
 
 export 'equal_temperament.dart';
 
@@ -27,13 +27,21 @@ base class ChordBase<T> implements Transposable<T> {
 
     try {
       final type = ChordType.parse(match.group(1) ?? match.group(3) ?? '');
-      final qualities =
-          ChordTensions.parse((match.group(2) ?? '') + (match.group(4) ?? ''));
-      //現状はomit5のみ対応
-      final operation = ChordOperation.parse(match.group(5) ?? '');
-      //TODO コードタイプに対して可能なoperationかチェックする
 
-      return ChordBase(type: type, tensions: qualities, operation: operation);
+      final tensions =
+          ChordTensions.parse((match.group(2) ?? '') + (match.group(4) ?? ''));
+
+      if (!(tensions?.validate() ?? true)) {
+        throw ArgumentError('tensions is not validate');
+      }
+
+      final operation = ChordOperation.parse(match.group(5) ?? '');
+
+      if (!type.validate(tensions, operation)) {
+        throw ArgumentError(
+            'tensions and operation combination is not validate');
+      }
+      return ChordBase(type: type, tensions: tensions, operation: operation);
     } catch (e) {
       rethrow;
     }
@@ -164,7 +172,7 @@ final class Chord extends ChordBase<Chord> {
     super.tensions,
     super.operation,
   })  : assert(
-          tensions == null || type.validate(tensions),
+          type.validate(tensions, operation),
           'chordType: $type, availableTensions: ${type.availableTensions}, tensions: $tensions',
         ),
         notes = List.unmodifiable([
@@ -173,7 +181,11 @@ final class Chord extends ChordBase<Chord> {
         ]);
 
   factory Chord.parse(String chord) {
-    final exp = RegExp(r'^([A-G][#b]?)(.*?)$');
+    final exp = RegExp(
+      r'^([A-G]['
+      '${Accidental.values.map((e) => e.label.all).join()}'
+      r']?)(.*?)$',
+    );
     final match = exp.firstMatch(chord);
 
     if (match == null) throw ArgumentError('invalid in Chord: $chord');
@@ -245,20 +257,18 @@ enum ChordOperation {
       values.firstWhereOrNull((e) => e.label == label);
 }
 
-typedef _L = MusicalLabelType;
-
 ///基本的なコードタイプの情報を保持している
 ///dim7, m7b5もこちらに含める
 enum ChordType {
   major(
     {_D.P1, _D.M3, _D.P5},
-    MusicalLabel('', {_L.verbose: 'maj'}),
+    MusicalLabel(''),
     availableTensions: {...ChordTension.values},
     availableOperations: {ChordOperation.omit5},
   ),
   minor(
     {_D.P1, _D.m3, _D.P5},
-    MusicalLabel('m', {_L.verbose: 'min', _L.jazz: '-'}),
+    MusicalLabel('m', {L.jazz: '-'}),
     availableTensions: {
       ...ChordTension.normalTensions,
       ...ChordTension.tonicTensions
@@ -267,17 +277,17 @@ enum ChordType {
   ),
   diminish(
     {_D.P1, _D.m3, _D.dim5},
-    MusicalLabel('dim', {_L.jazz: 'o'}),
+    MusicalLabel('dim', {L.jazz: 'o'}),
     availableTensions: {},
   ),
   diminish7(
     {_D.P1, _D.m3, _D.dim5, _D.M6},
-    MusicalLabel('dim7', {_L.jazz: 'o7'}),
+    MusicalLabel('dim7', {L.jazz: 'o7'}),
     availableTensions: {},
   ),
   augment(
     {_D.P1, _D.M3, _D.aug5},
-    MusicalLabel('aug', {_L.jazz: '+'}),
+    MusicalLabel('aug', {L.jazz: '+'}),
     availableTensions: {ChordTension.seventh},
   ),
   sus2(
@@ -300,7 +310,7 @@ enum ChordType {
   ),
   minorSeventhFlatFive(
     {_D.P1, _D.m3, _D.dim5, _D.m7},
-    MusicalLabel('m7b5', {_L.jazz: 'ø'}),
+    MusicalLabel('m7b5', {L.verbose: 'm7(♭5)', L.jazz: 'ø'}),
     availableTensions: ChordTension.tonicTensions,
   );
 
@@ -336,8 +346,9 @@ enum ChordType {
   final Set<ChordTension> availableTensions;
   final Set<ChordOperation> availableOperations;
 
-  bool validate(ChordTensions tensions) =>
-      tensions.every((e) => availableTensions.contains(e));
+  bool validate(ChordTensions? tensions, ChordOperation? operation) =>
+      (tensions?.every((e) => availableTensions.contains(e)) ?? true) &&
+      (operation == null || availableOperations.contains(operation));
 
   Set<NamedDegree> toDegrees([ChordOperation? operation]) =>
       operation == null ? _degrees : operation(_degrees);
@@ -351,36 +362,38 @@ enum ChordType {
 
 ///コードタイプに追加で付与されうる音
 ///combinableがfalse同士は、どんな状況であっても音楽理論的に共存し得ない
-///これらの管理はChordQualitiesが行う
+///これらの管理やラベルのパースはChordQualitiesが行う
 enum ChordTension {
   //0  1 2  3 4 5  6 7  8 9 10 11
   //C C# D D# E F F# G G# A A# B
-  sixth(NamedDegree.M6, label: '6', combinable: false),
-  seventh(NamedDegree.m7, label: '7', combinable: false),
-  majorSeventh(NamedDegree.M7, label: 'M7', combinable: false),
-  flatNinth(NamedDegree.b9, label: 'b9'),
-  ninth(NamedDegree.M9, label: '9'),
-  sharpNinth(NamedDegree.s9, label: '#9'),
-  eleventh(NamedDegree.M11, label: '11'),
-  sharpEleventh(NamedDegree.s11, label: '#11'),
-  flatThirteenth(NamedDegree.b13, label: 'b13'),
-  thirteenth(NamedDegree.M13, label: '13');
+  sixth.basic(NamedDegree.M6, MusicalLabel('6')),
+  seventh.basic(NamedDegree.m7, MusicalLabel('7')),
+  majorSeventh.basic(
+      NamedDegree.M7,
+      MusicalLabel(
+        'M7',
+        {L.verbose: 'maj7', L.jazz: '△7'},
+      )),
+  flatNinth(NamedDegree.b9, MusicalLabel('b9', {L.verbose: '♭9'})),
+  ninth(NamedDegree.M9, MusicalLabel('9')),
+  sharpNinth(NamedDegree.s9, MusicalLabel('#9', {L.verbose: '♯9'})),
+  eleventh(NamedDegree.M11, MusicalLabel('11')),
+  sharpEleventh(NamedDegree.s11, MusicalLabel('#11', {L.verbose: '♯11'})),
+  flatThirteenth(NamedDegree.b13, MusicalLabel('b13', {L.verbose: '♭13'})),
+  thirteenth(NamedDegree.M13, MusicalLabel('13'));
 
-  const ChordTension(
-    this.degree, {
-    required this.label,
-    this.combinable = true,
-  });
+  const ChordTension(this.degree, this.label) : combinable = true;
+
+  const ChordTension.basic(this.degree, this.label) : combinable = false;
 
   factory ChordTension.parse(String label) {
     for (final quality in values) {
-      if (quality.label == label) return quality;
+      if (quality.label.all.contains(label)) return quality;
     }
     throw ArgumentError('Invalid label in ChordQuality $label');
   }
 
   static const tonicTensions = {ninth, eleventh, thirteenth};
-
   static const normalTensions = {sixth, seventh, majorSeventh};
 
   static const ninthTensions = {seventh, ninth};
@@ -397,10 +410,13 @@ enum ChordTension {
   };
 
   final NamedDegree degree;
-  final String label;
+  final MusicalLabel label;
   final bool combinable;
 
   Note toNote(Note root) => root.transpose(degree.degreeIndex);
+
+  @override
+  String toString() => label.toString();
 }
 
 @immutable
@@ -442,6 +458,11 @@ final class ChordTensions extends Iterable<ChordTension> {
 
   final Set<ChordTension> _values;
 
+  bool validate() =>
+      _values.isNotEmpty && _values.where((e) => !e.combinable).length <= 1;
+
+  Notes toNotes(Note root) => _values.map((e) => e.toNote(root)).toList();
+
   @override
   Iterator<ChordTension> get iterator => _values.iterator;
 
@@ -466,7 +487,8 @@ final class ChordTensions extends Iterable<ChordTension> {
     if (_match(ChordTension.majorEleventhTensions)) return 'M11';
     if (_match(ChordTension.majorThirteenthTensions)) return 'M13';
 
-    final base = _values.where((e) => !e.combinable).firstOrNull?.label ?? '';
+    final base =
+        _values.where((e) => !e.combinable).firstOrNull?.label.toString() ?? '';
     final tensions = _values.where((e) => e.combinable);
 
     if (tensions.isEmpty) {
@@ -478,10 +500,5 @@ final class ChordTensions extends Iterable<ChordTension> {
     }
   }
 
-  static bool validate(Set<ChordTension> values) =>
-      values.isNotEmpty && values.where((e) => !e.combinable).length <= 1;
-
   bool _match(Set<ChordTension> tensions) => setEquals(_values, tensions);
-
-  Notes toNotes(Note root) => _values.map((e) => e.toNote(root)).toList();
 }
