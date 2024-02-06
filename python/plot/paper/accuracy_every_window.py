@@ -1,6 +1,5 @@
 import os
 import sys
-from enum import StrEnum
 
 import japanize_matplotlib  # noqa
 import matplotlib
@@ -12,32 +11,21 @@ sys.path.append(".")
 
 import python.plot.ics_rcParams  # noqa
 from python.analyzer.analyze import get_scores_with_average  # noqa
+from python.const import (  # noqa
+    LINE_STYLES,
+    MARKER_STYLES,
+    WINDOW_SIZES,
+    Scaling,
+    WindowFunction,
+)
 from python.path_util import get_sorted_csv_paths  # noqa
 
-WINDOW_SIZES = [
-    1024,
-    2048,
-    4096,
-    8192,
-    16384,
-]
-
-
-class WindowFunction(StrEnum):
-    HANNING = ("hanning",)
-    HAMMING = ("hamming",)
-    BLACKMAN = ("blackman",)
-    BLACKMAN_HARRIS = ("blackmanHarris",)
-    BARTLETT = ("bartlett",)
-
+SCALE = Scaling.NONE
+WINDOW_FUNCTION = WindowFunction.HANNING
 
 DIRECTORY_PATH = (
     "test/outputs/cross_validations/window_function/chunkSize_{}__chunkStride_0__sampleRate_22050__window_{}"  # noqa
 )
-
-# MARKERS = ["o", "s", "^", "v", "<", ">", "x", "+", "*"]
-MARKERS = ["o", "s", "^", "*"]
-LINESTYLES = ["-", "--", "-.", ":"]
 
 plt.rcParams["font.size"] = 14
 # LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
@@ -45,15 +33,13 @@ LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平�
 
 
 def __get_index(basename: str) -> int:
-    # scale = "none"
-    scale = "ln"
-    if f"normal_distribution_comb_filter__stft_mags_{scale}_scaled" in basename:
+    if f"normal_distribution_comb_filter__stft_mags_{SCALE}_scaled" in basename:
         return 0
-    if f"et-scale_sparse_non_reassign_frequency_{scale}_scaled" in basename:
+    if f"et-scale_sparse_non_reassign_frequency_{SCALE}_scaled" in basename:
         return 1
-    if f"normal_distribution_comb_filter__sparse_mags_{scale}_scaled" in basename:
+    if f"normal_distribution_comb_filter__sparse_mags_{SCALE}_scaled" in basename:
         return 2
-    if f"et-scale_sparse_{scale}_scaled" in basename:
+    if f"et-scale_sparse_{SCALE}_scaled" in basename:
         return 3
 
     return -1
@@ -65,7 +51,7 @@ max_score = 0.0
 max_window = 0.0
 
 for i, size in enumerate(WINDOW_SIZES):
-    dir_path = DIRECTORY_PATH.format(size, WindowFunction.BLACKMAN)
+    dir_path = DIRECTORY_PATH.format(size, WINDOW_FUNCTION)
     paths = get_sorted_csv_paths(dir_path)
     if len(paths) == 0:
         print(f"There is no files window size of {size}. Please check directory path: {dir_path}")
@@ -88,8 +74,8 @@ for i, scores in enumerate(scores_list):
     plt.plot(
         WINDOW_SIZES,
         scores,
-        marker=MARKERS[i],
-        linestyle=LINESTYLES[i],
+        marker=MARKER_STYLES[i],
+        linestyle=LINE_STYLES[i],
         label=LABELS[i],
     )
 

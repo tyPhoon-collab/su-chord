@@ -10,16 +10,9 @@ import pandas as pd
 sys.path.append(".")
 
 from python.analyzer.analyze import get_scores_with_average  # noqa
+from python.const import WINDOW_SIZES  # noqa
 from python.path_util import get_sorted_csv_paths  # noqa
 from python.terminal_util import print_divider  # noqa
-
-WINDOW_LENGTHS = [
-    1024,
-    2048,
-    4096,
-    8192,
-    16384,
-]
 
 
 class FixedSize2DArray:
@@ -52,8 +45,7 @@ class LaTeXFormattable(ABC):
     """Tables to string and print it"""
 
     @abstractmethod
-    def __call__(self) -> None:
-        ...
+    def __call__(self) -> None: ...
 
     @classmethod
     def print(cls, key: str, fig: str) -> None:
@@ -80,7 +72,7 @@ class SimpleLaTeXFormatter(LaTeXFormattable):
                     "平均律ビン*",
                     "平均律ビン+対数*",
                 ],
-                columns=WINDOW_LENGTHS,
+                columns=WINDOW_SIZES,
             )
 
             self.print(key, fig)
@@ -103,7 +95,7 @@ class BoldLaTeXFormatter(LaTeXFormattable):
                     "平均律ビン*",
                     "平均律ビン+対数*",
                 ],
-                columns=WINDOW_LENGTHS,
+                columns=WINDOW_SIZES,
                 float_format=self.__fmt,
             )
 
@@ -163,7 +155,7 @@ def __get_index(basename: str) -> int:
 
 tables: Tables = {}
 
-for window_index, window_length in enumerate(WINDOW_LENGTHS):
+for window_index, window_length in enumerate(WINDOW_SIZES):
     dir_path = __get_experiment_dir_path(window_length)
 
     for path in get_sorted_csv_paths(dir_path):

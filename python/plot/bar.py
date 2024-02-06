@@ -1,11 +1,14 @@
 import argparse
+import sys
 from enum import StrEnum
 
 import matplotlib.pyplot as plt
 import ncsp_rcParams  # noqa
 from args import output, set_y_limit
 
-NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+sys.path.append(".")
+
+from python.const import CHROMAS  # noqa
 
 
 class XLabelType(StrEnum):
@@ -20,10 +23,10 @@ def __get_x_labels(x_label_type: XLabelType) -> list[str]:
         case XLabelType.NORMAL | XLabelType.NONE:
             return list(map(str, range(len(args.values))))
         case XLabelType.PCP:
-            return NOTES
+            return CHROMAS
         case XLabelType.PITCH:
             offset = 4  # E2 offset
-            return [f"{NOTES[i % 12]}{i // 12 + 2}" for i in range(offset, len(args.values) + offset)]
+            return [f"{CHROMAS[i % 12]}{i // 12 + 2}" for i in range(offset, len(args.values) + offset)]
 
     raise NotImplementedError("unexpected x label type")
 

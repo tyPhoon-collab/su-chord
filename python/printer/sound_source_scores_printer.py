@@ -5,11 +5,7 @@ import pandas as pd
 
 sys.path.append(".")
 
-from python.analyzer.analyze import (  # noqa
-    MUSIC_PIECES_LENGTH,
-    SOUND_SOURCE_LENGTH,
-    get_scores_with_average,
-)
+from python.analyzer.analyze import SOUND_SOURCE_LENGTH, get_scores_with_average  # noqa
 
 COLUMNS = ["GA" + str(i + 1) for i in range(SOUND_SOURCE_LENGTH)] + ["Average"]
 COLUMNS_JA = ["A", "B", "C", "D", "平均"]
