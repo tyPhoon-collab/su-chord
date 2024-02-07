@@ -36,7 +36,7 @@ final class ToTonalCentroid with _CalculateCentroid implements ChromaMappable {
   Chroma call(Chroma c) {
     assert(c.length == 12);
 
-    final List<double> centroids = [
+    final centroids = [
       ...calcCentroid(c, r1, 7 * pi / 6),
       ...calcCentroid(c, r2, 3 * pi / 2),
       ...calcCentroid(c, r3, 2 * pi / 3),

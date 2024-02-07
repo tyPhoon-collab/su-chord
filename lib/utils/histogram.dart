@@ -55,7 +55,7 @@ class WeightedHistogram2d {
   }
 
   //高速化のために、バイナリーサーチでどのビンに属するか取得する
-  int? _index(double val, List<double> bin) {
+  int? _index(double val, Bin bin) {
     if (val.isNaN || val < bin.first || bin.last <= val) return null;
 
     int left = 0;
