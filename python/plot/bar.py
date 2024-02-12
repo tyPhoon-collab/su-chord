@@ -65,6 +65,7 @@ if __name__ == "__main__":
 
     __set_figure_size(x_label_type)
 
+    # plt.bar(__get_x_labels(x_label_type), args.values, color="tab:red")
     plt.bar(__get_x_labels(x_label_type), args.values)
 
     __set_params(x_label_type)

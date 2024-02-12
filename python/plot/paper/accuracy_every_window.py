@@ -20,7 +20,8 @@ from python.const import (  # noqa
 )
 from python.path_util import get_sorted_csv_paths  # noqa
 
-SCALE = Scaling.NONE
+# SCALE = Scaling.NONE
+SCALE = Scaling.LN
 WINDOW_FUNCTION = WindowFunction.HANNING
 
 DIRECTORY_PATH = (
@@ -28,8 +29,8 @@ DIRECTORY_PATH = (
 )
 
 plt.rcParams["font.size"] = 14
-# LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
-LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
+LABELS = ["Comb", "ET-scale", "Comb*", "ET-scale*"]
+# LABELS = ["コムフィルタ", "平均律ビン", "コムフィルタ*", "平均律ビン*"]
 
 
 def __get_index(basename: str) -> int:

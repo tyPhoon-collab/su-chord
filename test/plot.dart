@@ -341,7 +341,7 @@ void main() {
 
         group('mean', () {
           final detectableChords = DetectableChords.conv;
-          const note = Note.C;
+          const note = Note.Fs;
           test('m mean', () async {
             final pcp = MeanTemplate.overtoneBy6th(detectableChords)
                 .buildMeanTemplate(note);
@@ -413,7 +413,7 @@ void main() {
         test('r C', () async {
           await plot(
             cc(await DataSet().C),
-            title: 'real C',
+            title: 'real C red',
           );
         });
 
@@ -831,6 +831,10 @@ void main() {
       });
       test('blackman', () async {
         await plot(NamedWindowFunction.blackman);
+      });
+
+      test('hanning', () async {
+        await plot(NamedWindowFunction.hanning);
       });
 
       test('derivative hanning', () async {
