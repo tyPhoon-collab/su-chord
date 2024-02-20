@@ -107,7 +107,7 @@ abstract class ChromaChordEstimator
   ChordProgression<Chord> estimateFromChroma(List<Chroma> chroma);
 
   @override
-  List<DebugChip> build() => [
+  List<DebugChip> build(context) => [
         DebugChip(
           titleText: 'Chromagram',
           builder: (_) => Chromagram(chromas: _slicedChromas),

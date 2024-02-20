@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'chord_search_tree.dart';
 
 abstract interface class HasDebugViews {
-  List<DebugChip> build();
+  List<DebugChip> build(BuildContext context);
 }
 
-class DebugChip extends StatefulWidget {
+class DebugChip extends ConsumerStatefulWidget {
   const DebugChip({
     super.key,
     required this.titleText,
@@ -15,11 +18,17 @@ class DebugChip extends StatefulWidget {
   final Widget Function(BuildContext) builder;
 
   @override
-  State<DebugChip> createState() => _DebugChipState();
+  ConsumerState<DebugChip> createState() => _DebugChipState();
 }
 
-class _DebugChipState extends State<DebugChip> {
-  bool isVisible = true;
+class _DebugChipState extends ConsumerState<DebugChip> {
+  bool _enable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _enable = ref.read(debugViewKeysProvider).contains(widget.titleText);
+  }
 
   @override
   Widget build(BuildContext context) => Card(
@@ -37,10 +46,18 @@ class _DebugChipState extends State<DebugChip> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        isVisible = !isVisible;
+                        _enable = !_enable;
+                        final keys = ref.read(debugViewKeysProvider);
+                        if (_enable) {
+                          keys.add(widget.titleText);
+                        } else {
+                          keys.remove(widget.titleText);
+                        }
                       });
                     },
-                    child: const Icon(Icons.crop_square),
+                    child: _enable
+                        ? const Icon(Icons.check_box_outlined)
+                        : const Icon(Icons.check_box_outline_blank),
                   ),
                   Text(
                     widget.titleText,
@@ -48,7 +65,7 @@ class _DebugChipState extends State<DebugChip> {
                   ),
                 ],
               ),
-              if (isVisible) ...[
+              if (_enable) ...[
                 const SizedBox(height: 8),
                 widget.builder(context),
               ] else

@@ -40,7 +40,7 @@ final factoryProvider = AutoDisposeProvider<EstimatorFactory>.internal(
 );
 
 typedef FactoryRef = AutoDisposeProviderRef<EstimatorFactory>;
-String _$estimatorsHash() => r'b6dc6fc5de366c8c6891d7bd081fbefb4804d5d8';
+String _$estimatorsHash() => r'dd58b0c5b6ba0c7465177f38a3b6a61ac7f3d22d';
 
 ///推定器の一覧
 ///フロントエンドでどの推定器を使うか選ぶことができる
@@ -73,7 +73,22 @@ final estimatorProvider = AutoDisposeFutureProvider<ChordEstimable>.internal(
 );
 
 typedef EstimatorRef = AutoDisposeFutureProviderRef<ChordEstimable>;
-String _$detectableChordsHash() => r'a55f08b0302bb762a0085b18d160e5f7b410aa2b';
+String _$debugViewKeysHash() => r'fc720c43a2adacc6426ee41f65266e9d5d0f7d7a';
+
+/// See also [debugViewKeys].
+@ProviderFor(debugViewKeys)
+final debugViewKeysProvider = Provider<Set<String>>.internal(
+  debugViewKeys,
+  name: r'debugViewKeysProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$debugViewKeysHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef DebugViewKeysRef = ProviderRef<Set<String>>;
+String _$detectableChordsHash() => r'5c373faa40af55b9881b09d9547978e3e32c60b0';
 
 /// See also [DetectableChords].
 @ProviderFor(DetectableChords)

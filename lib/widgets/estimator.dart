@@ -225,7 +225,7 @@ class _EstimatorDebugView extends ConsumerWidget {
             titleText: 'Estimator Details',
             builder: (_) => Text(_estimator.toString()),
           ),
-          ...has.build(),
+          ...has.build(context),
           DebugChip(
             titleText: 'Amplitude',
             builder: (_) => StreamBuilder(

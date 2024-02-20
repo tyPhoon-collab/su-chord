@@ -176,6 +176,9 @@ class IsVisibleDebug extends _$IsVisibleDebug {
 }
 
 @Riverpod(keepAlive: true)
+Set<String> debugViewKeys(DebugViewKeysRef ref) => {};
+
+@Riverpod(keepAlive: true)
 class IsSimplifyChordProgression extends _$IsSimplifyChordProgression {
   @override
   bool build() => true;
