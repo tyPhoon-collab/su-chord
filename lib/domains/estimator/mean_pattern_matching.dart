@@ -74,6 +74,9 @@ class MeanTemplate extends MeanTemplateContext {
         .map(templateContext.buildTemplate)
         .fold(Chroma.zero(12), (value, element) => value + element);
   }
+
+  @override
+  String toString() => 'none scaled';
 }
 
 class LnMeanTemplate extends MeanTemplateContext {
@@ -111,6 +114,9 @@ class LnMeanTemplate extends MeanTemplateContext {
           .fold(Chroma.zero(12), (value, element) => value + element),
     );
   }
+
+  @override
+  String toString() => 'ln scaled';
 }
 
 ///ルート音を基準としてグループ化する
