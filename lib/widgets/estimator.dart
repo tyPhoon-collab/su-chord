@@ -225,7 +225,6 @@ class _EstimatorDebugView extends ConsumerWidget {
             titleText: 'Estimator Details',
             builder: (_) => Text(_estimator.toString()),
           ),
-          ...has.build(context),
           DebugChip(
             titleText: 'Amplitude',
             builder: (_) => StreamBuilder(
@@ -238,6 +237,7 @@ class _EstimatorDebugView extends ConsumerWidget {
               ),
             ),
           ),
+          ...has.build(context),
         ],
       );
     }

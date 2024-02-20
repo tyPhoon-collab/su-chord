@@ -67,7 +67,13 @@ class _DebugChipState extends ConsumerState<DebugChip> {
               ),
               if (_enable) ...[
                 const SizedBox(height: 8),
-                widget.builder(context),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 480,
+                    maxHeight: 200,
+                  ),
+                  child: widget.builder(context),
+                ),
               ] else
                 const SizedBox(),
             ],
