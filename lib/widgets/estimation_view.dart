@@ -32,36 +32,35 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surfaceVariant;
-    final onSurface = Theme.of(context).colorScheme.onSurfaceVariant;
+    final colorScheme = Theme.of(context).colorScheme;
+    final surface = colorScheme.surfaceVariant;
+    final onSurface = colorScheme.onSurfaceVariant;
 
-    return Builder(
-      builder: (_) {
-        final recorder = ref.watch(globalRecorderProvider);
-        final estimator = ref.watch(estimatorProvider);
-        final context = ref.watch(factoryContextProvider);
+    final recorder = ref.watch(globalRecorderProvider);
+    final estimator = ref.watch(estimatorProvider);
+    final factoryContext = ref.watch(factoryContextProvider);
 
-        if (!estimator.hasValue) return const SizedBox();
+    if (!estimator.hasValue) return const SizedBox();
 
-        return ValueListenableBuilder(
-          valueListenable: recorder.state,
-          builder: (_, value, __) {
-            return Center(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: surface,
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(32),
-                          bottomRight: Radius.circular(32),
-                        ),
-                      ),
-                      child: DefaultTextStyle.merge(
-                        style: TextStyle(color: onSurface),
-                        child: value == RecorderState.stopped &&
-                                _progression.isEmpty
+    return ValueListenableBuilder(
+      valueListenable: recorder.state,
+      builder: (_, value, __) {
+        return Center(
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: surface,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
+                    ),
+                  ),
+                  child: DefaultTextStyle.merge(
+                    style: TextStyle(color: onSurface),
+                    child:
+                        value == RecorderState.stopped && _progression.isEmpty
                             ? const _WelcomeView()
                             : value == RecorderState.stopped
                                 ? _EstimatedView(
@@ -71,30 +70,28 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
                                 : _EstimatingStreamView(
                                     stream: recorder.stream,
                                     estimator: estimator.value!,
-                                    factoryContext: context,
+                                    factoryContext: factoryContext,
                                   ),
-                      ),
-                    ),
                   ),
-                  _EstimatorActionBar(
-                    recorder: recorder,
-                    recorderState: value,
-                    onStopped: () {
-                      setState(() {
-                        _progression = estimator.value!.flush();
-                      });
-                    },
-                    onFileLoaded: () async {
-                      await _estimateFromFileWithLoadingView(
-                        context.sampleRate,
-                        estimator.value!,
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
-            );
-          },
+              _EstimatorActionBar(
+                recorder: recorder,
+                recorderState: value,
+                onStopped: () {
+                  setState(() {
+                    _progression = estimator.value!.flush();
+                  });
+                },
+                onFileLoaded: () async {
+                  await _estimateFromFileWithLoadingView(
+                    factoryContext.sampleRate,
+                    estimator.value!,
+                  );
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -121,7 +118,9 @@ class _EstimatorPageState extends ConsumerState<EstimatorPage> {
   }
 
   Future<void> _estimateFromFile(
-      int sampleRate, ChordEstimable estimator) async {
+    int sampleRate,
+    ChordEstimable estimator,
+  ) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['wav'],
@@ -163,7 +162,6 @@ class _EstimatingStreamView extends StatelessWidget {
           // log(snapshot.requireData.buffer.length.toString());
 
           final data = snapshot.data!.downSample(factoryContext.sampleRate);
-
           final progression = estimator.estimate(data, false);
 
           return _EstimatedView(
@@ -200,7 +198,7 @@ class _EstimatedView extends ConsumerWidget {
           Visibility(
             visible: ref.watch(isVisibleDebugProvider),
             child: SingleChildScrollView(
-              child: _EstimatorDebugView(estimator),
+              child: _EstimationDebugView(estimator),
             ),
           ),
         ],
@@ -209,8 +207,8 @@ class _EstimatedView extends ConsumerWidget {
   }
 }
 
-class _EstimatorDebugView extends ConsumerWidget {
-  const _EstimatorDebugView(this._estimator);
+class _EstimationDebugView extends ConsumerWidget {
+  const _EstimationDebugView(this._estimator);
 
   final ChordEstimable _estimator;
 
