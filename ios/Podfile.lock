@@ -36,7 +36,7 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
-  - permission_handler_apple (9.1.1):
+  - permission_handler_apple (9.3.0):
     - Flutter
   - record_darwin (1.0.0):
     - Flutter
@@ -78,11 +78,11 @@ SPEC CHECKSUMS:
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: 15fd9539e4eb735dc54bae8c0534a7a9511a03de
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
+  permission_handler_apple: 036b856153a2b1f61f21030ff725f3e6fece2b78
   record_darwin: 1f6619f2abac4d1ca91d3eeab038c980d76f1517
   SDWebImage: 96e0c18ef14010b7485210e92fac888587ebb958
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
 
 PODFILE CHECKSUM: a2750e2fce335eaaaf4a76739af85767e4d78792
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2
