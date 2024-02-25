@@ -47,9 +47,6 @@ app.*.map.json
 # evaluation audio files. These will be BIG size
 /assets/evals
 
-# ignore vscode env
-.vscode
-
 # ignore test outputs
 /test/outputs/tmp.xlsx
 /test/outputs/plots/

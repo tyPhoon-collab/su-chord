@@ -1,0 +1,24 @@
+{
+    "recommendations": [
+        "MS-CEINTL.vscode-language-pack-ja",
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code",
+        "localizely.flutter-intl",
+        "robert-brunhage.flutter-riverpod-snippets",
+        "alexisvt.flutter-snippets",
+        "eamodio.gitlens",
+        "ms-vsliveshare.vsliveshare",
+        "yzhang.markdown-all-in-one",
+        "DavidAnson.vscode-markdownlint",
+        "christian-kohler.path-intellisense",
+        "jeroen-meijer.pubspec-assist",
+        "streetsidesoftware.code-spell-checker",
+        "Gruntfuggly.todo-tree",
+        "shardulm94.trailing-spaces",
+        "mosapride.zenkaku",
+        "usernamehw.errorlens",
+        "vscjava.vscode-gradle",
+        "ryanluker.vscode-coverage-gutters",
+        "flutterando.flutter-coverage",
+    ]
+}

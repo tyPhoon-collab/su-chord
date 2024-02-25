@@ -13,26 +13,5 @@ final darkTheme = _buildTheme(
 );
 
 ThemeData _buildTheme(ThemeData base, ColorScheme colorScheme) {
-  // final inputDecorationTheme = InputDecorationTheme(
-  //   border: OutlineInputBorder(
-  //     borderRadius: BorderRadius.circular(30),
-  //   ),
-  // );
-  // const bottomNavigationBarTheme = BottomNavigationBarThemeData(
-  //   selectedIconTheme: IconThemeData(size: 32),
-  // );
-
-  return base.copyWith(
-    colorScheme: colorScheme,
-    // bottomNavigationBarTheme: bottomNavigationBarTheme,
-    // inputDecorationTheme: inputDecorationTheme,
-    // listTileTheme: ListTileThemeData(
-    //   titleTextStyle: base.textTheme.labelMedium!.copyWith(
-    //     fontWeight: FontWeight.bold,
-    //     fontSize: 16,
-    //   ),
-    // ),
-    // textTheme: _buildTextTheme(base.textTheme, colorScheme)
-    //     .apply(fontFamily: 'ZenMaruGothic'),
-  );
+  return base.copyWith(colorScheme: colorScheme);
 }
