@@ -53,7 +53,8 @@ base class ChordBase implements Transposable {
     final type =
         "((?:${ChordType.patterns.expand((e) => e.label.all.map((e) => RegExp.escape(e))).where((e) => e.isNotEmpty).toSet().join('|')}))?";
     const tensions = '((?:6|7|9|11|13|M7|M9|M11|M13))?';
-    final sus = "((?:${ChordType.sus.expand((e) => e.label.all).join('|')}))?";
+    final sus =
+        "((?:${ChordType.suspends.expand((e) => e.label.all).join('|')}))?";
     const addition = '((?:add9|add11|add13))?';
     const operation = r'(\(omit5\))?';
 
@@ -87,7 +88,7 @@ base class ChordBase implements Transposable {
   @override
   String toString() {
     final tensionsString = tensions?.toString() ?? '';
-    final baseString = ChordType.sus.contains(type)
+    final baseString = ChordType.suspends.contains(type)
         ? '$tensionsString${type.label}'
         : '${type.label}$tensionsString';
     final operationString = operation?.label ?? '';
@@ -339,7 +340,7 @@ enum ChordType {
     minorSeventhFlatFive
   ];
 
-  static const sus = [sus4, sus2];
+  static const suspends = [sus4, sus2];
 
   final Set<NamedDegree> _degrees;
   final MusicalLabel label;
