@@ -5,8 +5,8 @@ import '../utils/table.dart';
 import 'annotation.dart';
 import 'chord_cell.dart';
 
-class ChordProgression<T extends ChordBase<T>> extends Iterable<ChordCell<T>>
-    implements Transposable<ChordProgression> {
+class ChordProgression<T extends ChordBase> extends Iterable<ChordCell<T>>
+    implements Transposable {
   const ChordProgression(this._values);
 
   static ChordProgression<Chord> chordEmpty() =>

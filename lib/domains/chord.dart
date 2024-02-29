@@ -8,7 +8,7 @@ import 'musical_label.dart';
 export 'equal_temperament.dart';
 
 @immutable
-base class ChordBase<T> implements Transposable<T> {
+base class ChordBase implements Transposable {
   const ChordBase({
     required this.type,
     this.tensions,
@@ -106,13 +106,13 @@ base class ChordBase<T> implements Transposable<T> {
   int get hashCode => type.hashCode ^ tensions.hashCode ^ operation.hashCode;
 
   @override
-  T transpose(int degree) {
+  Transposable transpose(int degree) {
     throw UnimplementedError();
   }
 }
 
 @immutable
-final class DegreeChord extends ChordBase<DegreeChord> {
+final class DegreeChord extends ChordBase {
   const DegreeChord(
     this.degreeName, {
     required super.type,
@@ -165,7 +165,7 @@ final class DegreeChord extends ChordBase<DegreeChord> {
 }
 
 @immutable
-final class Chord extends ChordBase<Chord> {
+final class Chord extends ChordBase {
   Chord.fromType({
     required super.type,
     required this.root,
