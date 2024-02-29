@@ -9,8 +9,8 @@ import 'musical_label.dart';
 
 typedef Notes = List<Note>;
 
-abstract interface class Transposable<T> {
-  T transpose(int degreeIndex);
+abstract interface class Transposable {
+  Transposable transpose(int degreeIndex);
 }
 
 abstract interface class DegreeIndex<T> {
@@ -22,7 +22,7 @@ extension ToHzList on List<Pitch> {
 }
 
 @immutable
-class Pitch implements Transposable<Pitch>, DegreeIndex<Pitch> {
+class Pitch implements Transposable, DegreeIndex<Pitch> {
   const Pitch(this.note, this.height);
 
   static const A0 = Pitch(Note.A, 0);
@@ -108,7 +108,7 @@ enum Accidental {
 
 //ディグリーネームにおいて、シャープの表記は一般的でない
 //あまり重要なものではなく、適当な実装なので、後でなんとかする
-enum DegreeName implements Transposable<DegreeName> {
+enum DegreeName implements Transposable {
   I(label: 'I'),
   bII(label: 'bII'),
   II(label: 'II'),
@@ -173,7 +173,7 @@ enum NaturalNote {
 
 /// Note
 /// Do not use [index]. It will be nonintuitive
-enum Note implements Transposable<Note>, DegreeIndex<Note> {
+enum Note implements Transposable, DegreeIndex<Note> {
   Bs.sharp(NaturalNote.B, 0),
   C.natural(NaturalNote.C, 0),
   Cs.sharp(NaturalNote.C, 1),

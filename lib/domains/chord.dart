@@ -8,7 +8,7 @@ import 'musical_label.dart';
 export 'equal_temperament.dart';
 
 @immutable
-base class ChordBase<T> implements Transposable<T> {
+base class ChordBase implements Transposable {
   const ChordBase({
     required this.type,
     this.tensions,
@@ -53,7 +53,8 @@ base class ChordBase<T> implements Transposable<T> {
     final type =
         "((?:${ChordType.patterns.expand((e) => e.label.all.map((e) => RegExp.escape(e))).where((e) => e.isNotEmpty).toSet().join('|')}))?";
     const tensions = '((?:6|7|9|11|13|M7|M9|M11|M13))?';
-    final sus = "((?:${ChordType.sus.expand((e) => e.label.all).join('|')}))?";
+    final sus =
+        "((?:${ChordType.suspends.expand((e) => e.label.all).join('|')}))?";
     const addition = '((?:add9|add11|add13))?';
     const operation = r'(\(omit5\))?';
 
@@ -87,7 +88,7 @@ base class ChordBase<T> implements Transposable<T> {
   @override
   String toString() {
     final tensionsString = tensions?.toString() ?? '';
-    final baseString = ChordType.sus.contains(type)
+    final baseString = ChordType.suspends.contains(type)
         ? '$tensionsString${type.label}'
         : '${type.label}$tensionsString';
     final operationString = operation?.label ?? '';
@@ -106,13 +107,13 @@ base class ChordBase<T> implements Transposable<T> {
   int get hashCode => type.hashCode ^ tensions.hashCode ^ operation.hashCode;
 
   @override
-  T transpose(int degree) {
+  Transposable transpose(int degree) {
     throw UnimplementedError();
   }
 }
 
 @immutable
-final class DegreeChord extends ChordBase<DegreeChord> {
+final class DegreeChord extends ChordBase {
   const DegreeChord(
     this.degreeName, {
     required super.type,
@@ -165,7 +166,7 @@ final class DegreeChord extends ChordBase<DegreeChord> {
 }
 
 @immutable
-final class Chord extends ChordBase<Chord> {
+final class Chord extends ChordBase {
   Chord.fromType({
     required super.type,
     required this.root,
@@ -339,7 +340,7 @@ enum ChordType {
     minorSeventhFlatFive
   ];
 
-  static const sus = [sus4, sus2];
+  static const suspends = [sus4, sus2];
 
   final Set<NamedDegree> _degrees;
   final MusicalLabel label;

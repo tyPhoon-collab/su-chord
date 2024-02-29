@@ -7,7 +7,7 @@ import 'chord.dart';
 export 'chord.dart';
 
 @immutable
-class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
+class ChordCell<T extends ChordBase> implements Transposable {
   const ChordCell({
     this.chord,
     this.time,
@@ -28,7 +28,7 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
 
   @override
   ChordCell<T> transpose(int degree) =>
-      ChordCell(chord: chord?.transpose(degree), time: time);
+      ChordCell(chord: chord?.transpose(degree) as T?, time: time);
 
   @override
   bool operator ==(Object other) {
@@ -100,7 +100,7 @@ class ChordCell<T extends ChordBase<T>> implements Transposable<ChordCell<T>> {
   }
 }
 
-class MultiChordCell<T extends ChordBase<T>> extends ChordCell<T> {
+class MultiChordCell<T extends ChordBase> extends ChordCell<T> {
   const MultiChordCell({
     this.chords = const [],
     super.chord,
@@ -116,8 +116,8 @@ class MultiChordCell<T extends ChordBase<T>> extends ChordCell<T> {
 
   @override
   MultiChordCell<T> transpose(int degree) => MultiChordCell(
-        chords: chords.map((e) => e.transpose(degree)).toList(),
-        chord: chord?.transpose(degree),
+        chords: chords.map((e) => e.transpose(degree) as T).toList(),
+        chord: chord?.transpose(degree) as T?,
         time: time,
       );
 
